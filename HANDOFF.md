@@ -34,8 +34,9 @@ Pages. Build is complete and QA-passed locally.
 - [ ] After deploy: set `SITE_URL` to the pages.dev URL, rebuild, push (updates
       canonical/hreflang/sitemap).
 - [ ] NOT Google-Ads-ready until real licensed photos + business legal info verified.
-- [ ] Real photos: all placeholders; reuse rights from egipskiewakacje.pl
-      unconfirmed. See IMAGE_AUDIT.md.
+- [x] Real photos: 9/11 excursions + hero now use owner-held photos from
+      ahmedBahgatt/egipskiewakacje.pl (owner-asserted rights). Pending: go-kart
+      (no match) + lion cub (restricted). See IMAGE_AUDIT.md.
 - [ ] Lion cub tour: hidden by default (PROMOTE_LION_CUB=False) pending legal +
       animal-welfare + ad-policy review.
 - [ ] Business legal info (address, licence, email/phone) to be supplied by owner.
