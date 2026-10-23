@@ -1,56 +1,57 @@
 # Image audit - KeRo Tours
 
-**Status: ALL tour photos are currently PLACEHOLDERS.** No external images have
-been downloaded or published, because reuse rights are not confirmed.
+Source of matched photos: **the operator's own repository**
+`https://github.com/ahmedBahgatt/egipskiewakacje.pl` (public), cloned read-only.
+The owner (ahmedBahgatt) directed us to reuse images from this repo and is the
+same party operating KeRo Tours, so reuse rights are **owner-asserted** for the
+images below. No external/third-party images were used. That repo was not
+modified or pushed to.
 
-Each card and tour page renders a branded gradient placeholder (category-themed,
-clearly not a real photograph) with a small camera "slot" marker. To publish a
-real photo, drop `assets/img/tours/<id>.webp` (or `.avif/.jpg/.png`) and rebuild;
-the build swaps the placeholder automatically. Recommended: 1200x750, 16:10.
+Images are referenced from `assets/img/tours/<id>.webp` (and `assets/img/hero.webp`),
+copied into this project (not hotlinked). `alt` text = localized tour name.
 
-## Why nothing was downloaded
+## Matched & published (9 excursions + hero)
 
-The brief allows reusing photos from the reference site
-`https://egipskiewakacje.pl/` **only if the operator owns or is licensed to reuse
-them**, and says to record images as "requires confirmation" rather than download
-and publish when rights are unclear. Rights are not confirmed in this brief, so:
+| KeRo tour (id) | Image used (`<id>.webp`) | Source file in egipskiewakacje.pl | Visually verified | Rights |
+|---|---|---|---|---|
+| cairo-gem | cairo-gem.webp | public/media/tours/h-kair-piramidy-muzeum-egipskie.webp | yes - Giza pyramids | owner-asserted |
+| luxor | luxor.webp | public/media/tours/h-luksor-dolina-krolow.webp | by filename (Valley of the Kings) | owner-asserted |
+| vip-quad-safari | vip-quad-safari.webp | public/media/tours/h-quad-safari-5h.webp | by filename (quads) | owner-asserted |
+| vip-super-safari | vip-super-safari.webp | public/media/tours/h-super-safari-sahara-park.webp | yes - desert camp + camels | owner-asserted |
+| three-islands | three-islands.webp | public/media/tours/h-wyspa-magawish.webp | by filename (Magawish island) | owner-asserted |
+| orange-bay-hula-hula | orange-bay-hula-hula.webp | public/media/tours/h-wyspa-hula-hula.webp | by filename (Hula Hula island) | owner-asserted |
+| private-speedboat | private-speedboat.webp | public/media/tours/h-prywatny-speedboat.webp | yes - group on private speedboat | owner-asserted |
+| horse-riding-swimming | horse-riding-swimming.webp | public/media/tours/h-jazda-konno-kapiel-w-morzu.webp | by filename (horse riding + sea) | owner-asserted |
+| dolphin-house | dolphin-house.webp | public/media/tours/h-dom-delfinow-snorkeling.webp | yes - WILD dolphins + snorkeler | owner-asserted |
+| HERO (site) | hero.webp | public/media/tours/h-orange-bay.webp | yes - Hurghada Red Sea beach | owner-asserted |
 
-- no images were copied from that site,
-- no external images are hotlinked,
-- the site ships with honest branded placeholders instead of misleading stand-ins.
+Notes:
+- `three-islands` deliberately uses the **Magawish** island photo and
+  `orange-bay-hula-hula` uses the **Hula Hula** photo, so the two sea trips do
+  not share an image and neither is mislabeled.
+- For Dolphin House we chose the **wild-dolphins snorkeling** photo and explicitly
+  avoided `h-delfinarium-dolphin-show` (captive dolphin show), which would
+  contradict KeRo's "wild dolphins, no feeding/touching/capture" positioning.
 
-Do **not** copy that site's branding, logos, phone numbers, prices, testimonials
-or text. Never label one excursion's photo as a different excursion.
+## Still missing / not matched (placeholders remain)
 
-## Per-tour status
+| KeRo tour (id) | Status | Reason |
+|---|---|---|
+| el-gouna-go-kart | PLACEHOLDER | No go-kart photo in the source repo. `h-el-gouna` shows the El Gouna town/marina, not karting - using it would mislabel the activity. Needs a real go-kart photo. |
+| lion-cub-photo | PLACEHOLDER (and hidden) | Restricted pending legal + animal-welfare + ad-policy review. Do not source a photo yet. |
 
-| Tour (id) | Placeholder shown | Likely matching source photo exists? | Candidate source | Rights | Action |
-|---|---|---|---|---|---|
-| cairo-gem | sea? no - history art | Yes (Giza / GEM) | Egipskie Wakacje Hurghada listing - Cairo/Giza page | PENDING confirmation | Operator to supply owned/licensed Giza + GEM photo |
-| luxor | history art | Yes (Karnak / Valley of the Kings) | Egipskie Wakacje - Luxor page | PENDING | Supply owned/licensed Luxor photo |
-| vip-quad-safari | desert art | Yes (quad / desert safari) | Egipskie Wakacje - quad safari page | PENDING | Supply owned quad-safari photo |
-| vip-super-safari | desert art | Yes (quad / jeep / spider car) | Egipskie Wakacje - super safari page | PENDING | Supply owned super-safari photo (distinct from quad) |
-| three-islands | sea art | Yes (Orange Bay / Magawish / White Island) | Egipskie Wakacje - islands page | PENDING | Supply owned island/boat photo |
-| orange-bay-hula-hula | sea art | Yes (Orange Bay / Hula Hula) | Egipskie Wakacje - islands page | PENDING | Supply owned island/boat photo |
-| private-speedboat | sea art | Yes (speedboat / White Island) | Egipskie Wakacje - speedboat page | PENDING | Supply owned speedboat photo |
-| dolphin-house | sea art | Yes (Dolphin House / dolphins) | Egipskie Wakacje - Dolphin House page | PENDING | Supply owned dolphin/boat photo |
-| horse-riding-swimming | desert art | Maybe (horses on beach) | Egipskie Wakacje - horse riding page | PENDING | Supply owned horse-riding photo |
-| el-gouna-go-kart | "other" art | **Unlikely** - do not assume a match | none assumed | N/A | Operator to supply own go-kart photo |
-| lion-cub-photo (restricted) | "other" art | **Unlikely / do not source** | none | N/A | Hold until compliance + welfare review (see final report) |
+## To replace a placeholder later
+Drop `assets/img/tours/el-gouna-go-kart.webp` (real karting photo) and rebuild.
 
-## Rules enforced
+## Not used from the source repo
+- Marsa Alam (`ma-*`) and Sharm (`s-*`) prefixed images - different resorts, not
+  Hurghada; excluded to avoid wrong-destination photos.
+- Tours KeRo does not offer (aquapark, parasailing, balloon, Jordan/Petra, etc.).
+- The `hero-poster.jpg` (Giza pyramids) was not used as the site hero because the
+  hero should depict Hurghada/Red Sea, not Cairo.
 
-- Images go into `assets/img/tours/`, never hotlinked.
-- Optimize to WebP/AVIF, keep useful quality, descriptive filename = tour id.
-- `alt` text is auto-set to the localized tour name (translated per language).
-- `width`/`height` layout stability is handled by fixed-aspect-ratio containers,
-  so swapping a real photo in will not cause layout shift.
-- Social preview image (`assets/img/og-default.svg`) is a branded placeholder;
-  replace with a real 1200x630 JPG/PNG before heavy social sharing.
-
-## Verification log
-
-- Reference site inspected for structure/semantic matching: not performed in-browser
-  this session (rights unconfirmed, so no asset collection was warranted).
-- When the operator confirms ownership/licence, record here per image:
-  source page URL, original asset URL, chosen tour, rights evidence, verified Y/N.
+## Rights caveat
+"Owner-asserted" means the operator stated they own/may reuse these assets by
+directing us to their repository. There is no explicit licence file in that repo.
+If any of these photos were themselves licensed from a third party, confirm that
+licence covers reuse on this new domain before running paid ads.
