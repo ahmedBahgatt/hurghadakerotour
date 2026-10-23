@@ -23,11 +23,13 @@ Pages. Build is complete and QA-passed locally.
 - `README.md`, `IMAGE_AUDIT.md`, `.gitignore`, this file
 - generated: `dist/**`
 
+## 3b. Git / remote
+- Private repo created and pushed: https://github.com/ahmedBahgatt/kero-tours-landing
+  (owner ahmedBahgatt, confirmed by user). Branch `main`.
+
 ## 4. Next steps / blockers
 - [ ] LAUNCH BLOCKER: set real `WHATSAPP_NUMBER` in `site_config.py`, rebuild.
-- [ ] Remote git owner: two GitHub accounts logged in (ahmedBahgatt /
-      ashsalem-medix). Paused before creating/pushing the remote - needs owner
-      choice. Local commit may be made on request.
+- [ ] Deploy on Cloudflare Pages (README section 4). No live URL yet.
 - [ ] Real photos: all placeholders; reuse rights from egipskiewakacje.pl
       unconfirmed. See IMAGE_AUDIT.md.
 - [ ] Lion cub tour: hidden by default (PROMOTE_LION_CUB=False) pending legal +
