@@ -81,10 +81,24 @@ for the image-rights status. For the hero, add `assets/img/hero.webp`.
 `data/tours.py` -> set the tour's `"active": False` -> rebuild. It stays in the
 data but is removed from all pages, the sitemap and internal links.
 
+### Excursion categories (homepage)
+The homepage groups tours into four sections (Sea & Islands, Desert & Safari,
+History & Culture, Activities). A tour's section is its `"category"` in
+`data/tours.py` (`sea_islands` | `desert_safari` | `history_culture` |
+`activities`). Category labels/intros live in `data/i18n.py`.
+
+### Photo galleries (detail pages)
+Each tour detail page shows a gallery. Put up to 5 images in
+`assets/img/gallery/<tour-id>/` named `01.webp`, `02.webp`, ... The first is the
+cover + gallery main; add or remove files and rebuild. With one image the gallery
+shows a single photo; with none it shows a branded placeholder. See IMAGE_AUDIT.md.
+
 ### The lion cub experience
-It is preserved in `data/tours.py` but **hidden by default** for compliance
-review (see section 6). To publish it after review, set
-`PROMOTE_LION_CUB = True` in `site_config.py`.
+Published in the Activities category (owner request) with a factual disclaimer.
+`LION_CUB_PUBLISHED = True` controls catalog visibility; `SHOW_LION_ADDON`
+controls the safari add-on (default False). `LION_CUB_ADS_ELIGIBLE = False`:
+keep this tour's URL OUT of Google Ads until legal + animal-welfare + facility +
+ad-policy review is signed off.
 
 ---
 

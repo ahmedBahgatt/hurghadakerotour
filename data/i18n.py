@@ -18,18 +18,40 @@ PATH_TOURS = {"fr": "excursions", "pl": "wycieczki", "ro": "excursii"}
 HTML_LANG = {"fr": "fr", "pl": "pl", "ro": "ro"}
 OG_LOCALE = {"fr": "fr_FR", "pl": "pl_PL", "ro": "ro_RO"}
 
-# Category labels (ids come from tours.py)
+# Macro-category labels (ids come from tours.py)
 CATEGORIES = {
-    "fr": {"history": "Histoire", "sea_islands": "Mer & îles",
-           "desert_adventure": "Désert & aventure", "other": "Autres expériences"},
-    "pl": {"history": "Historia", "sea_islands": "Morze i wyspy",
-           "desert_adventure": "Pustynia i przygoda", "other": "Inne doświadczenia"},
-    "ro": {"history": "Istorie", "sea_islands": "Mare și insule",
-           "desert_adventure": "Deșert și aventură", "other": "Alte experiențe"},
+    "fr": {"sea_islands": "Mer & Îles", "desert_safari": "Safari & Désert",
+           "history_culture": "Histoire & Culture", "activities": "Activités & Expériences"},
+    "pl": {"sea_islands": "Morze i Wyspy", "desert_safari": "Safari i Pustynia",
+           "history_culture": "Historia i Kultura", "activities": "Atrakcje i Wyjątkowe Przeżycia"},
+    "ro": {"sea_islands": "Mare și Insule", "desert_safari": "Safari și Deșert",
+           "history_culture": "Istorie și Cultură", "activities": "Activități și Experiențe Speciale"},
 }
 
-# Category display order for filters
-CATEGORY_ORDER = ["history", "sea_islands", "desert_adventure", "other"]
+# Homepage category order
+CATEGORY_ORDER = ["sea_islands", "desert_safari", "history_culture", "activities"]
+
+# Short, persuasive localized intro per category (homepage section lead-in)
+CATEGORY_INTRO = {
+    "fr": {
+        "sea_islands": "Îles paradisiaques, lagons turquoise et snorkeling sur les récifs de la mer Rouge.",
+        "desert_safari": "Adrénaline dans le désert : quad, jeep, village bédouin et soirée orientale.",
+        "history_culture": "Les grands trésors de l'Égypte ancienne, au départ de Hurghada.",
+        "activities": "Des expériences uniques pour pimenter vos vacances à Hurghada.",
+    },
+    "pl": {
+        "sea_islands": "Rajskie wyspy, turkusowe laguny i snorkeling na rafach Morza Czerwonego.",
+        "desert_safari": "Adrenalina na pustyni: quady, jeep, wioska beduińska i orientalny wieczór.",
+        "history_culture": "Największe skarby starożytnego Egiptu - z wyjazdem z Hurghady.",
+        "activities": "Wyjątkowe doświadczenia, które urozmaicą wakacje w Hurghadzie.",
+    },
+    "ro": {
+        "sea_islands": "Insule paradisiace, lagune turcoaz și snorkeling pe recifele Mării Roșii.",
+        "desert_safari": "Adrenalină în deșert: ATV, jeep, sat beduin și seară orientală.",
+        "history_culture": "Marile comori ale Egiptului antic, cu plecare din Hurghada.",
+        "activities": "Experiențe unice care îți condimentează vacanța la Hurghada.",
+    },
+}
 
 T = {
     # =====================================================================
@@ -103,9 +125,16 @@ T = {
         "group_base_label": "Forfait de base",
         "persons": "pers.",
 
-        "label_program": "Au programme",
+        "label_experience": "Points forts",
+        "label_program": "Programme de l'excursion",
+        "label_practical": "Infos pratiques",
         "label_included": "Ce qui est inclus",
         "label_conditions": "À savoir",
+        "nav_excursions_all": "Toutes les excursions",
+        "gallery_prev": "Image précédente",
+        "gallery_next": "Image suivante",
+        "gallery_close": "Fermer",
+        "gallery_open": "Agrandir la photo",
         "label_addons": "Options",
         "label_addon_price": "en supplément",
         "label_related": "Autres excursions",
@@ -203,9 +232,16 @@ T = {
         "group_base_label": "Pakiet podstawowy",
         "persons": "os.",
 
-        "label_program": "W programie",
+        "label_experience": "Najważniejsze",
+        "label_program": "Program wycieczki",
+        "label_practical": "Informacje praktyczne",
         "label_included": "Co obejmuje",
         "label_conditions": "Dobrze wiedzieć",
+        "nav_excursions_all": "Wszystkie wycieczki",
+        "gallery_prev": "Poprzednie zdjęcie",
+        "gallery_next": "Następne zdjęcie",
+        "gallery_close": "Zamknij",
+        "gallery_open": "Powiększ zdjęcie",
         "label_addons": "Opcje dodatkowe",
         "label_addon_price": "dopłata",
         "label_related": "Inne wycieczki",
@@ -303,9 +339,16 @@ T = {
         "group_base_label": "Pachet de bază",
         "persons": "pers.",
 
-        "label_program": "În program",
+        "label_experience": "Puncte forte",
+        "label_program": "Programul excursiei",
+        "label_practical": "Informații practice",
         "label_included": "Ce include",
         "label_conditions": "De știut",
+        "nav_excursions_all": "Toate excursiile",
+        "gallery_prev": "Imaginea anterioară",
+        "gallery_next": "Imaginea următoare",
+        "gallery_close": "Închide",
+        "gallery_open": "Mărește fotografia",
         "label_addons": "Opțiuni suplimentare",
         "label_addon_price": "supliment",
         "label_related": "Alte excursii",

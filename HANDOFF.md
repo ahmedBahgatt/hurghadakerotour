@@ -1,44 +1,41 @@
-# HANDOFF - KeRo Tours landing site
+# HANDOFF - KeRo Tours landing site (V2)
 
 ## 1. Current objective
-Production-ready static multilingual (FR/PL/RO) VIP excursions site for Hurghada
-KeRo Tours, WhatsApp booking, Google-Ads-ready, deployable free on Cloudflare
-Pages. Build is complete and QA-passed locally.
+Production multilingual (FR/PL/RO) VIP excursions site for Hurghada KeRo Tours.
+V2 redesign done: 4-category homepage, Excursions dropdown, per-tour photo
+galleries + lightbox, expanded tour content, official logo/favicon, lion cub
+published (ads-excluded), production domain SEO.
 
 ## 2. State
 - Generator: `build.py` (Python stdlib only). `python3 build.py` -> `dist/`.
-- 35 pages built: root splash + 3 homepages + 30 tour pages (10 public tours x 3
-  langs) + 404. All 11 tours in `data/tours.py`.
-- Prices verified against brief (all EUR). Speedboat = EUR150 total (base 2-5).
-- WhatsApp buttons all render "pending/disabled" (number not set).
-- HTML validated (35/35 well-formed, 1x h1, canonical/lang/title each).
-- Visual QC in Chrome: FR/PL/RO render, diacritics correct, placeholders per
-  category, mobile layout + floating WhatsApp OK. (English text seen in a
-  screenshot was Chrome auto-translate, not a build issue - raw HTML is correct.)
+- SITE_URL = https://kero-tours-hurghada.pages.dev (production).
+- 38 pages: root + 3 homepages + 33 tour pages (11 tours x 3 langs) + 404.
+- Homepage = 4 category sections (Sea & Islands / Desert & Safari / History &
+  Culture / Activities), each tour exactly once. No featured/all duplication.
+- Galleries: 28 real photos across 9 tours (cover + up to 5). go-kart + lion cub
+  are branded placeholders. Lightbox + thumbnails + swipe.
+- Lion cub: published in Activities with factual "A savoir" disclaimer;
+  ads_safe=False, LION_CUB_ADS_ELIGIBLE=False (keep OUT of Google Ads).
+- WhatsApp 201278378685: all booking links live, localized per tour.
+- Favicon/apple-touch/OG = the FULL supplied logo (owner request).
+- QA: 38/38 HTML valid; canonical/hreflang/sitemap on production domain; 0 stale
+  kero-tours-landing refs; dropdown + gallery + lightbox verified in browser.
 
-## 3. Recently modified / created files
-- `build.py`, `site_config.py`
-- `data/tours.py`, `data/i18n.py`, `data/__init__.py`
-- `assets/css/styles.css`, `assets/js/app.js`, `assets/js/config.js`
-- `README.md`, `IMAGE_AUDIT.md`, `.gitignore`, this file
-- generated: `dist/**`
-
-## 3b. Git / remote
-- Private repo created and pushed: https://github.com/ahmedBahgatt/kero-tours-landing
-  (owner ahmedBahgatt, confirmed by user). Branch `main`.
+## 3. Recently modified
+- site_config.py (SITE_URL, LION_CUB_PUBLISHED, SHOW_LION_ADDON, LION_CUB_ADS_ELIGIBLE)
+- data/tours.py (4 categories, program stages, practical info, lion published)
+- data/i18n.py (category labels + intros, dropdown/gallery/program/practical labels)
+- build.py (category homepage, dropdown nav, gallery+lightbox, logo, favicon/og)
+- assets/css/styles.css (dropdown, catbar, gallery, lightbox, program, logo)
+- assets/js/app.js (dropdown, gallery, lightbox)
+- assets/img/ (logo.png, favicon*, apple-touch, og-logo, tours/*, gallery/*, hero)
+- IMAGE_AUDIT.md, README.md, this file
 
 ## 4. Next steps / blockers
-- [x] WhatsApp number set: 201278378685 (+20 127 837 8685). 672 live links, 0 pending.
-      Also added to footer business contact.
-- [ ] Deploy on Cloudflare Pages (README section 4). No live URL yet.
-- [ ] After deploy: set `SITE_URL` to the pages.dev URL, rebuild, push (updates
-      canonical/hreflang/sitemap).
-- [ ] NOT Google-Ads-ready until real licensed photos + business legal info verified.
-- [x] Real photos: 9/11 excursions + hero now use owner-held photos from
-      ahmedBahgatt/egipskiewakacje.pl (owner-asserted rights). Pending: go-kart
-      (no match) + lion cub (restricted). See IMAGE_AUDIT.md.
-- [ ] Lion cub tour: hidden by default (PROMOTE_LION_CUB=False) pending legal +
-      animal-welfare + ad-policy review.
-- [ ] Business legal info (address, licence, email/phone) to be supplied by owner.
-- [ ] After deploy: set `SITE_URL` to the real pages.dev URL and rebuild.
-- [ ] Optional: GA4 / Google Ads IDs when available.
+- [ ] Push triggers Cloudflare auto-deploy; verify build on the existing project.
+- [ ] Galleries: 28/55. Add remaining photos into assets/img/gallery/<id>/ later.
+- [ ] el-gouna-go-kart photo + lion cub photo still missing (placeholders).
+- [ ] Lion cub: do NOT use as a Google Ads final URL until legal + welfare +
+      facility + ad-policy review is signed off.
+- [ ] Business legal info (address, licence, email) still owner-supplied = empty.
+- [ ] NOT Google-Ads-ready until go-kart photo + business info verified.

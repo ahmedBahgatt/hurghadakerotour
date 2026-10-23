@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Static site generator for Hurghada KeRo Tours & Transfer.
-
+Static site generator for Hurghada KeRo Tours & Transfer (V2).
 Zero runtime dependencies (Python 3 standard library only).
 Run:  python3 build.py   ->  outputs the full static site into ./dist
-
-What it produces:
-  dist/index.html                      language splash (/) with x-default hreflang
-  dist/{fr,pl,ro}/index.html           localized homepages
-  dist/{fr}/excursions/{slug}/         localized tour detail pages
-  dist/{pl}/wycieczki/{slug}/
-  dist/{ro}/excursii/{slug}/
-  dist/assets/...                       css / js / images (copied)
-  dist/sitemap.xml, robots.txt, 404.html
 """
 
 import html
@@ -25,7 +15,7 @@ from urllib.parse import quote
 
 import site_config as cfg
 from data.i18n import (T, LANG_ORDER, LANG_NATIVE, PATH_TOURS, HTML_LANG,
-                       OG_LOCALE, CATEGORIES, CATEGORY_ORDER)
+                       OG_LOCALE, CATEGORIES, CATEGORY_ORDER, CATEGORY_INTRO)
 from data.tours import TOURS
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -34,17 +24,14 @@ SRC_ASSETS = os.path.join(ROOT, "assets")
 YEAR = date.today().year
 IMG_EXTS = (".avif", ".webp", ".jpg", ".jpeg", ".png")
 
-# ---------------------------------------------------------------------------
-# escaping helpers
-# ---------------------------------------------------------------------------
-def esc(s):   # visible text
+def esc(s):
     return html.escape(str(s), quote=False)
 
-def esca(s):  # attribute value
+def esca(s):
     return html.escape(str(s), quote=True)
 
 # ---------------------------------------------------------------------------
-# icons (professional line/solid SVG - no emoji)
+# icons
 # ---------------------------------------------------------------------------
 def _line(path, extra=""):
     return ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
@@ -73,34 +60,42 @@ ICON = {
     "phone": _line('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/>'),
     "mail": _line('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
     "arrow": _line('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'),
-    "arrow_left": _line('<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>'),
+    "chevron": _line('<path d="m6 9 6 6 6-6"/>'),
+    "boat": _line('<path d="M3 15h18l-2 4a2 2 0 0 1-1.8 1H6.8A2 2 0 0 1 5 19z"/><path d="M5 15V8l7-3 7 3v7"/><path d="M12 5V2"/>'),
+    "sun": _line('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+    "landmark": _line('<path d="M3 21h18"/><path d="M5 21V10M10 21V10M14 21V10M19 21V10"/><path d="m3 10 9-6 9 6z"/>'),
+    "sparkle": _line('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>'),
+    "zoom": _line('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/>'),
+    "close": _line('<path d="M18 6 6 18M6 6l12 12"/>'),
 }
 
+CATEGORY_ICON = {"sea_islands": "boat", "desert_safari": "sun",
+                 "history_culture": "landmark", "activities": "sparkle"}
+
 # ---------------------------------------------------------------------------
-# placeholder art (branded gradient slots - NOT fake photos)
+# placeholder art
 # ---------------------------------------------------------------------------
 _PH_COLORS = {
     "sea_islands":      ("#13c2d1", "#07697a"),
-    "desert_adventure": ("#efc879", "#bb7d1e"),
-    "history":          ("#e0bd8e", "#8f5a2a"),
-    "other":            ("#19bcc9", "#0d5a67"),
+    "desert_safari":    ("#efc879", "#bb7d1e"),
+    "history_culture":  ("#e0bd8e", "#8f5a2a"),
+    "activities":       ("#19bcc9", "#0d5a67"),
 }
 _ph_counter = [0]
 
 def placeholder_svg(category, cls="ph"):
-    c1, c2 = _PH_COLORS.get(category, _PH_COLORS["other"])
+    c1, c2 = _PH_COLORS.get(category, _PH_COLORS["activities"])
     _ph_counter[0] += 1
     gid = "g%d" % _ph_counter[0]
-    # category motif
     if category == "sea_islands":
         motif = ('<path d="M0 360 Q200 320 400 360 T800 360 V500 H0 Z" fill="#ffffff" opacity=".10"/>'
                  '<path d="M0 410 Q200 375 400 410 T800 410 V500 H0 Z" fill="#ffffff" opacity=".14"/>'
                  '<circle cx="650" cy="120" r="54" fill="#ffffff" opacity=".22"/>')
-    elif category == "desert_adventure":
+    elif category == "desert_safari":
         motif = ('<circle cx="640" cy="130" r="56" fill="#ffffff" opacity=".28"/>'
                  '<path d="M0 380 Q250 300 480 370 T800 350 V500 H0 Z" fill="#ffffff" opacity=".12"/>'
                  '<path d="M0 430 Q300 370 560 420 T800 410 V500 H0 Z" fill="#000000" opacity=".06"/>')
-    elif category == "history":
+    elif category == "history_culture":
         motif = ('<circle cx="650" cy="120" r="48" fill="#ffffff" opacity=".22"/>'
                  '<path d="M140 400 L250 220 L360 400 Z" fill="#ffffff" opacity=".16"/>'
                  '<path d="M330 400 L470 180 L610 400 Z" fill="#ffffff" opacity=".20"/>')
@@ -116,7 +111,6 @@ def placeholder_svg(category, cls="ph"):
             % (cls, gid, c1, c2, gid, motif))
 
 def tour_image_file(tour_id):
-    """Return (filename, exists) for a real tour photo in assets/img/tours/."""
     base = os.path.join(SRC_ASSETS, "img", "tours")
     for ext in IMG_EXTS:
         fn = tour_id + ext
@@ -125,7 +119,7 @@ def tour_image_file(tour_id):
     return None
 
 def media(tour, lang, kind="card"):
-    """Real <img> if a photo exists, else branded placeholder + slot badge."""
+    """Cover image for cards: real photo if present, else branded placeholder."""
     alt = esca(tour["content"][lang]["name"])
     fn = tour_image_file(tour["id"])
     if fn:
@@ -134,6 +128,14 @@ def media(tour, lang, kind="card"):
     svg = placeholder_svg(tour["category"])
     badge = '<span class="ph__badge">%s</span>' % ICON["camera"]
     return svg + badge
+
+def gallery_files(tour_id):
+    """Sorted list of web paths for a tour's gallery images."""
+    gdir = os.path.join(SRC_ASSETS, "img", "gallery", tour_id)
+    if not os.path.isdir(gdir):
+        return []
+    files = sorted(f for f in os.listdir(gdir) if f.lower().endswith((".webp", ".avif", ".jpg", ".jpeg", ".png")))
+    return ["/assets/img/gallery/%s/%s" % (tour_id, f) for f in files]
 
 # ---------------------------------------------------------------------------
 # url helpers
@@ -148,7 +150,7 @@ def abs_url(path):
     return cfg.SITE_URL.rstrip("/") + path
 
 # ---------------------------------------------------------------------------
-# WhatsApp link builder
+# WhatsApp
 # ---------------------------------------------------------------------------
 def wa_text(lang, tour=None):
     if tour is None:
@@ -161,8 +163,7 @@ def wa_link(lang, label, classes, pos, tour=None, with_icon=True):
     cls = classes
     if cfg.WHATSAPP_NUMBER:
         href = "https://wa.me/%s?text=%s" % (cfg.WHATSAPP_NUMBER, quote(text, safe=""))
-        hattr = ('href="%s" data-wa-href="%s" target="_blank" rel="noopener"'
-                 % (esca(href), esca(href)))
+        hattr = 'href="%s" data-wa-href="%s" target="_blank" rel="noopener"' % (esca(href), esca(href))
     else:
         cls += " is-pending"
         hattr = 'href="#" aria-disabled="true"'
@@ -186,7 +187,7 @@ def wa_float(lang):
                ICON["wa"], esc(T[lang]["nav_book"])))
 
 # ---------------------------------------------------------------------------
-# price formatting
+# price
 # ---------------------------------------------------------------------------
 def price_unit(lang, tour):
     if tour["price_type"] == "per_boat":
@@ -194,23 +195,17 @@ def price_unit(lang, tour):
     return T[lang]["price_per_person"]
 
 def card_price(lang, tour):
-    unit = price_unit(lang, tour)
-    return '<div class="card__price"><b>&euro;%d</b> <span>%s</span></div>' % (tour["price"], esc(unit))
+    return '<div class="card__price"><b>&euro;%d</b> <span>%s</span></div>' % (tour["price"], esc(price_unit(lang, tour)))
 
 # ---------------------------------------------------------------------------
-# shared chrome: <head>, header, footer, scripts
+# brand / head / header / footer
 # ---------------------------------------------------------------------------
-BRAND_MARK = ('<svg class="brand__mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">'
-              '<rect width="40" height="40" rx="11" fill="#0bb4c4"/>'
-              '<path d="M8 27 Q14 22 20 27 T32 27" stroke="#fff" stroke-width="2.4" '
-              'stroke-linecap="round" fill="none"/>'
-              '<path d="M8 21 Q14 16 20 21 T32 21" stroke="#bdf3f6" stroke-width="2.2" '
-              'stroke-linecap="round" fill="none" opacity=".85"/>'
-              '<circle cx="28.5" cy="12.5" r="3.4" fill="#f2c14e"/></svg>')
+LOGO_ALT = "Hurghada KeRo Tours &amp; Transfer"
 
-def brand_html():
-    return ('<a class="brand" href="/%s/" aria-label="%s">%s'
-            '<span class="brand__name"><b>KeRo</b> Tours<small>Hurghada</small></span></a>')
+def brand(lang, extra_cls=""):
+    return ('<a class="brand %s" href="/%s/" aria-label="%s">'
+            '<img class="brand__logo" src="/assets/img/logo.png" alt="%s" width="120" height="120"></a>'
+            % (extra_cls, lang, esca(cfg.BRAND_NAME), LOGO_ALT))
 
 def analytics_head():
     ga, ads = cfg.GA4_MEASUREMENT_ID.strip(), cfg.GOOGLE_ADS_ID.strip()
@@ -224,8 +219,7 @@ def analytics_head():
     if ads:
         lines.append("gtag('config','%s');" % ads)
         if cfg.GOOGLE_ADS_CONVERSION_LABEL.strip():
-            lines.append("window.KERO_ADS_CONVERSION='%s/%s';"
-                         % (ads, cfg.GOOGLE_ADS_CONVERSION_LABEL.strip()))
+            lines.append("window.KERO_ADS_CONVERSION='%s/%s';" % (ads, cfg.GOOGLE_ADS_CONVERSION_LABEL.strip()))
     return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
             '<script>%s</script>\n' % (primary, "".join(lines)))
 
@@ -233,14 +227,12 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
     alts = []
     for l in LANG_ORDER:
         if l in alt_paths:
-            alts.append('<link rel="alternate" hreflang="%s" href="%s">'
-                        % (HTML_LANG[l], abs_url(alt_paths[l])))
+            alts.append('<link rel="alternate" hreflang="%s" href="%s">' % (HTML_LANG[l], abs_url(alt_paths[l])))
     alts.append('<link rel="alternate" hreflang="x-default" href="%s">' % abs_url(xdefault_path))
     jsonld_tag = ""
     if jsonld:
-        jsonld_tag = '<script type="application/ld+json">%s</script>' % json.dumps(
-            jsonld, ensure_ascii=False, separators=(",", ":"))
-    og_img = abs_url("/assets/img/og-default.svg")
+        jsonld_tag = '<script type="application/ld+json">%s</script>' % json.dumps(jsonld, ensure_ascii=False, separators=(",", ":"))
+    og_img = abs_url("/assets/img/og-logo.png")
     return """<!doctype html>
 <html lang="%s">
 <head>
@@ -259,7 +251,11 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <meta property="og:site_name" content="%s">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0bb4c4">
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/img/favicon-512.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -276,66 +272,68 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 def header(lang, alt_paths):
     tr = T[lang]
     home = url_home(lang)
-    navlinks = [
-        (tr["nav_excursions"], home + "#excursions"),
-        (tr["nav_process"], home + "#process"),
-        (tr["nav_why"], home + "#why"),
-        (tr["nav_faq"], home + "#faq"),
-        (tr["nav_contact"], home + "#contact"),
-    ]
-    desk = "".join('<a href="%s">%s</a>' % (esca(h), esc(t)) for t, h in navlinks)
-    mob = "".join('<a href="%s">%s</a>' % (esca(h), esc(t)) for t, h in navlinks)
+    # Excursions dropdown items
+    dd_items = ['<a href="%s#excursions" role="menuitem">%s</a>' % (esca(home), esc(tr["nav_excursions_all"]))]
+    for cid in CATEGORY_ORDER:
+        dd_items.append('<a href="%s#cat-%s" role="menuitem">%s%s</a>'
+                        % (esca(home), cid, ICON[CATEGORY_ICON[cid]], esc(CATEGORIES[lang][cid])))
+    dropdown = ('<li class="nav__item nav__has-dd" data-dd>'
+                '<button class="nav__dd-trigger" data-dd-trigger aria-expanded="false" aria-haspopup="true">'
+                '%s %s</button>'
+                '<div class="nav__dd" role="menu">%s</div></li>'
+                % (esc(tr["nav_excursions"]), ICON["chevron"], "".join(dd_items)))
+    other = [(tr["nav_process"], home + "#process"), (tr["nav_why"], home + "#why"),
+             (tr["nav_faq"], home + "#faq"), (tr["nav_contact"], home + "#contact")]
+    other_html = "".join('<li><a href="%s">%s</a></li>' % (esca(h), esc(t)) for t, h in other)
 
     langpills = []
     for l in LANG_ORDER:
         target = alt_paths.get(l, url_home(l))
         cur = ' aria-current="true"' if l == lang else ""
-        langpills.append('<a href="%s"%s hreflang="%s">%s</a>'
-                         % (esca(target), cur, HTML_LANG[l], l.upper()))
-    langswitch = ('<div class="langswitch" role="group" aria-label="%s">%s</div>'
-                  % (esca(tr["select_language"]), "".join(langpills)))
+        langpills.append('<a href="%s"%s hreflang="%s">%s</a>' % (esca(target), cur, HTML_LANG[l], l.upper()))
+    langswitch = '<div class="langswitch" role="group" aria-label="%s">%s</div>' % (esca(tr["select_language"]), "".join(langpills))
 
     book_btn = wa_link(lang, tr["nav_book"], "btn btn--wa nav__book", "nav")
+
+    # mobile menu
+    mob_cats = "".join('<a href="%s#cat-%s">%s</a>' % (esca(home), cid, esc(CATEGORIES[lang][cid])) for cid in CATEGORY_ORDER)
+    mob_cats += '<a href="%s#excursions">%s</a>' % (esca(home), esc(tr["nav_excursions_all"]))
+    mob_other = "".join('<a href="%s">%s</a>' % (esca(h), esc(t)) for t, h in other)
     mob_book = wa_link(lang, tr["nav_book"], "btn btn--wa btn--block", "nav-mobile")
 
     return """<header class="header">
 <div class="container">
-<nav class="nav" data-nav data-open="false">
+<nav class="nav" data-nav data-open="false" aria-label="%s">
 %s
-<div class="nav__links">%s</div>
+<ul class="nav__links">%s%s</ul>
 <div class="nav__right">%s%s
 <button class="nav__toggle" data-nav-toggle aria-label="%s" aria-expanded="false" aria-controls="mobilemenu"><span></span><span></span><span></span></button>
 </div>
 </nav>
 </div>
-<div class="mobile-menu" id="mobilemenu"><ul><li>%s</li></ul></div>
+<div class="mobile-menu" id="mobilemenu">
+<details class="mobile-exc" open><summary>%s</summary><div class="mobile-exc__list">%s</div></details>
+%s
+%s
+</div>
 </header>""" % (
-        brand_html() % (lang, esca(cfg.BRAND_NAME), BRAND_MARK),
-        desk, langswitch, book_btn, esca(tr["open_menu"]),
-        "</li><li>".join([mob, mob_book]))
+        esca(tr["nav_excursions"]), brand(lang), dropdown, other_html,
+        langswitch, book_btn, esca(tr["open_menu"]),
+        esc(tr["nav_excursions"]), mob_cats, mob_other, mob_book)
 
 def footer(lang, public_tours):
     tr = T[lang]
-    exc_links = "".join('<a href="%s">%s</a>' % (esca(url_tour(lang, t["slug"])),
-                                                 esc(t["content"][lang]["name"]))
+    exc_links = "".join('<a href="%s">%s</a>' % (esca(url_tour(lang, t["slug"])), esc(t["content"][lang]["name"]))
                         for t in public_tours)
-    # contact column: only show fields the owner has actually provided
     contact_rows = [wa_link(lang, tr["contact_whatsapp"], "footer__wa", "footer")]
     if cfg.BUSINESS["phone_display"]:
         contact_rows.append('<a href="tel:%s">%s %s</a>'
-                            % (esca(cfg.BUSINESS["phone_display"].replace(" ", "")),
-                               ICON["phone"], esc(cfg.BUSINESS["phone_display"])))
+                            % (esca(cfg.BUSINESS["phone_display"].replace(" ", "")), ICON["phone"], esc(cfg.BUSINESS["phone_display"])))
     if cfg.BUSINESS["email"]:
-        contact_rows.append('<a href="mailto:%s">%s %s</a>'
-                            % (esca(cfg.BUSINESS["email"]), ICON["mail"],
-                               esc(cfg.BUSINESS["email"])))
+        contact_rows.append('<a href="mailto:%s">%s %s</a>' % (esca(cfg.BUSINESS["email"]), ICON["mail"], esc(cfg.BUSINESS["email"])))
     if cfg.BUSINESS["address"]:
         contact_rows.append('<div>%s %s</div>' % (ICON["pin"], esc(cfg.BUSINESS["address"])))
-
-    langs = " ".join('<a href="%s" hreflang="%s">%s</a>'
-                     % (esca(url_home(l)), HTML_LANG[l], esc(LANG_NATIVE[l]))
-                     for l in LANG_ORDER)
-
+    langs = " ".join('<a href="%s" hreflang="%s">%s</a>' % (esca(url_home(l)), HTML_LANG[l], esc(LANG_NATIVE[l])) for l in LANG_ORDER)
     legal = ""
     if cfg.BUSINESS["legal_name"] or cfg.BUSINESS["license_number"]:
         bits = []
@@ -344,12 +342,11 @@ def footer(lang, public_tours):
         if cfg.BUSINESS["license_number"]:
             bits.append(esc(cfg.BUSINESS["license_number"]))
         legal = '<div class="footer__legal">%s</div>' % " &middot; ".join(bits)
-
     return """<footer class="footer">
 <div class="container">
 <div class="footer__grid">
 <div class="footer__brand">
-<span class="brand">%s<span class="brand__name"><b>KeRo</b> Tours<small>Hurghada</small></span></span>
+<img class="footer__logo" src="/assets/img/logo.png" alt="%s" width="150" height="150">
 <p>%s</p>
 </div>
 <div><h4>%s</h4><div class="footer__links">%s</div></div>
@@ -362,7 +359,7 @@ def footer(lang, public_tours):
 </div>
 </div>
 </footer>""" % (
-        BRAND_MARK, esc(tr["footer_about"]),
+        LOGO_ALT, esc(tr["footer_about"]),
         esc(tr["footer_excursions_title"]), exc_links,
         esc(tr["footer_contact_title"]), "".join(contact_rows),
         ICON["info"], esc(tr["footer_disclaimer"]),
@@ -400,28 +397,50 @@ def tour_card(lang, tour, delay=0):
 def trust_strip(lang):
     tr = T[lang]
     icons = [ICON["star"], ICON["shield"], ICON["wallet"], ICON["chat"]]
-    items = "".join('<div class="trust__item">%s<span>%s</span></div>' % (icons[i], esc(tr["trust"][i]))
-                    for i in range(4))
-    return '<section class="trust" aria-label="%s"><div class="container"><div class="trust__row">%s</div></div></section>' % (
-        esca(tr["payment_line"]), items)
+    items = "".join('<div class="trust__item">%s<span>%s</span></div>' % (icons[i], esc(tr["trust"][i])) for i in range(4))
+    return '<section class="trust" aria-label="%s"><div class="container"><div class="trust__row">%s</div></div></section>' % (esca(tr["payment_line"]), items)
+
+def gallery_html(tour, lang):
+    """Premium gallery for the detail page. Falls back to single media / placeholder."""
+    imgs = gallery_files(tour["id"])
+    name = tour["content"][lang]["name"]
+    if not imgs:
+        return '<div class="tour-hero__media">%s</div>' % media(tour, lang, kind="hero")
+    data = esca(json.dumps(imgs))
+    main_alt = esca("%s - 1" % name)
+    main = ('<div class="gallery__main">'
+            '<button class="gallery__nav gallery__nav--prev" data-gprev aria-label="%s">%s</button>'
+            '<img class="gallery__img" data-gmain src="%s" alt="%s" width="1200" height="825" decoding="async">'
+            '<button class="gallery__nav gallery__nav--next" data-gnext aria-label="%s">%s</button>'
+            '<span class="gallery__counter"><b data-gcur>1</b> / %d</span>'
+            '<button class="gallery__zoom" data-gzoom aria-label="%s">%s</button>'
+            '</div>'
+            % (esca(T[lang]["gallery_prev"]), ICON["chevron"].replace('m6 9 6 6 6-6', 'm15 6-6 6 6 6'),
+               esca(imgs[0]), main_alt,
+               esca(T[lang]["gallery_next"]), ICON["chevron"].replace('m6 9 6 6 6-6', 'm9 6 6 6-6 6'),
+               len(imgs), esca(T[lang]["gallery_open"]), ICON["zoom"]))
+    thumbs = ""
+    if len(imgs) > 1:
+        tb = []
+        for i, u in enumerate(imgs):
+            cls = "gallery__thumb is-active" if i == 0 else "gallery__thumb"
+            tb.append('<button class="%s" data-gthumb="%d" aria-label="%s"><img src="%s" alt="%s - %d" loading="lazy" decoding="async"></button>'
+                      % (cls, i, esca("%s - %d" % (name, i + 1)), esca(u), esca(name), i + 1))
+        thumbs = '<div class="gallery__thumbs">%s</div>' % "".join(tb)
+    return '<div class="gallery" data-gallery data-images="%s">%s%s</div>' % (data, main, thumbs)
 
 # ---------------------------------------------------------------------------
-# page: homepage
+# homepage
 # ---------------------------------------------------------------------------
-def build_home(lang, public_tours, featured):
+def build_home(lang, public_tours):
     tr = T[lang]
     alt_paths = {l: url_home(l) for l in LANG_ORDER}
 
-    # hero
     hero_media = placeholder_svg("sea_islands")
-    hero_fn = os.path.join(SRC_ASSETS, "img", "hero")
-    real_hero = None
     for ext in IMG_EXTS:
-        if os.path.isfile(hero_fn + ext):
-            real_hero = "hero" + ext
+        if os.path.isfile(os.path.join(SRC_ASSETS, "img", "hero" + ext)):
+            hero_media = '<img src="/assets/img/hero%s" alt="%s">' % (ext, esca(tr["hero_kicker"]))
             break
-    if real_hero:
-        hero_media = '<img src="/assets/img/%s" alt="%s">' % (esca(real_hero), esca(tr["hero_kicker"]))
 
     hero = """<section class="hero" id="top">
 <div class="hero__media">%s</div>
@@ -433,109 +452,71 @@ def build_home(lang, public_tours, featured):
 <div class="hero__pay">%s<span>%s</span></div>
 </div></div>
 </section>""" % (
-        hero_media, ICON["pin"], esc(tr["hero_kicker"]),
-        esc(tr["hero_h1"]), esc(tr["hero_sub"]),
+        hero_media, ICON["pin"], esc(tr["hero_kicker"]), esc(tr["hero_h1"]), esc(tr["hero_sub"]),
         wa_link(lang, tr["hero_cta_primary"], "btn btn--wa", "hero"),
-        esc(tr["hero_cta_secondary"]), ICON["arrow"],
-        ICON["shield"], esc(tr["payment_line"]))
+        esc(tr["hero_cta_secondary"]), ICON["arrow"], ICON["shield"], esc(tr["payment_line"]))
 
-    # featured
-    feat_cards = "".join(tour_card(lang, t, i) for i, t in enumerate(featured))
-    featured_sec = """<section class="section" id="featured">
+    # category shortcut chips
+    chips = "".join('<a class="catchip" href="#cat-%s">%s%s</a>' % (cid, ICON[CATEGORY_ICON[cid]], esc(CATEGORIES[lang][cid])) for cid in CATEGORY_ORDER)
+    chipbar = '<div class="catbar"><div class="container"><div class="catbar__row">%s</div></div></div>' % chips
+
+    # four category sections, each tour exactly once
+    sections = ['<span id="excursions" class="anchor"></span>']
+    for idx, cid in enumerate(CATEGORY_ORDER):
+        tours = [t for t in public_tours if t["category"] == cid]
+        if not tours:
+            continue
+        cards = "".join(tour_card(lang, t, i) for i, t in enumerate(tours))
+        soft = " section--soft" if idx % 2 == 1 else ""
+        sections.append("""<section class="section cat-section%s" id="cat-%s">
 <div class="container">
-<div class="section__head reveal"><span class="section__kicker">%s</span>
+<div class="section__head reveal"><span class="section__kicker">%s %s</span>
 <h2 class="section__title">%s</h2><p class="section__sub">%s</p></div>
 <div class="grid">%s</div>
-</div></section>""" % (
-        esc(tr["nav_excursions"]), esc(tr["featured_title"]), esc(tr["featured_sub"]), feat_cards)
-
-    # all + filters
-    chips = ['<button class="filter" data-filter="all" aria-pressed="true">%s</button>' % esc(tr["filter_all"])]
-    present = [c for c in CATEGORY_ORDER if any(t["category"] == c for t in public_tours)]
-    for c in present:
-        chips.append('<button class="filter" data-filter="%s" aria-pressed="false">%s</button>'
-                     % (c, esc(CATEGORIES[lang][c])))
-    all_cards = "".join(tour_card(lang, t, i) for i, t in enumerate(public_tours))
-    all_sec = """<section class="section section--soft" id="excursions">
-<div class="container">
-<div class="section__head reveal"><span class="section__kicker">%s</span>
-<h2 class="section__title">%s</h2><p class="section__sub">%s</p></div>
-<div class="filters reveal">%s</div>
-<div class="grid">%s</div>
-</div></section>""" % (
-        esc(tr["nav_excursions"]), esc(tr["all_title"]), esc(tr["all_sub"]),
-        "".join(chips), all_cards)
+</div></section>""" % (soft, cid, ICON[CATEGORY_ICON[cid]], esc(CATEGORIES[lang][cid]),
+                       esc(CATEGORIES[lang][cid]), esc(CATEGORY_INTRO[lang][cid]), cards))
 
     # process
-    steps = "".join(
-        '<div class="step reveal" data-delay="%d"><div class="step__num">%d</div><h3>%s</h3><p>%s</p></div>'
-        % (i % 4, i + 1, esc(s[0]), esc(s[1])) for i, s in enumerate(tr["process_steps"]))
-    process_sec = """<section class="section" id="process">
-<div class="container">
-<div class="section__head reveal"><span class="section__kicker">%s</span>
-<h2 class="section__title">%s</h2><p class="section__sub">%s</p></div>
-<div class="steps">%s</div>
-</div></section>""" % (
+    steps = "".join('<div class="step reveal" data-delay="%d"><div class="step__num">%d</div><h3>%s</h3><p>%s</p></div>'
+                    % (i % 4, i + 1, esc(s[0]), esc(s[1])) for i, s in enumerate(tr["process_steps"]))
+    process_sec = """<section class="section section--soft" id="process">
+<div class="container"><div class="section__head reveal"><span class="section__kicker">%s</span>
+<h2 class="section__title">%s</h2><p class="section__sub">%s</p></div><div class="steps">%s</div></div></section>""" % (
         esc(tr["nav_process"]), esc(tr["process_title"]), esc(tr["process_sub"]), steps)
 
-    # why
     why_icons = [ICON["shield"], ICON["chat"], ICON["car"], ICON["pin"]]
-    why = "".join(
-        '<div class="why__item reveal" data-delay="%d"><div class="why__icon">%s</div><div><h3>%s</h3><p>%s</p></div></div>'
-        % (i % 2, why_icons[i], esc(it[0]), esc(it[1])) for i, it in enumerate(tr["why_items"]))
-    why_sec = """<section class="section section--soft" id="why">
-<div class="container">
-<div class="section__head reveal"><span class="section__kicker">%s</span>
-<h2 class="section__title">%s</h2></div>
-<div class="why">%s</div>
-</div></section>""" % (esc(tr["nav_why"]), esc(tr["why_title"]), why)
+    why = "".join('<div class="why__item reveal" data-delay="%d"><div class="why__icon">%s</div><div><h3>%s</h3><p>%s</p></div></div>'
+                  % (i % 2, why_icons[i], esc(it[0]), esc(it[1])) for i, it in enumerate(tr["why_items"]))
+    why_sec = """<section class="section" id="why">
+<div class="container"><div class="section__head reveal"><span class="section__kicker">%s</span>
+<h2 class="section__title">%s</h2></div><div class="why">%s</div></div></section>""" % (
+        esc(tr["nav_why"]), esc(tr["why_title"]), why)
 
-    # faq
-    faqs = "".join(
-        '<details%s><summary>%s</summary><div>%s</div></details>'
-        % (" open" if i == 0 else "", esc(q), esc(a)) for i, (q, a) in enumerate(tr["faq"]))
-    faq_sec = """<section class="section" id="faq">
-<div class="container">
-<div class="section__head reveal"><span class="section__kicker">FAQ</span>
-<h2 class="section__title">%s</h2></div>
-<div class="faq reveal">%s</div>
-</div></section>""" % (esc(tr["faq_title"]), faqs)
+    faqs = "".join('<details%s><summary>%s</summary><div>%s</div></details>' % (" open" if i == 0 else "", esc(q), esc(a))
+                   for i, (q, a) in enumerate(tr["faq"]))
+    faq_sec = """<section class="section section--soft" id="faq">
+<div class="container"><div class="section__head reveal"><span class="section__kicker">FAQ</span>
+<h2 class="section__title">%s</h2></div><div class="faq reveal">%s</div></div></section>""" % (esc(tr["faq_title"]), faqs)
 
-    # contact
-    contact_sec = """<section class="section section--soft" id="contact">
-<div class="container">
-<div class="contact__card reveal">
-<h2>%s</h2><p>%s</p>
-%s
-</div>
-</div></section>""" % (
-        esc(tr["contact_title"]), esc(tr["contact_sub"]),
-        wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact"))
+    contact_sec = """<section class="section" id="contact">
+<div class="container"><div class="contact__card reveal"><h2>%s</h2><p>%s</p>%s</div></div></section>""" % (
+        esc(tr["contact_title"]), esc(tr["contact_sub"]), wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact"))
 
     jsonld = {
-        "@context": "https://schema.org",
-        "@type": "TravelAgency",
-        "name": cfg.BRAND_NAME,
-        "areaServed": "Hurghada, Egypt",
-        "url": abs_url(url_home(lang)),
-        "makesOffer": [{
-            "@type": "Offer",
-            "name": t["content"][lang]["name"],
-            "price": t["price"],
-            "priceCurrency": "EUR",
-            "url": abs_url(url_tour(lang, t["slug"])),
-        } for t in public_tours],
+        "@context": "https://schema.org", "@type": "TravelAgency",
+        "name": cfg.BRAND_NAME, "areaServed": "Hurghada, Egypt", "url": abs_url(url_home(lang)),
+        "makesOffer": [{"@type": "Offer", "name": t["content"][lang]["name"], "price": t["price"],
+                        "priceCurrency": "EUR", "url": abs_url(url_tour(lang, t["slug"]))} for t in public_tours],
     }
 
-    body = (header(lang, alt_paths) + '<main id="main">' + hero + trust_strip(lang)
-            + featured_sec + all_sec + process_sec + why_sec + faq_sec + contact_sec
+    body = (header(lang, alt_paths) + '<main id="main">' + hero + trust_strip(lang) + chipbar
+            + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
             + "</main>" + footer(lang, public_tours) + wa_float(lang))
-    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"],
-               url_home(lang), alt_paths, "/", jsonld) + body + scripts()
+    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], url_home(lang), alt_paths, "/", jsonld) + body + scripts()
     write(os.path.join(DIST, lang, "index.html"), doc)
 
 # ---------------------------------------------------------------------------
-# page: tour detail
+# tour detail
 # ---------------------------------------------------------------------------
 def build_tour(lang, tour, public_tours):
     tr = T[lang]
@@ -543,44 +524,38 @@ def build_tour(lang, tour, public_tours):
     alt_paths = {l: url_tour(l, tour["slug"]) for l in LANG_ORDER}
     canonical = url_tour(lang, tour["slug"])
 
-    # price block
     if tour["price_type"] == "per_boat":
-        pill = ('<span class="pill">%s %s %s</span>'
-                % (esc(tr["group_base_label"]), esc(tour.get("group_base", "")), esc(tr["persons"])))
-        priceblock = ('<div class="priceblock"><b>&euro;%d</b><span>%s</span>%s</div>'
-                      % (tour["price"], esc(tr["price_total"]), pill))
+        pill = '<span class="pill">%s %s %s</span>' % (esc(tr["group_base_label"]), esc(tour.get("group_base", "")), esc(tr["persons"]))
+        priceblock = '<div class="priceblock"><b>&euro;%d</b><span>%s</span>%s</div>' % (tour["price"], esc(tr["price_total"]), pill)
     else:
-        priceblock = ('<div class="priceblock"><b>&euro;%d</b><span>%s</span></div>'
-                      % (tour["price"], esc(price_unit(lang, tour))))
+        priceblock = '<div class="priceblock"><b>&euro;%d</b><span>%s</span></div>' % (tour["price"], esc(price_unit(lang, tour)))
 
-    program = "".join('<li><span>%s</span></li>' % esc(x) for x in c["highlights"])
-    included = "".join('<li>%s<span>%s</span></li>' % (ICON["check_circle"], esc(x)) for x in c["included"])
+    experience = "".join('<li>%s<span>%s</span></li>' % (ICON["check_circle"], esc(x)) for x in c["highlights"])
+    program = "".join('<li class="progstep"><span class="progstep__n">%d</span><div><b>%s</b><p>%s</p></div></li>'
+                      % (i + 1, esc(st[0]), esc(st[1])) for i, st in enumerate(c.get("program", [])))
+    included = "".join('<li>%s<span>%s</span></li>' % (ICON["check"], esc(x)) for x in c["included"])
+    practical = "".join('<li>%s<span>%s</span></li>' % (ICON["info"], esc(x)) for x in c.get("practical", []))
     conditions = "".join('<li>%s<span>%s</span></li>' % (ICON["info"], esc(x)) for x in c["conditions"])
 
-    # add-ons (hide restricted ones unless promotion is enabled)
     addon_html = ""
-    visible_addons = [a for a in tour["addons"] if not a.get("restricted") or cfg.PROMOTE_LION_CUB]
+    visible_addons = [a for a in tour["addons"] if not a.get("restricted") or cfg.SHOW_LION_ADDON]
     if visible_addons:
         rows = []
         for a in visible_addons:
             unit = tr["price_per_person"] if a["price_type"] == "per_person" else tr["price_total"]
             rcls = " is-restricted" if a.get("restricted") else ""
-            rows.append('<div class="addon%s"><span>%s</span><b>+&euro;%d %s</b></div>'
-                        % (rcls, esc(a["name"][lang]), a["price"], esc(unit)))
-        addon_html = ('<div class="panel reveal"><h2>%s</h2><div class="addons">%s</div></div>'
-                      % (esc(tr["label_addons"]), "".join(rows)))
+            rows.append('<div class="addon%s"><span>%s</span><b>+&euro;%d %s</b></div>' % (rcls, esc(a["name"][lang]), a["price"], esc(unit)))
+        addon_html = '<div class="panel reveal"><h2>%s</h2><div class="addons">%s</div></div>' % (esc(tr["label_addons"]), "".join(rows))
 
     restricted_banner = ""
     if tour["restricted"]:
-        restricted_banner = ('<div class="restricted-banner">%s<p>%s</p></div>'
-                             % (ICON["info"], esc(tr["restricted_note"])))
+        restricted_banner = '<div class="restricted-banner">%s<p>%s</p></div>' % (ICON["info"], esc(tr["restricted_note"]))
 
     schedule_row = ""
     if tour.get("schedule"):
-        schedule_row = ('<div class="paybar">%s<span>%s: %s</span></div>'
-                        % (ICON["clock"], esc(tr["label_schedule"]), esc(tour["schedule"])))
+        schedule_row = '<div class="paybar">%s<span>%s: %s</span></div>' % (ICON["clock"], esc(tr["label_schedule"]), esc(tour["schedule"]))
 
-    # related
+    # related: same category first, then fill
     related = [t for t in public_tours if t["id"] != tour["id"] and t["category"] == tour["category"]]
     for t in public_tours:
         if len(related) >= 3:
@@ -590,21 +565,17 @@ def build_tour(lang, tour, public_tours):
     related = related[:3]
     related_html = ""
     if related:
-        related_html = """<section class="section section--soft">
-<div class="container">
+        related_html = """<section class="section section--soft"><div class="container">
 <div class="section__head reveal"><h2 class="section__title">%s</h2></div>
-<div class="related">%s</div>
-</div></section>""" % (esc(tr["label_related"]),
-                       "".join(tour_card(lang, t, i) for i, t in enumerate(related)))
+<div class="related">%s</div></div></section>""" % (esc(tr["label_related"]), "".join(tour_card(lang, t, i) for i, t in enumerate(related)))
 
     breadcrumb = ('<div class="container"><nav class="breadcrumb" aria-label="breadcrumb">'
-                  '<a href="%s">%s</a><span>/</span><a href="%s#excursions">%s</a>'
-                  '<span>/</span><span>%s</span></nav></div>'
-                  % (esca(url_home(lang)), esc(tr["nav_home"]), esca(url_home(lang)),
-                     esc(tr["nav_excursions"]), esc(c["name"])))
+                  '<a href="%s">%s</a><span>/</span><a href="%s#cat-%s">%s</a><span>/</span><span>%s</span></nav></div>'
+                  % (esca(url_home(lang)), esc(tr["nav_home"]), esca(url_home(lang)), tour["category"],
+                     esc(CATEGORIES[lang][tour["category"]]), esc(c["name"])))
 
     tour_hero = """<section class="container"><div class="tour-hero">
-<div class="tour-hero__media">%s</div>
+%s
 <div>
 <span class="tour-hero__cat">%s</span>
 <h1>%s</h1>
@@ -614,9 +585,8 @@ def build_tour(lang, tour, public_tours):
 <div class="paybar">%s<span>%s</span></div>
 </div>
 </div></section>""" % (
-        media(tour, lang, kind="hero"), esc(CATEGORIES[lang][tour["category"]]),
-        esc(c["name"]), esc(c["intro"]), priceblock,
-        wa_link(lang, tr["book_whatsapp"], "btn btn--wa", "detail-hero", tour),
+        gallery_html(tour, lang), esc(CATEGORIES[lang][tour["category"]]), esc(c["name"]), esc(c["intro"]),
+        priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa", "detail-hero", tour),
         ICON["wallet"], esc(tr["payment_line"]))
 
     sticky = """<aside>
@@ -626,62 +596,64 @@ def build_tour(lang, tour, public_tours):
 <div class="paybar">%s<span>%s</span></div>
 %s
 </div>
-</aside>""" % (
-        priceblock,
-        wa_link(lang, tr["book_whatsapp"], "btn btn--wa btn--block", "detail-sticky", tour),
-        ICON["shield"], esc(tr["payment_line"]), schedule_row)
+</aside>""" % (priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa btn--block", "detail-sticky", tour),
+               ICON["shield"], esc(tr["payment_line"]), schedule_row)
+
+    program_panel = ('<div class="panel reveal"><h2>%s</h2><ol class="program">%s</ol></div>' % (esc(tr["label_program"]), program)) if program else ""
+    practical_panel = ('<div class="panel reveal"><h2>%s</h2><ul class="notelist">%s</ul></div>' % (esc(tr["label_practical"]), practical)) if practical else ""
 
     main_col = """<div>
-<div class="panel reveal"><h2>%s</h2><ul class="dotlist">%s</ul></div>
 <div class="panel reveal"><h2>%s</h2><ul class="ticklist">%s</ul></div>
+%s
+<div class="panel reveal"><h2>%s</h2><ul class="ticklist">%s</ul></div>
+%s
 <div class="panel reveal"><h2>%s</h2><ul class="notelist">%s</ul>%s</div>
 %s
 </div>""" % (
-        esc(tr["label_program"]), program,
+        esc(tr["label_experience"]), experience,
+        program_panel,
         esc(tr["label_included"]), included,
+        practical_panel,
         esc(tr["label_conditions"]), conditions, restricted_banner,
         addon_html)
 
-    body_sec = """<section class="section"><div class="container">
-<div class="tour-body">%s%s</div>
-</div></section>""" % (main_col, sticky)
+    body_sec = '<section class="section"><div class="container"><div class="tour-body">%s%s</div></div></section>' % (main_col, sticky)
 
-    # meta
     desc = c["intro"]
     if len(desc) > 158:
         desc = desc[:155].rstrip() + "..."
-    title = "%s - &euro;%d%s" % (c["name"], tour["price"], tr["meta_title_suffix"])
-    title = title.replace("&euro;", "€")
+    title = "%s - €%d%s" % (c["name"], tour["price"], tr["meta_title_suffix"])
 
     jsonld = {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": c["name"],
-        "description": c["intro"],
-        "brand": {"@type": "Brand", "name": cfg.BRAND_NAME},
-        "offers": {
-            "@type": "Offer",
-            "price": tour["price"],
-            "priceCurrency": "EUR",
-            "availability": "https://schema.org/InStock",
-            "url": abs_url(canonical),
-        },
+        "@context": "https://schema.org", "@type": "Product", "name": c["name"],
+        "description": c["intro"], "brand": {"@type": "Brand", "name": cfg.BRAND_NAME},
+        "offers": {"@type": "Offer", "price": tour["price"], "priceCurrency": "EUR",
+                   "availability": "https://schema.org/InStock", "url": abs_url(canonical)},
     }
 
-    body = (header(lang, alt_paths) + '<main id="main">' + breadcrumb + tour_hero
-            + body_sec + related_html + "</main>" + footer(lang, public_tours) + wa_float(lang))
+    body = (header(lang, alt_paths) + '<main id="main">' + breadcrumb + tour_hero + body_sec + related_html
+            + "</main>" + footer(lang, public_tours) + wa_float(lang) + lightbox_html(lang))
     doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld) + body + scripts()
-    out = os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html")
-    write(out, doc)
+    write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)
+
+def lightbox_html(lang):
+    tr = T[lang]
+    return ("""<div class="lightbox" data-lightbox hidden aria-hidden="true" role="dialog" aria-modal="true">
+<button class="lightbox__close" data-lbclose aria-label="%s">%s</button>
+<button class="lightbox__nav lightbox__nav--prev" data-lbprev aria-label="%s">%s</button>
+<img class="lightbox__img" data-lbimg src="" alt="">
+<button class="lightbox__nav lightbox__nav--next" data-lbnext aria-label="%s">%s</button>
+<span class="lightbox__counter" data-lbcounter></span>
+</div>""" % (esca(tr["gallery_close"]), ICON["close"], esca(tr["gallery_prev"]),
+             ICON["chevron"].replace('m6 9 6 6 6-6', 'm15 6-6 6 6 6'),
+             esca(tr["gallery_next"]), ICON["chevron"].replace('m6 9 6 6 6-6', 'm9 6 6 6-6 6')))
 
 # ---------------------------------------------------------------------------
-# page: root language splash
+# root splash + 404
 # ---------------------------------------------------------------------------
 def build_root():
-    links = "".join('<a href="%s" hreflang="%s">%s</a>'
-                    % (esca(url_home(l)), HTML_LANG[l], esc(LANG_NATIVE[l])) for l in LANG_ORDER)
-    alts = "".join('<link rel="alternate" hreflang="%s" href="%s">'
-                   % (HTML_LANG[l], abs_url(url_home(l))) for l in LANG_ORDER)
+    links = "".join('<a href="%s" hreflang="%s">%s</a>' % (esca(url_home(l)), HTML_LANG[l], esc(LANG_NATIVE[l])) for l in LANG_ORDER)
+    alts = "".join('<link rel="alternate" hreflang="%s" href="%s">' % (HTML_LANG[l], abs_url(url_home(l))) for l in LANG_ORDER)
     alts += '<link rel="alternate" hreflang="x-default" href="%s">' % abs_url("/")
     doc = """<!doctype html>
 <html lang="%s">
@@ -692,8 +664,11 @@ def build_root():
 <meta name="description" content="%s">
 <link rel="canonical" href="%s">
 %s
+<meta property="og:image" content="%s">
 <meta name="theme-color" content="#0bb4c4">
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -704,8 +679,8 @@ def build_root():
 </head>
 <body>
 <main class="splash">
-<div>
-<span class="brand">%s<span class="brand__name"><b>KeRo</b> Tours<small>Hurghada</small></span></span>
+<div class="splash__card">
+<img class="splash__logo" src="/assets/img/logo.png" alt="%s" width="220" height="220">
 <h1>%s</h1>
 <p>%s</p>
 <div class="splash__langs">%s</div>
@@ -715,10 +690,9 @@ def build_root():
 </html>
 """ % (cfg.DEFAULT_LANG, esc(cfg.BRAND_NAME),
        "Excursions VIP a Hurghada / Wycieczki VIP / Excursii VIP - FR PL RO",
-       abs_url("/"), alts, BRAND_MARK,
-       esc(cfg.BRAND_NAME),
-       "Choisissez votre langue &middot; Wybierz jezyk &middot; Alege limba",
-       links)
+       abs_url("/"), alts, abs_url("/assets/img/og-logo.png"), LOGO_ALT,
+       "Hurghada VIP Excursions",
+       "Choisissez votre langue &middot; Wybierz jezyk &middot; Alege limba", links)
     write(os.path.join(DIST, "index.html"), doc)
 
 def build_404():
@@ -732,32 +706,31 @@ def build_404():
 <title>%s</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/assets/css/styles.css">
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
 </head>
 <body>
-<main class="splash"><div>
-<span class="brand">%s<span class="brand__name"><b>KeRo</b> Tours</span></span>
+<main class="splash"><div class="splash__card">
+<img class="splash__logo" src="/assets/img/logo.png" alt="%s" width="200" height="200">
 <h1>%s</h1><p>%s</p>
 <div class="splash__langs"><a href="/%s/">%s</a></div>
 </div></main>
 </body></html>
-""" % (lang, esc(tr["notfound_title"]), BRAND_MARK, esc(tr["notfound_title"]),
+""" % (lang, esc(tr["notfound_title"]), LOGO_ALT, esc(tr["notfound_title"]),
        esc(tr["notfound_text"]), lang, esc(tr["notfound_home"]))
     write(os.path.join(DIST, "404.html"), doc)
 
 # ---------------------------------------------------------------------------
-# sitemap + robots + favicon + og image
+# sitemap + robots
 # ---------------------------------------------------------------------------
 def build_sitemap(public_tours):
     today = date.today().isoformat()
     urls = []
 
     def entry(path, alts):
-        links = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>'
-                        % (HTML_LANG[l], abs_url(alts[l])) for l in LANG_ORDER)
+        links = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (HTML_LANG[l], abs_url(alts[l])) for l in LANG_ORDER)
         links += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % abs_url("/")
-        return ('<url><loc>%s</loc><lastmod>%s</lastmod>%s</url>'
-                % (abs_url(path), today, links))
+        return '<url><loc>%s</loc><lastmod>%s</lastmod>%s</url>' % (abs_url(path), today, links)
 
     home_alts = {l: url_home(l) for l in LANG_ORDER}
     for l in LANG_ORDER:
@@ -768,33 +741,11 @@ def build_sitemap(public_tours):
             urls.append(entry(url_tour(l, t["slug"]), alts))
 
     sm = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
-          'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n%s\n</urlset>\n'
-          % "\n".join(urls))
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n%s\n</urlset>\n' % "\n".join(urls))
     write(os.path.join(DIST, "sitemap.xml"), sm)
 
 def build_robots():
-    txt = "User-agent: *\nAllow: /\n\nSitemap: %s\n" % abs_url("/sitemap.xml")
-    write(os.path.join(DIST, "robots.txt"), txt)
-
-def build_brand_assets():
-    # favicon
-    fav = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">'
-           '<rect width="40" height="40" rx="11" fill="#0bb4c4"/>'
-           '<path d="M8 27 Q14 22 20 27 T32 27" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/>'
-           '<path d="M8 21 Q14 16 20 21 T32 21" stroke="#bdf3f6" stroke-width="2.4" stroke-linecap="round" fill="none"/>'
-           '<circle cx="28.5" cy="12.5" r="3.6" fill="#f2c14e"/></svg>')
-    write(os.path.join(DIST, "assets", "img", "favicon.svg"), fav)
-    # og default (branded, flagged as placeholder in IMAGE_AUDIT.md)
-    og = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">'
-          '<defs><linearGradient id="og" x1="0" y1="0" x2="1" y2="1">'
-          '<stop offset="0" stop-color="#13c2d1"/><stop offset="1" stop-color="#06222a"/>'
-          '</linearGradient></defs><rect width="1200" height="630" fill="url(#og)"/>'
-          '<path d="M0 470 Q300 420 600 470 T1200 470 V630 H0 Z" fill="#ffffff" opacity=".10"/>'
-          '<text x="80" y="300" font-family="Georgia,serif" font-size="78" fill="#ffffff" font-weight="bold">KeRo Tours Hurghada</text>'
-          '<text x="82" y="370" font-family="Arial,sans-serif" font-size="34" fill="#bdf3f6">Excursions VIP &#183; Mer Rouge &#183; FR / PL / RO</text>'
-          '</svg>')
-    write(os.path.join(DIST, "assets", "img", "og-default.svg"), og)
+    write(os.path.join(DIST, "robots.txt"), "User-agent: *\nAllow: /\n\nSitemap: %s\n" % abs_url("/sitemap.xml"))
 
 # ---------------------------------------------------------------------------
 # fs helpers + orchestration
@@ -813,16 +764,17 @@ def main():
     if os.path.isdir(DIST):
         shutil.rmtree(DIST)
     os.makedirs(DIST, exist_ok=True)
-
     copy_assets()
-    build_brand_assets()
+    # favicon.ico at site root (browsers request /favicon.ico by default)
+    ico = os.path.join(SRC_ASSETS, "img", "favicon.ico")
+    if os.path.isfile(ico):
+        shutil.copyfile(ico, os.path.join(DIST, "favicon.ico"))
 
-    public_tours = [t for t in TOURS
-                    if t["active"] and (not t["restricted"] or cfg.PROMOTE_LION_CUB)]
-    featured = [t for t in public_tours if t["featured"]]
+    public_tours = [t for t in TOURS if t["active"]
+                    and (t["id"] != "lion-cub-photo" or cfg.LION_CUB_PUBLISHED)]
 
     for lang in LANG_ORDER:
-        build_home(lang, public_tours, featured)
+        build_home(lang, public_tours)
         for t in public_tours:
             build_tour(lang, t, public_tours)
 
@@ -831,16 +783,21 @@ def main():
     build_sitemap(public_tours)
     build_robots()
 
-    # summary
-    total_pages = 1 + len(LANG_ORDER) + len(LANG_ORDER) * len(public_tours) + 1
+    by_cat = {}
+    for t in public_tours:
+        by_cat.setdefault(t["category"], []).append(t["id"])
+    gal_total = sum(len(gallery_files(t["id"])) for t in TOURS)
+
     print("Build complete -> dist/")
+    print("  site url         : %s" % cfg.SITE_URL)
     print("  languages        : %s" % ", ".join(LANG_ORDER))
-    print("  tours in data    : %d" % len(TOURS))
-    print("  public tours     : %d" % len(public_tours))
-    print("  featured         : %d" % len(featured))
-    print("  pages generated  : %d (root + %d homepages + %d tour pages + 404)"
-          % (total_pages, len(LANG_ORDER), len(LANG_ORDER) * len(public_tours)))
+    print("  tours in data    : %d | public: %d" % (len(TOURS), len(public_tours)))
+    for cid in CATEGORY_ORDER:
+        print("    %-16s %d tours" % (cid, len(by_cat.get(cid, []))))
+    print("  gallery images   : %d (target 55)" % gal_total)
+    print("  pages generated  : %d" % (1 + len(LANG_ORDER) + len(LANG_ORDER) * len(public_tours) + 1))
     print("  WhatsApp number  : %s" % (cfg.WHATSAPP_NUMBER or "NOT SET (launch blocker)"))
+    print("  lion cub         : published=%s  ads_eligible=%s" % (cfg.LION_CUB_PUBLISHED, cfg.LION_CUB_ADS_ELIGIBLE))
 
 if __name__ == "__main__":
     main()

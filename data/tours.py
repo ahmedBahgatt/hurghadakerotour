@@ -2,642 +2,150 @@
 """
 Authoritative tour catalog for Hurghada KeRo Tours & Transfer.
 
-This file is the single source of truth for the 11 excursions.
-Prices are in EUR. The content here overrides any external reference site.
+Single source of truth for the 11 excursions. Prices in EUR. This file overrides
+any external reference site. Edit here and rebuild (python3 build.py).
 
-To edit a price, text or inclusion: change it here and rebuild (python3 build.py).
-To disable a tour from the public site: set "active": False.
+Macro categories (homepage sections, 4 groups):
+  sea_islands | desert_safari | history_culture | activities
+
+Per-language content fields:
+  name, tagline, intro, highlights[], program[[title,desc]...], included[],
+  practical[], conditions[]
 """
-
-# category ids -> used for filters. Labels are translated in data/i18n.py
-# history | sea_islands | desert_adventure | other
 
 TOURS = [
 
-    # -----------------------------------------------------------------
-    # TOUR 01 - Lion Cub Photo Experience  (RESTRICTED - review before promo)
-    # -----------------------------------------------------------------
-    {
-        "id": "lion-cub-photo",
-        "slug": "lion-cub-photo",
-        "category": "other",
-        "price": 30,
-        "price_type": "per_person",
-        "featured": False,
-        "active": True,        # visibility also gated by PROMOTE_LION_CUB flag
-        "ads_safe": False,
-        "restricted": True,
-        "image": "lion-cub-photo",
-        "schedule": None,
-        "addons": [],
-        "content": {
-            "fr": {
-                "name": "Séance photo avec un lionceau",
-                "tagline": "Rencontre encadrée et photo souvenir",
-                "intro": "Une rencontre encadrée avec un lionceau le temps d'une séance photo souvenir à Hurghada. Transfert privé depuis et vers votre hôtel inclus.",
-                "highlights": [
-                    "Rencontre encadrée avec un lionceau",
-                    "Séance photo souvenir",
-                ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Séance photo encadrée",
-                ],
-                "conditions": [
-                    "Soumis à la disponibilité, au règlement de l'établissement et aux exigences de sécurité et de bien-être animal.",
-                    "Expérience en cours de revue réglementaire et de bien-être animal avant toute promotion.",
-                ],
-            },
-            "pl": {
-                "name": "Sesja zdjęciowa z lwiątkiem",
-                "tagline": "Spotkanie pod opieką i zdjęcie na pamiątkę",
-                "intro": "Spotkanie z lwiątkiem pod opieką opiekuna podczas pamiątkowej sesji zdjęciowej w Hurghadzie. W cenie prywatny transfer z hotelu i z powrotem.",
-                "highlights": [
-                    "Spotkanie z lwiątkiem pod opieką opiekuna",
-                    "Pamiątkowa sesja zdjęciowa",
-                ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Sesja zdjęciowa pod opieką",
-                ],
-                "conditions": [
-                    "W zależności od dostępności, regulaminu obiektu oraz wymogów bezpieczeństwa i dobrostanu zwierząt.",
-                    "Oferta w trakcie przeglądu prawnego i pod kątem dobrostanu zwierząt przed promocją.",
-                ],
-            },
-            "ro": {
-                "name": "Ședință foto cu un pui de leu",
-                "tagline": "Întâlnire supravegheată și fotografie de amintire",
-                "intro": "O întâlnire supravegheată cu un pui de leu în timpul unei ședințe foto de amintire la Hurghada. Transfer privat dus-întors de la hotel inclus.",
-                "highlights": [
-                    "Întâlnire supravegheată cu un pui de leu",
-                    "Ședință foto de amintire",
-                ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Ședință foto supravegheată",
-                ],
-                "conditions": [
-                    "În funcție de disponibilitate, de regulamentul locației și de cerințele de siguranță și de bunăstare a animalelor.",
-                    "Experiență aflată în curs de verificare legală și de bunăstare a animalelor înainte de promovare.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 02 - Cairo, Giza Pyramids & Grand Egyptian Museum
-    # -----------------------------------------------------------------
-    {
-        "id": "cairo-gem",
-        "slug": "cairo-giza-pyramids-grand-egyptian-museum",
-        "category": "history",
-        "price": 85,
-        "price_type": "per_person",
-        "featured": True,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "cairo-gem",
-        "schedule": None,
-        "addons": [],
-        "content": {
-            "fr": {
-                "name": "Le Caire : Pyramides de Gizeh & Grand Musée égyptien",
-                "tagline": "Les Pyramides et le GEM depuis Hurghada",
-                "intro": "Une journée complète au départ de Hurghada vers Le Caire pour découvrir les Pyramides de Gizeh et le nouveau Grand Musée égyptien. Transport en minibus climatisé, aller-retour, avec guide professionnel et déjeuner inclus.",
-                "highlights": [
-                    "Pyramides de Gizeh",
-                    "Grand Sphinx",
-                    "Grand Musée égyptien (GEM)",
-                    "Fabrique de parfums traditionnelle",
-                    "Institut du papyrus",
-                ],
-                "included": [
-                    "Transport en minibus climatisé (aller-retour)",
-                    "Déjeuner",
-                    "Guide touristique professionnel",
-                ],
-                "conditions": [
-                    "Transport en groupe en minibus climatisé : il ne s'agit pas d'un transport privé.",
-                    "Détails des billets d'entrée aux sites à confirmer via WhatsApp.",
-                ],
-            },
-            "pl": {
-                "name": "Kair: piramidy w Gizie i Wielkie Muzeum Egipskie",
-                "tagline": "Piramidy i GEM z Hurghady",
-                "intro": "Całodniowa wycieczka z Hurghady do Kairu, aby zobaczyć piramidy w Gizie i nowe Wielkie Muzeum Egipskie. Przejazd klimatyzowanym minibusem w obie strony, z profesjonalnym przewodnikiem i obiadem.",
-                "highlights": [
-                    "Piramidy w Gizie",
-                    "Wielki Sfinks",
-                    "Wielkie Muzeum Egipskie (GEM)",
-                    "Tradycyjna wytwórnia perfum",
-                    "Instytut papirusu",
-                ],
-                "included": [
-                    "Przejazd klimatyzowanym minibusem (w obie strony)",
-                    "Obiad",
-                    "Profesjonalny przewodnik",
-                ],
-                "conditions": [
-                    "Przejazd grupowy klimatyzowanym minibusem - to nie jest transport prywatny.",
-                    "Szczegóły biletów wstępu do obiektów do potwierdzenia przez WhatsApp.",
-                ],
-            },
-            "ro": {
-                "name": "Cairo: Piramidele din Giza și Marele Muzeu Egiptean",
-                "tagline": "Piramidele și GEM din Hurghada",
-                "intro": "O zi întreagă plecând din Hurghada spre Cairo pentru a descoperi Piramidele din Giza și noul Mare Muzeu Egiptean. Transport cu minibuz climatizat, dus-întors, cu ghid profesionist și prânz incluse.",
-                "highlights": [
-                    "Piramidele din Giza",
-                    "Marele Sfinx",
-                    "Marele Muzeu Egiptean (GEM)",
-                    "Fabrică tradițională de parfumuri",
-                    "Institutul de papirus",
-                ],
-                "included": [
-                    "Transport cu minibuz climatizat (dus-întors)",
-                    "Prânz",
-                    "Ghid turistic profesionist",
-                ],
-                "conditions": [
-                    "Transport în grup cu minibuz climatizat: nu este transport privat.",
-                    "Detaliile biletelor de intrare la obiective se confirmă prin WhatsApp.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 03 - Luxor: Ancient Egypt Highlights
-    # -----------------------------------------------------------------
-    {
-        "id": "luxor",
-        "slug": "luxor-ancient-egypt-highlights",
-        "category": "history",
-        "price": 70,
-        "price_type": "per_person",
-        "featured": True,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "luxor",
-        "schedule": None,
-        "addons": [],
-        "content": {
-            "fr": {
-                "name": "Louxor : les trésors de l'Égypte ancienne",
-                "tagline": "Karnak, la Vallée des Rois et plus encore",
-                "intro": "Partez à la journée depuis Hurghada à la découverte de Louxor, véritable musée à ciel ouvert de l'Égypte antique. Transport en minibus climatisé, aller-retour, avec guide professionnel et déjeuner inclus.",
-                "highlights": [
-                    "Temple de Karnak",
-                    "Vallée des Rois",
-                    "Temple de la reine Hatchepsout",
-                    "Colosses de Memnon",
-                ],
-                "included": [
-                    "Transport en minibus climatisé (aller-retour)",
-                    "Déjeuner",
-                    "Guide touristique professionnel",
-                ],
-                "conditions": [
-                    "Transport en groupe en minibus climatisé : il ne s'agit pas d'une excursion privée.",
-                    "Détails des billets d'entrée aux sites à confirmer via WhatsApp.",
-                ],
-            },
-            "pl": {
-                "name": "Luksor: skarby starożytnego Egiptu",
-                "tagline": "Karnak, Dolina Królów i więcej",
-                "intro": "Całodniowa wyprawa z Hurghady do Luksoru - prawdziwego muzeum starożytnego Egiptu pod otwartym niebem. Przejazd klimatyzowanym minibusem w obie strony, z profesjonalnym przewodnikiem i obiadem.",
-                "highlights": [
-                    "Świątynia w Karnaku",
-                    "Dolina Królów",
-                    "Świątynia królowej Hatszepsut",
-                    "Kolosy Memnona",
-                ],
-                "included": [
-                    "Przejazd klimatyzowanym minibusem (w obie strony)",
-                    "Obiad",
-                    "Profesjonalny przewodnik",
-                ],
-                "conditions": [
-                    "Przejazd grupowy klimatyzowanym minibusem - to nie jest wycieczka prywatna.",
-                    "Szczegóły biletów wstępu do obiektów do potwierdzenia przez WhatsApp.",
-                ],
-            },
-            "ro": {
-                "name": "Luxor: comorile Egiptului antic",
-                "tagline": "Karnak, Valea Regilor și nu numai",
-                "intro": "O excursie de o zi din Hurghada pentru a descoperi Luxorul, un adevărat muzeu în aer liber al Egiptului antic. Transport cu minibuz climatizat, dus-întors, cu ghid profesionist și prânz incluse.",
-                "highlights": [
-                    "Templul Karnak",
-                    "Valea Regilor",
-                    "Templul reginei Hatșepsut",
-                    "Coloșii lui Memnon",
-                ],
-                "included": [
-                    "Transport cu minibuz climatizat (dus-întors)",
-                    "Prânz",
-                    "Ghid turistic profesionist",
-                ],
-                "conditions": [
-                    "Transport în grup cu minibuz climatizat: nu este o excursie privată.",
-                    "Detaliile biletelor de intrare la obiective se confirmă prin WhatsApp.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 04 - VIP Quad Safari
-    # -----------------------------------------------------------------
-    {
-        "id": "vip-quad-safari",
-        "slug": "vip-quad-safari",
-        "category": "desert_adventure",
-        "price": 35,
-        "price_type": "per_person",
-        "featured": False,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "vip-quad-safari",
-        "schedule": None,
-        "addons": [
-            {
-                "id": "lion-cub-addon",
-                "price": 25,
-                "price_type": "per_person",
-                "restricted": True,
-                "name": {
-                    "fr": "Option séance photo avec un lionceau",
-                    "pl": "Opcja: sesja zdjęciowa z lwiątkiem",
-                    "ro": "Opțional: ședință foto cu un pui de leu",
-                },
-            },
-        ],
-        "content": {
-            "fr": {
-                "name": "VIP Quad Safari",
-                "tagline": "Quad, village bédouin et soirée orientale",
-                "intro": "Une échappée dans le désert d'Hurghada en quad, suivie d'une immersion dans un village bédouin traditionnel et d'une soirée orientale. Transferts privés aller-retour depuis votre hôtel inclus.",
-                "highlights": [
-                    "Randonnée en quad dans le désert",
-                    "Visite d'un village bédouin traditionnel",
-                    "Balade à dos de chameau",
-                    "Thé bédouin et pain traditionnel",
-                    "Dîner",
-                    "Soirée et spectacle orientaux",
-                ],
-                "included": [
-                    "Transferts privés aller-retour depuis l'hôtel",
-                    "Quad, balade à chameau et activités du programme",
-                    "Thé bédouin, pain traditionnel et dîner",
-                    "Spectacle oriental",
-                ],
-                "conditions": [
-                    "Expérience VIP - les transferts sont privés ; les activités se déroulent sur un site partagé avec d'autres visiteurs.",
-                ],
-            },
-            "pl": {
-                "name": "VIP Quad Safari",
-                "tagline": "Quady, wioska beduińska i orientalny wieczór",
-                "intro": "Wypad na pustynię pod Hurghadą quadem, a potem wizyta w tradycyjnej wiosce beduińskiej i orientalny wieczór. W cenie prywatne transfery z hotelu i z powrotem.",
-                "highlights": [
-                    "Przejażdżka quadem po pustyni",
-                    "Wizyta w tradycyjnej wiosce beduińskiej",
-                    "Przejażdżka na wielbłądzie",
-                    "Herbata beduińska i tradycyjny chleb",
-                    "Kolacja",
-                    "Orientalny wieczór z pokazem",
-                ],
-                "included": [
-                    "Prywatne transfery z hotelu i z powrotem",
-                    "Quad, przejażdżka na wielbłądzie i aktywności z programu",
-                    "Herbata beduińska, tradycyjny chleb i kolacja",
-                    "Pokaz orientalny",
-                ],
-                "conditions": [
-                    "Oferta VIP - transfery są prywatne; aktywności odbywają się w miejscu wspólnym z innymi gośćmi.",
-                ],
-            },
-            "ro": {
-                "name": "VIP Quad Safari",
-                "tagline": "ATV, sat beduin și seară orientală",
-                "intro": "O evadare în deșertul din Hurghada cu ATV-ul, urmată de o vizită într-un sat beduin tradițional și o seară orientală. Transferuri private dus-întors de la hotel incluse.",
-                "highlights": [
-                    "Tură cu ATV-ul în deșert",
-                    "Vizită într-un sat beduin tradițional",
-                    "Plimbare cu cămila",
-                    "Ceai beduin și pâine tradițională",
-                    "Cină",
-                    "Seară și spectacol oriental",
-                ],
-                "included": [
-                    "Transferuri private dus-întors de la hotel",
-                    "ATV, plimbare cu cămila și activitățile din program",
-                    "Ceai beduin, pâine tradițională și cină",
-                    "Spectacol oriental",
-                ],
-                "conditions": [
-                    "Experiență VIP - transferurile sunt private; activitățile au loc într-o locație comună cu alți vizitatori.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 05 - VIP Super Safari
-    # -----------------------------------------------------------------
-    {
-        "id": "vip-super-safari",
-        "slug": "vip-super-safari",
-        "category": "desert_adventure",
-        "price": 35,
-        "price_type": "per_person",
-        "featured": True,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "vip-super-safari",
-        "schedule": None,
-        "addons": [
-            {
-                "id": "lion-cub-addon",
-                "price": 25,
-                "price_type": "per_person",
-                "restricted": True,
-                "name": {
-                    "fr": "Option séance photo avec un lionceau",
-                    "pl": "Opcja: sesja zdjęciowa z lwiątkiem",
-                    "ro": "Opțional: ședință foto cu un pui de leu",
-                },
-            },
-        ],
-        "content": {
-            "fr": {
-                "name": "VIP Super Safari",
-                "tagline": "Quad, jeep ET spider car - le grand programme",
-                "intro": "La version la plus complète de notre safari : au quad s'ajoutent une virée en jeep 4x4 et un spider car, avant le village bédouin et la soirée orientale. Transferts privés aller-retour inclus.",
-                "highlights": [
-                    "Randonnée en quad",
-                    "Safari en jeep 4x4 dans le désert",
-                    "Tour en spider car",
-                    "Visite d'un village bédouin traditionnel",
-                    "Balade à dos de chameau",
-                    "Thé bédouin et pain traditionnel",
-                    "Dîner",
-                    "Soirée et spectacle orientaux",
-                ],
-                "included": [
-                    "Transferts privés aller-retour depuis l'hôtel",
-                    "Quad, jeep 4x4 et spider car",
-                    "Balade à chameau et activités du programme",
-                    "Thé bédouin, pain traditionnel et dîner",
-                    "Spectacle oriental",
-                ],
-                "conditions": [
-                    "Plus complet que le Quad Safari : il ajoute le safari en jeep 4x4 et le spider car.",
-                    "Expérience VIP - les transferts sont privés ; les activités se déroulent sur un site partagé.",
-                ],
-            },
-            "pl": {
-                "name": "VIP Super Safari",
-                "tagline": "Quad, jeep ORAZ spider car - pełny program",
-                "intro": "Najbardziej rozbudowana wersja naszego safari: oprócz quada czekają na Ciebie przejazd jeepem 4x4 i spider car, a potem wioska beduińska i orientalny wieczór. Prywatne transfery w obie strony w cenie.",
-                "highlights": [
-                    "Przejażdżka quadem",
-                    "Safari jeepem 4x4 po pustyni",
-                    "Przejazd spider carem",
-                    "Wizyta w tradycyjnej wiosce beduińskiej",
-                    "Przejażdżka na wielbłądzie",
-                    "Herbata beduińska i tradycyjny chleb",
-                    "Kolacja",
-                    "Orientalny wieczór z pokazem",
-                ],
-                "included": [
-                    "Prywatne transfery z hotelu i z powrotem",
-                    "Quad, jeep 4x4 i spider car",
-                    "Przejażdżka na wielbłądzie i aktywności z programu",
-                    "Herbata beduińska, tradycyjny chleb i kolacja",
-                    "Pokaz orientalny",
-                ],
-                "conditions": [
-                    "Bogatszy niż Quad Safari: dochodzą safari jeepem 4x4 oraz spider car.",
-                    "Oferta VIP - transfery są prywatne; aktywności odbywają się w miejscu wspólnym.",
-                ],
-            },
-            "ro": {
-                "name": "VIP Super Safari",
-                "tagline": "ATV, jeep ȘI spider car - programul complet",
-                "intro": "Cea mai completă versiune a safari-ului nostru: pe lângă ATV, ai parte de o tură cu jeep-ul 4x4 și cu spider car, apoi satul beduin și seara orientală. Transferuri private dus-întors incluse.",
-                "highlights": [
-                    "Tură cu ATV-ul",
-                    "Safari cu jeep 4x4 în deșert",
-                    "Tură cu spider car",
-                    "Vizită într-un sat beduin tradițional",
-                    "Plimbare cu cămila",
-                    "Ceai beduin și pâine tradițională",
-                    "Cină",
-                    "Seară și spectacol oriental",
-                ],
-                "included": [
-                    "Transferuri private dus-întors de la hotel",
-                    "ATV, jeep 4x4 și spider car",
-                    "Plimbare cu cămila și activitățile din program",
-                    "Ceai beduin, pâine tradițională și cină",
-                    "Spectacol oriental",
-                ],
-                "conditions": [
-                    "Mai complet decât Quad Safari: adaugă safari-ul cu jeep 4x4 și spider car-ul.",
-                    "Experiență VIP - transferurile sunt private; activitățile au loc într-o locație comună.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 06 - Three Islands
-    # -----------------------------------------------------------------
+    # =================================================================
+    # SEA & ISLANDS
+    # =================================================================
     {
         "id": "three-islands",
         "slug": "three-islands-orange-bay-magawish-white-island",
         "category": "sea_islands",
-        "price": 50,
-        "price_type": "per_person",
-        "featured": True,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "three-islands",
-        "schedule": None,
-        "addons": [],
+        "price": 50, "price_type": "per_person",
+        "featured": True, "active": True, "ads_safe": True, "restricted": False,
+        "image": "three-islands", "schedule": None, "addons": [],
         "content": {
             "fr": {
                 "name": "Trois îles : Orange Bay + Magawish + White Island",
                 "tagline": "Trois destinations de la mer Rouge en une journée",
                 "intro": "Une journée en bateau sur la mer Rouge pour enchaîner trois lieux emblématiques : Orange Bay, l'île de Magawish et White Island. Baignade, arrêts snorkeling et déjeuner à bord, transfert privé inclus.",
-                "highlights": [
-                    "Orange Bay",
-                    "Île de Magawish",
-                    "White Island",
-                    "Arrêts snorkeling",
+                "highlights": ["Trois îles en une seule journée", "Eaux turquoise et plages de sable blanc", "Arrêts snorkeling sur les récifs", "Déjeuner et boissons à bord"],
+                "program": [
+                    ["Transfert privé & embarquement", "Prise en charge à votre hôtel, puis départ du bateau depuis la marina."],
+                    ["Orange Bay", "Escale sur l'une des plus belles plages de la région, eau cristalline et sable blanc."],
+                    ["Île de Magawish", "Pause baignade et détente dans un décor de carte postale."],
+                    ["White Island", "Banc de sable au milieu de la mer, idéal pour les photos."],
+                    ["Snorkeling & déjeuner", "Arrêts masque et tuba au-dessus des récifs, déjeuner servi à bord."],
+                    ["Retour", "Navigation retour puis transfert privé vers votre hôtel."],
                 ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Excursion en bateau sur la mer Rouge",
-                    "Déjeuner à bord",
-                    "Boissons sans alcool à bord",
-                    "Équipement de snorkeling",
-                ],
-                "conditions": [
-                    "Trois destinations en une seule journée.",
-                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Excursion en bateau sur la mer Rouge", "Déjeuner à bord", "Boissons sans alcool à bord", "Équipement de snorkeling"],
+                "practical": ["Prévoyez maillot de bain, serviette, crème solaire et chapeau.", "Le transfert depuis l'hôtel est confirmé via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": ["Trois destinations en une seule journée."],
             },
             "pl": {
                 "name": "Trzy wyspy: Orange Bay + Magawish + White Island",
                 "tagline": "Trzy miejsca na Morzu Czerwonym w jeden dzień",
                 "intro": "Całodniowy rejs po Morzu Czerwonym z trzema kultowymi przystankami: Orange Bay, wyspa Magawish i White Island. Kąpiel, przystanki na snorkeling i obiad na pokładzie, prywatny transfer w cenie.",
-                "highlights": [
-                    "Orange Bay",
-                    "Wyspa Magawish",
-                    "White Island",
-                    "Przystanki na snorkeling",
+                "highlights": ["Trzy wyspy w jeden dzień", "Turkusowa woda i białe plaże", "Snorkeling na rafach", "Obiad i napoje na pokładzie"],
+                "program": [
+                    ["Prywatny transfer i start", "Odbiór z hotelu, a następnie wypłynięcie łodzią z mariny."],
+                    ["Orange Bay", "Przystanek na jednej z najpiękniejszych plaż regionu - krystaliczna woda i biały piasek."],
+                    ["Wyspa Magawish", "Kąpiel i relaks w otoczeniu jak z pocztówki."],
+                    ["White Island", "Piaszczysta łacha pośrodku morza, idealna na zdjęcia."],
+                    ["Snorkeling i obiad", "Przystanki z maską i rurką nad rafami, obiad serwowany na pokładzie."],
+                    ["Powrót", "Rejs powrotny i prywatny transfer do hotelu."],
                 ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Rejs po Morzu Czerwonym",
-                    "Obiad na pokładzie",
-                    "Napoje bezalkoholowe na pokładzie",
-                    "Sprzęt do snorkelingu",
-                ],
-                "conditions": [
-                    "Trzy miejsca w ciągu jednego dnia.",
-                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Rejs po Morzu Czerwonym", "Obiad na pokładzie", "Napoje bezalkoholowe na pokładzie", "Sprzęt do snorkelingu"],
+                "practical": ["Zabierz strój kąpielowy, ręcznik, krem z filtrem i czapkę.", "Transfer z hotelu potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": ["Trzy miejsca w ciągu jednego dnia."],
             },
             "ro": {
                 "name": "Trei insule: Orange Bay + Magawish + White Island",
                 "tagline": "Trei destinații din Marea Roșie într-o singură zi",
                 "intro": "O zi cu barca pe Marea Roșie pentru a lega trei locuri emblematice: Orange Bay, insula Magawish și White Island. Scăldat, opriri pentru snorkeling și prânz la bord, transfer privat inclus.",
-                "highlights": [
-                    "Orange Bay",
-                    "Insula Magawish",
-                    "White Island",
-                    "Opriri pentru snorkeling",
+                "highlights": ["Trei insule într-o singură zi", "Apă turcoaz și plaje de nisip alb", "Opriri de snorkeling pe recife", "Prânz și băuturi la bord"],
+                "program": [
+                    ["Transfer privat & îmbarcare", "Preluare de la hotel, apoi plecarea cu barca din marina."],
+                    ["Orange Bay", "Escală pe una dintre cele mai frumoase plaje din regiune - apă cristalină și nisip alb."],
+                    ["Insula Magawish", "Pauză de scăldat și relaxare într-un decor de carte poștală."],
+                    ["White Island", "Limbă de nisip în mijlocul mării, ideală pentru fotografii."],
+                    ["Snorkeling & prânz", "Opriri cu masca și tubul deasupra recifelor, prânz servit la bord."],
+                    ["Retur", "Navigare de întoarcere și transfer privat la hotel."],
                 ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Excursie cu barca pe Marea Roșie",
-                    "Prânz la bord",
-                    "Băuturi răcoritoare la bord",
-                    "Echipament de snorkeling",
-                ],
-                "conditions": [
-                    "Trei destinații într-o singură zi.",
-                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Excursie cu barca pe Marea Roșie", "Prânz la bord", "Băuturi răcoritoare la bord", "Echipament de snorkeling"],
+                "practical": ["Ia costum de baie, prosop, cremă de protecție solară și pălărie.", "Transferul de la hotel se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
+                "conditions": ["Trei destinații într-o singură zi."],
             },
         },
     },
 
-    # -----------------------------------------------------------------
-    # TOUR 07 - Orange Bay + Hula Hula
-    # -----------------------------------------------------------------
     {
         "id": "orange-bay-hula-hula",
         "slug": "orange-bay-hula-hula-two-islands",
         "category": "sea_islands",
-        "price": 40,
-        "price_type": "per_person",
-        "featured": False,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "orange-bay-hula-hula",
-        "schedule": "08:30 - 17:00",
-        "addons": [],
+        "price": 40, "price_type": "per_person",
+        "featured": False, "active": True, "ads_safe": True, "restricted": False,
+        "image": "orange-bay-hula-hula", "schedule": "08:30 - 17:00", "addons": [],
         "content": {
             "fr": {
                 "name": "Orange Bay + Hula Hula : deux îles",
                 "tagline": "Deux îles de la mer Rouge en une journée",
                 "intro": "Une belle journée en mer pour découvrir deux îles phares de la région : Orange Bay et Hula Hula. Arrêts snorkeling, déjeuner à bord et transfert privé inclus. Horaire approximatif : 08h30 - 17h00.",
-                "highlights": [
-                    "Orange Bay",
-                    "Île de Hula Hula",
-                    "Arrêts snorkeling",
+                "highlights": ["Deux îles en une journée", "Lagons turquoise et sable blanc", "Snorkeling au-dessus des récifs", "Déjeuner et boissons à bord"],
+                "program": [
+                    ["Transfert privé & embarquement", "Prise en charge à l'hôtel vers 08h30 (indicatif), puis départ du bateau."],
+                    ["Orange Bay", "Escale sur cette plage emblématique aux eaux translucides."],
+                    ["Île de Hula Hula", "Détente et baignade sur un second banc de sable paradisiaque."],
+                    ["Snorkeling & déjeuner", "Arrêts masque et tuba, déjeuner servi à bord."],
+                    ["Retour", "Retour vers l'hôtel en fin de journée (vers 17h00, indicatif)."],
                 ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Excursion en bateau sur la mer Rouge",
-                    "Déjeuner à bord",
-                    "Boissons sans alcool à bord",
-                    "Équipement de snorkeling",
-                ],
-                "conditions": [
-                    "Deux îles en une journée.",
-                    "Horaire 08h30 - 17h00 indicatif : ce n'est pas une heure de prise en charge garantie.",
-                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Excursion en bateau sur la mer Rouge", "Déjeuner à bord", "Boissons sans alcool à bord", "Équipement de snorkeling"],
+                "practical": ["Prévoyez maillot de bain, serviette, crème solaire et chapeau.", "Le transfert depuis l'hôtel est confirmé via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": ["Deux îles en une journée.", "Horaire 08h30 - 17h00 indicatif : ce n'est pas une heure de prise en charge garantie."],
             },
             "pl": {
                 "name": "Orange Bay + Hula Hula: dwie wyspy",
                 "tagline": "Dwie wyspy Morza Czerwonego w jeden dzień",
                 "intro": "Udany dzień na morzu z dwiema popularnymi wyspami regionu: Orange Bay i Hula Hula. Przystanki na snorkeling, obiad na pokładzie i prywatny transfer w cenie. Przybliżone godziny: 08:30 - 17:00.",
-                "highlights": [
-                    "Orange Bay",
-                    "Wyspa Hula Hula",
-                    "Przystanki na snorkeling",
+                "highlights": ["Dwie wyspy w jeden dzień", "Turkusowe laguny i biały piasek", "Snorkeling nad rafami", "Obiad i napoje na pokładzie"],
+                "program": [
+                    ["Prywatny transfer i start", "Odbiór z hotelu ok. 08:30 (orientacyjnie), a następnie wypłynięcie."],
+                    ["Orange Bay", "Przystanek na tej kultowej plaży o przejrzystej wodzie."],
+                    ["Wyspa Hula Hula", "Relaks i kąpiel na drugiej, rajskiej piaszczystej łasze."],
+                    ["Snorkeling i obiad", "Przystanki z maską i rurką, obiad serwowany na pokładzie."],
+                    ["Powrót", "Powrót do hotelu pod koniec dnia (ok. 17:00, orientacyjnie)."],
                 ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Rejs po Morzu Czerwonym",
-                    "Obiad na pokładzie",
-                    "Napoje bezalkoholowe na pokładzie",
-                    "Sprzęt do snorkelingu",
-                ],
-                "conditions": [
-                    "Dwie wyspy w ciągu jednego dnia.",
-                    "Godziny 08:30 - 17:00 są orientacyjne - to nie jest gwarantowana godzina odbioru.",
-                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Rejs po Morzu Czerwonym", "Obiad na pokładzie", "Napoje bezalkoholowe na pokładzie", "Sprzęt do snorkelingu"],
+                "practical": ["Zabierz strój kąpielowy, ręcznik, krem z filtrem i czapkę.", "Transfer z hotelu potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": ["Dwie wyspy w ciągu jednego dnia.", "Godziny 08:30 - 17:00 są orientacyjne - to nie jest gwarantowana godzina odbioru."],
             },
             "ro": {
                 "name": "Orange Bay + Hula Hula: două insule",
                 "tagline": "Două insule din Marea Roșie într-o singură zi",
                 "intro": "O zi frumoasă pe mare pentru a descoperi două insule de referință din regiune: Orange Bay și Hula Hula. Opriri pentru snorkeling, prânz la bord și transfer privat incluse. Orar aproximativ: 08:30 - 17:00.",
-                "highlights": [
-                    "Orange Bay",
-                    "Insula Hula Hula",
-                    "Opriri pentru snorkeling",
+                "highlights": ["Două insule într-o singură zi", "Lagune turcoaz și nisip alb", "Snorkeling deasupra recifelor", "Prânz și băuturi la bord"],
+                "program": [
+                    ["Transfer privat & îmbarcare", "Preluare de la hotel în jur de 08:30 (orientativ), apoi plecarea bărcii."],
+                    ["Orange Bay", "Escală pe această plajă emblematică, cu apă translucidă."],
+                    ["Insula Hula Hula", "Relaxare și scăldat pe o a doua limbă de nisip paradisiacă."],
+                    ["Snorkeling & prânz", "Opriri cu masca și tubul, prânz servit la bord."],
+                    ["Retur", "Întoarcere spre hotel la final de zi (în jur de 17:00, orientativ)."],
                 ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Excursie cu barca pe Marea Roșie",
-                    "Prânz la bord",
-                    "Băuturi răcoritoare la bord",
-                    "Echipament de snorkeling",
-                ],
-                "conditions": [
-                    "Două insule într-o singură zi.",
-                    "Orarul 08:30 - 17:00 este orientativ - nu este o oră de preluare garantată.",
-                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Excursie cu barca pe Marea Roșie", "Prânz la bord", "Băuturi răcoritoare la bord", "Echipament de snorkeling"],
+                "practical": ["Ia costum de baie, prosop, cremă de protecție solară și pălărie.", "Transferul de la hotel se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
+                "conditions": ["Două insule într-o singură zi.", "Orarul 08:30 - 17:00 este orientativ - nu este o oră de preluare garantată."],
             },
         },
     },
 
-    # -----------------------------------------------------------------
-    # TOUR 08 - Private Speed Boat
-    # -----------------------------------------------------------------
     {
         "id": "private-speedboat",
         "slug": "private-speed-boat",
         "category": "sea_islands",
-        "price": 150,
-        "price_type": "per_boat",
-        "group_base": "2-5",
-        "featured": True,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "private-speedboat",
-        "schedule": None,
+        "price": 150, "price_type": "per_boat", "group_base": "2-5",
+        "featured": True, "active": True, "ads_safe": True, "restricted": False,
+        "image": "private-speedboat", "schedule": None,
         "addons": [
             {"id": "orange-bay", "price": 15, "price_type": "per_person", "restricted": False,
              "name": {"fr": "Orange Bay", "pl": "Orange Bay", "ro": "Orange Bay"}},
@@ -651,18 +159,17 @@ TOURS = [
                 "name": "Bateau rapide privé",
                 "tagline": "Votre propre bateau rapide - 150 € au total",
                 "intro": "Un bateau rapide rien que pour votre groupe, à la découverte de White Island et des eaux turquoise de la mer Rouge. Le prix de 150 € s'entend pour le bateau complet (forfait de base 2 à 5 personnes), et non par personne.",
-                "highlights": [
-                    "Bateau rapide privé pour votre groupe",
-                    "White Island",
-                    "Observation possible de dauphins dans leur milieu naturel (non garantie)",
-                    "Arrêts snorkeling",
+                "highlights": ["Bateau privé pour votre groupe", "Liberté sur votre propre programme", "White Island et eaux turquoise", "Snorkeling, fruits frais et boissons"],
+                "program": [
+                    ["Transfert privé", "Prise en charge à votre hôtel et route vers la marina."],
+                    ["Votre bateau rapide privé", "Embarquement sur un bateau réservé uniquement à votre groupe."],
+                    ["White Island", "Escale sur le célèbre banc de sable blanc au milieu de la mer."],
+                    ["Dauphins (selon conditions)", "Possibilité d'observer des dauphins dans leur milieu naturel - non garantie."],
+                    ["Snorkeling & collation", "Arrêts snorkeling, fruits frais, en-cas et boissons sans alcool à bord."],
+                    ["Retour", "Navigation retour puis transfert privé vers votre hôtel."],
                 ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Bateau rapide privé pour le groupe",
-                    "Équipement de snorkeling",
-                    "Fruits frais, en-cas et boissons sans alcool",
-                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Bateau rapide privé pour le groupe", "Équipement de snorkeling", "Fruits frais, en-cas et boissons sans alcool"],
+                "practical": ["Prévoyez maillot de bain, serviette, crème solaire et chapeau.", "Options possibles : Orange Bay, Hula Hula, île d'Ozirea (en supplément par personne).", "Paiement au début de l'excursion, en espèces."],
                 "conditions": [
                     "Prix de 150 € pour le bateau complet (forfait de base 2 à 5 personnes), pas par personne.",
                     "Groupes de 5 à 10 personnes : devis personnalisé selon la taille du groupe et le bateau adapté - contactez-nous via WhatsApp.",
@@ -674,18 +181,17 @@ TOURS = [
                 "name": "Prywatna łódź motorowa",
                 "tagline": "Łódź tylko dla Was - 150 € za całość",
                 "intro": "Szybka łódź wyłącznie dla Twojej grupy, z wizytą na White Island i wśród turkusowych wód Morza Czerwonego. Cena 150 € dotyczy całej łodzi (pakiet podstawowy 2 do 5 osób), a nie jednej osoby.",
-                "highlights": [
-                    "Prywatna łódź motorowa dla Twojej grupy",
-                    "White Island",
-                    "Możliwość obserwacji delfinów w ich naturalnym środowisku (bez gwarancji)",
-                    "Przystanki na snorkeling",
+                "highlights": ["Prywatna łódź dla Twojej grupy", "Swoboda własnego programu", "White Island i turkusowa woda", "Snorkeling, świeże owoce i napoje"],
+                "program": [
+                    ["Prywatny transfer", "Odbiór z hotelu i przejazd do mariny."],
+                    ["Wasza prywatna łódź motorowa", "Wejście na łódź zarezerwowaną wyłącznie dla Waszej grupy."],
+                    ["White Island", "Przystanek na słynnej białej łasze pośrodku morza."],
+                    ["Delfiny (zależnie od warunków)", "Możliwość obserwacji delfinów w naturze - bez gwarancji."],
+                    ["Snorkeling i przekąski", "Przystanki na snorkeling, świeże owoce, przekąski i napoje bezalkoholowe."],
+                    ["Powrót", "Rejs powrotny i prywatny transfer do hotelu."],
                 ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Prywatna łódź motorowa dla grupy",
-                    "Sprzęt do snorkelingu",
-                    "Świeże owoce, przekąski i napoje bezalkoholowe",
-                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Prywatna łódź motorowa dla grupy", "Sprzęt do snorkelingu", "Świeże owoce, przekąski i napoje bezalkoholowe"],
+                "practical": ["Zabierz strój kąpielowy, ręcznik, krem z filtrem i czapkę.", "Opcje dodatkowe: Orange Bay, Hula Hula, wyspa Ozirea (dopłata od osoby).", "Płatność na początku wycieczki, gotówką."],
                 "conditions": [
                     "Cena 150 € za całą łódź (pakiet podstawowy 2 do 5 osób), nie za osobę.",
                     "Grupy od 5 do 10 osób: wycena indywidualna w zależności od liczby osób i odpowiedniej łodzi - napisz do nas przez WhatsApp.",
@@ -697,18 +203,17 @@ TOURS = [
                 "name": "Barcă rapidă privată",
                 "tagline": "Barca voastră privată - 150 € în total",
                 "intro": "O barcă rapidă numai pentru grupul tău, pentru a descoperi White Island și apele turcoaz ale Mării Roșii. Prețul de 150 € este pentru barca întreagă (pachet de bază 2 până la 5 persoane), nu de persoană.",
-                "highlights": [
-                    "Barcă rapidă privată pentru grupul tău",
-                    "White Island",
-                    "Posibilitatea de a observa delfini în mediul lor natural (fără garanție)",
-                    "Opriri pentru snorkeling",
+                "highlights": ["Barcă privată pentru grupul tău", "Libertatea propriului program", "White Island și ape turcoaz", "Snorkeling, fructe proaspete și băuturi"],
+                "program": [
+                    ["Transfer privat", "Preluare de la hotel și drum spre marina."],
+                    ["Barca ta rapidă privată", "Îmbarcare pe o barcă rezervată exclusiv grupului tău."],
+                    ["White Island", "Escală pe celebra limbă de nisip alb din mijlocul mării."],
+                    ["Delfini (în funcție de condiții)", "Posibilitatea de a observa delfini în mediul natural - fără garanție."],
+                    ["Snorkeling & gustare", "Opriri de snorkeling, fructe proaspete, gustări și băuturi răcoritoare la bord."],
+                    ["Retur", "Navigare de întoarcere și transfer privat la hotel."],
                 ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Barcă rapidă privată pentru grup",
-                    "Echipament de snorkeling",
-                    "Fructe proaspete, gustări și băuturi răcoritoare",
-                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Barcă rapidă privată pentru grup", "Echipament de snorkeling", "Fructe proaspete, gustări și băuturi răcoritoare"],
+                "practical": ["Ia costum de baie, prosop, cremă de protecție solară și pălărie.", "Opțiuni suplimentare: Orange Bay, Hula Hula, insula Ozirea (supliment de persoană).", "Plata la începutul excursiei, în numerar."],
                 "conditions": [
                     "Preț de 150 € pentru barca întreagă (pachet de bază 2 până la 5 persoane), nu de persoană.",
                     "Grupuri de 5 până la 10 persoane: ofertă personalizată în funcție de numărul de persoane și de barca potrivită - scrie-ne pe WhatsApp.",
@@ -719,181 +224,28 @@ TOURS = [
         },
     },
 
-    # -----------------------------------------------------------------
-    # TOUR 09 - El Gouna Go Kart
-    # -----------------------------------------------------------------
-    {
-        "id": "el-gouna-go-kart",
-        "slug": "el-gouna-go-kart",
-        "category": "other",
-        "price": 35,
-        "price_type": "per_person",
-        "featured": False,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "el-gouna-go-kart",
-        "schedule": None,
-        "addons": [],
-        "content": {
-            "fr": {
-                "name": "Karting à El Gouna",
-                "tagline": "Sensations sur piste à El Gouna",
-                "intro": "Direction El Gouna pour une séance de karting sur piste, pleine de sensations. Transfert privé aller-retour depuis votre hôtel inclus.",
-                "highlights": [
-                    "Séance de karting à El Gouna",
-                    "Expérience de pilotage sur piste",
-                ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Séance de karting sur piste",
-                ],
-                "conditions": [
-                    "La durée de 10 à 15 minutes correspond à la séance de pilotage, pas à l'ensemble de l'excursion.",
-                ],
-            },
-            "pl": {
-                "name": "Gokarty w El Gouna",
-                "tagline": "Emocje na torze w El Gouna",
-                "intro": "Wyprawa do El Gouna na emocjonującą sesję jazdy gokartami po torze. W cenie prywatny transfer z hotelu i z powrotem.",
-                "highlights": [
-                    "Sesja jazdy gokartem w El Gouna",
-                    "Jazda po torze",
-                ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Sesja jazdy gokartem po torze",
-                ],
-                "conditions": [
-                    "Czas 10-15 minut dotyczy samej jazdy, a nie całej wycieczki.",
-                ],
-            },
-            "ro": {
-                "name": "Karting la El Gouna",
-                "tagline": "Senzații pe pistă la El Gouna",
-                "intro": "Mergem la El Gouna pentru o sesiune de karting pe pistă, plină de senzații. Transfer privat dus-întors de la hotel inclus.",
-                "highlights": [
-                    "Sesiune de karting la El Gouna",
-                    "Experiență de pilotaj pe pistă",
-                ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Sesiune de karting pe pistă",
-                ],
-                "conditions": [
-                    "Durata de 10-15 minute se referă la sesiunea de pilotaj, nu la întreaga excursie.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 10 - Horse Riding: Desert, Beach & Swimming
-    # -----------------------------------------------------------------
-    {
-        "id": "horse-riding-swimming",
-        "slug": "horse-riding-desert-beach-swimming",
-        "category": "desert_adventure",
-        "price": 35,
-        "price_type": "per_person",
-        "featured": False,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "horse-riding-swimming",
-        "schedule": None,
-        "addons": [],
-        "content": {
-            "fr": {
-                "name": "Équitation : désert, plage et baignade",
-                "tagline": "À cheval entre désert et mer",
-                "intro": "Une balade à cheval qui relie le désert et le bord de mer, avec la possibilité de nager avec les chevaux dans la mer. Guide accompagnateur et transfert privé aller-retour inclus.",
-                "highlights": [
-                    "Balade à cheval dans le désert",
-                    "Chevauchée au bord de la plage et de l'eau",
-                    "Baignade avec les chevaux dans la mer",
-                ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Balade à cheval accompagnée",
-                    "Guide accompagnateur professionnel",
-                ],
-                "conditions": [
-                    "L'ambiance au coucher du soleil dépend des conditions du jour et n'est pas garantie.",
-                ],
-            },
-            "pl": {
-                "name": "Jazda konna: pustynia, plaża i kąpiel",
-                "tagline": "Konno między pustynią a morzem",
-                "intro": "Przejażdżka konna łącząca pustynię i brzeg morza, z możliwością kąpieli z końmi w morzu. W cenie przewodnik i prywatny transfer w obie strony.",
-                "highlights": [
-                    "Jazda konna po pustyni",
-                    "Jazda wzdłuż plaży i wody",
-                    "Kąpiel z końmi w morzu",
-                ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Jazda konna z opiekunem",
-                    "Profesjonalny przewodnik towarzyszący",
-                ],
-                "conditions": [
-                    "Klimat zachodu słońca zależy od warunków danego dnia i nie jest gwarantowany.",
-                ],
-            },
-            "ro": {
-                "name": "Călărie: deșert, plajă și scăldat",
-                "tagline": "Călare între deșert și mare",
-                "intro": "O plimbare călare care leagă deșertul de malul mării, cu posibilitatea de a înota cu caii în mare. Ghid însoțitor și transfer privat dus-întors incluse.",
-                "highlights": [
-                    "Plimbare călare în deșert",
-                    "Călărie pe lângă plajă și apă",
-                    "Scăldat cu caii în mare",
-                ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Plimbare călare însoțită",
-                    "Ghid însoțitor profesionist",
-                ],
-                "conditions": [
-                    "Atmosfera de apus depinde de condițiile din ziua respectivă și nu este garantată.",
-                ],
-            },
-        },
-    },
-
-    # -----------------------------------------------------------------
-    # TOUR 11 - Dolphin House
-    # -----------------------------------------------------------------
     {
         "id": "dolphin-house",
         "slug": "dolphin-house",
         "category": "sea_islands",
-        "price": 30,
-        "price_type": "per_person",
-        "featured": True,
-        "active": True,
-        "ads_safe": True,
-        "restricted": False,
-        "image": "dolphin-house",
-        "schedule": None,
-        "addons": [],
+        "price": 30, "price_type": "per_person",
+        "featured": True, "active": True, "ads_safe": True, "restricted": False,
+        "image": "dolphin-house", "schedule": None, "addons": [],
         "content": {
             "fr": {
                 "name": "Dolphin House",
                 "tagline": "À la rencontre des dauphins sauvages",
                 "intro": "Une sortie en bateau vers Dolphin House, un site réputé de la mer Rouge où l'on peut parfois observer des dauphins sauvages. Snorkeling au-dessus des récifs coralliens, déjeuner à bord et transfert privé inclus.",
-                "highlights": [
-                    "Sortie en bateau vers Dolphin House",
-                    "Observation possible de dauphins sauvages",
-                    "Snorkeling au-dessus des récifs coralliens",
+                "highlights": ["Site réputé pour les dauphins sauvages", "Snorkeling sur de beaux récifs coralliens", "Déjeuner et boissons à bord", "Transfert privé inclus"],
+                "program": [
+                    ["Transfert privé & embarquement", "Prise en charge à l'hôtel, puis départ du bateau depuis la marina."],
+                    ["Cap sur Dolphin House", "Navigation vers le récif de Dolphin House, en pleine mer Rouge."],
+                    ["Dauphins sauvages (selon conditions)", "Observation possible de dauphins dans leur milieu naturel - non garantie."],
+                    ["Snorkeling sur les récifs", "Arrêts masque et tuba au-dessus des coraux colorés."],
+                    ["Déjeuner & retour", "Déjeuner servi à bord, puis retour et transfert privé vers l'hôtel."],
                 ],
-                "included": [
-                    "Transfert privé aller-retour depuis l'hôtel",
-                    "Excursion en bateau vers Dolphin House",
-                    "Équipement de snorkeling",
-                    "Déjeuner à bord",
-                    "Boissons sans alcool à bord",
-                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Excursion en bateau vers Dolphin House", "Équipement de snorkeling", "Déjeuner à bord", "Boissons sans alcool à bord"],
+                "practical": ["Prévoyez maillot de bain, serviette, crème solaire et chapeau.", "Le transfert depuis l'hôtel est confirmé via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
                 "conditions": [
                     "L'observation des dauphins et la possibilité de nager à proximité ne sont pas garanties : elles dépendent des conditions naturelles et des bonnes pratiques de sécurité et de respect de la faune.",
                     "Les dauphins sont sauvages : il n'est pas question de les nourrir, de les toucher, de les poursuivre ni de les capturer.",
@@ -903,18 +255,16 @@ TOURS = [
                 "name": "Dolphin House",
                 "tagline": "Spotkanie z dzikimi delfinami",
                 "intro": "Rejs łodzią do Dolphin House - znanego miejsca na Morzu Czerwonym, gdzie czasem można obserwować dzikie delfiny. Snorkeling nad rafami koralowymi, obiad na pokładzie i prywatny transfer w cenie.",
-                "highlights": [
-                    "Rejs łodzią do Dolphin House",
-                    "Możliwość obserwacji dzikich delfinów",
-                    "Snorkeling nad rafami koralowymi",
+                "highlights": ["Miejsce znane z dzikich delfinów", "Snorkeling nad pięknymi rafami koralowymi", "Obiad i napoje na pokładzie", "Prywatny transfer w cenie"],
+                "program": [
+                    ["Prywatny transfer i start", "Odbiór z hotelu, a następnie wypłynięcie łodzią z mariny."],
+                    ["Kurs na Dolphin House", "Rejs do rafy Dolphin House na otwartym Morzu Czerwonym."],
+                    ["Dzikie delfiny (zależnie od warunków)", "Możliwość obserwacji delfinów w naturze - bez gwarancji."],
+                    ["Snorkeling na rafach", "Przystanki z maską i rurką nad kolorowymi koralami."],
+                    ["Obiad i powrót", "Obiad serwowany na pokładzie, a potem powrót i prywatny transfer do hotelu."],
                 ],
-                "included": [
-                    "Prywatny transfer z hotelu i z powrotem",
-                    "Rejs łodzią do Dolphin House",
-                    "Sprzęt do snorkelingu",
-                    "Obiad na pokładzie",
-                    "Napoje bezalkoholowe na pokładzie",
-                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Rejs łodzią do Dolphin House", "Sprzęt do snorkelingu", "Obiad na pokładzie", "Napoje bezalkoholowe na pokładzie"],
+                "practical": ["Zabierz strój kąpielowy, ręcznik, krem z filtrem i czapkę.", "Transfer z hotelu potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
                 "conditions": [
                     "Obserwacja delfinów i możliwość pływania w ich pobliżu nie są gwarantowane: zależą od warunków naturalnych oraz zasad bezpieczeństwa i poszanowania dzikiej przyrody.",
                     "Delfiny są dzikie: nie wolno ich karmić, dotykać, ścigać ani łapać.",
@@ -924,21 +274,464 @@ TOURS = [
                 "name": "Dolphin House",
                 "tagline": "În întâmpinarea delfinilor sălbatici",
                 "intro": "O ieșire cu barca spre Dolphin House, un loc renumit din Marea Roșie unde uneori pot fi observați delfini sălbatici. Snorkeling deasupra recifelor de corali, prânz la bord și transfer privat incluse.",
-                "highlights": [
-                    "Ieșire cu barca spre Dolphin House",
-                    "Posibilitatea de a observa delfini sălbatici",
-                    "Snorkeling deasupra recifelor de corali",
+                "highlights": ["Loc renumit pentru delfinii sălbatici", "Snorkeling pe recife de corali frumoase", "Prânz și băuturi la bord", "Transfer privat inclus"],
+                "program": [
+                    ["Transfer privat & îmbarcare", "Preluare de la hotel, apoi plecarea cu barca din marina."],
+                    ["Spre Dolphin House", "Navigare spre reciful Dolphin House, în larg pe Marea Roșie."],
+                    ["Delfini sălbatici (în funcție de condiții)", "Posibilitatea de a observa delfini în mediul natural - fără garanție."],
+                    ["Snorkeling pe recife", "Opriri cu masca și tubul deasupra coralilor colorați."],
+                    ["Prânz & retur", "Prânz servit la bord, apoi întoarcere și transfer privat la hotel."],
                 ],
-                "included": [
-                    "Transfer privat dus-întors de la hotel",
-                    "Excursie cu barca spre Dolphin House",
-                    "Echipament de snorkeling",
-                    "Prânz la bord",
-                    "Băuturi răcoritoare la bord",
-                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Excursie cu barca spre Dolphin House", "Echipament de snorkeling", "Prânz la bord", "Băuturi răcoritoare la bord"],
+                "practical": ["Ia costum de baie, prosop, cremă de protecție solară și pălărie.", "Transferul de la hotel se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
                 "conditions": [
                     "Observarea delfinilor și posibilitatea de a înota în apropierea lor nu sunt garantate: depind de condițiile naturale și de bunele practici de siguranță și de respect față de faună.",
                     "Delfinii sunt sălbatici: nu se pune problema de a-i hrăni, atinge, urmări sau captura.",
+                ],
+            },
+        },
+    },
+
+    # =================================================================
+    # DESERT & SAFARI
+    # =================================================================
+    {
+        "id": "vip-quad-safari",
+        "slug": "vip-quad-safari",
+        "category": "desert_safari",
+        "price": 35, "price_type": "per_person",
+        "featured": False, "active": True, "ads_safe": True, "restricted": False,
+        "image": "vip-quad-safari", "schedule": None,
+        "addons": [
+            {"id": "lion-cub-addon", "price": 25, "price_type": "per_person", "restricted": True,
+             "name": {"fr": "Option séance photo avec un lionceau", "pl": "Opcja: sesja zdjęciowa z lwiątkiem", "ro": "Opțional: ședință foto cu un pui de leu"}},
+        ],
+        "content": {
+            "fr": {
+                "name": "VIP Quad Safari",
+                "tagline": "Quad, village bédouin et soirée orientale",
+                "intro": "Une échappée dans le désert d'Hurghada en quad, suivie d'une immersion dans un village bédouin traditionnel et d'une soirée orientale. Transferts privés aller-retour depuis votre hôtel inclus.",
+                "highlights": ["Randonnée en quad dans le désert", "Village bédouin et balade à dos de chameau", "Dîner et spectacle oriental", "Transferts privés inclus"],
+                "program": [
+                    ["Prise en charge privée", "Transfert privé depuis votre hôtel vers la base du désert."],
+                    ["Randonnée en quad", "Pilotage sur les pistes de sable, au cœur du désert."],
+                    ["Village bédouin", "Découverte d'un village traditionnel, thé bédouin et pain cuit sur place."],
+                    ["Balade à dos de chameau", "Petite balade à dos de chameau dans le décor désertique."],
+                    ["Dîner & spectacle", "Dîner puis soirée et spectacle orientaux."],
+                    ["Retour", "Transfert privé de retour vers votre hôtel."],
+                ],
+                "included": ["Transferts privés aller-retour depuis l'hôtel", "Quad, balade à chameau et activités du programme", "Thé bédouin, pain traditionnel et dîner", "Spectacle oriental"],
+                "practical": ["Prévoyez des vêtements confortables, des lunettes et une protection solaire.", "Un foulard pour le visage est utile contre le sable.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": ["Expérience VIP - les transferts sont privés ; les activités se déroulent sur un site partagé avec d'autres visiteurs."],
+            },
+            "pl": {
+                "name": "VIP Quad Safari",
+                "tagline": "Quady, wioska beduińska i orientalny wieczór",
+                "intro": "Wypad na pustynię pod Hurghadą quadem, a potem wizyta w tradycyjnej wiosce beduińskiej i orientalny wieczór. W cenie prywatne transfery z hotelu i z powrotem.",
+                "highlights": ["Przejażdżka quadem po pustyni", "Wioska beduińska i jazda na wielbłądzie", "Kolacja i pokaz orientalny", "Prywatne transfery w cenie"],
+                "program": [
+                    ["Odbiór prywatnym transferem", "Prywatny transfer z hotelu do bazy na pustyni."],
+                    ["Przejażdżka quadem", "Jazda po piaszczystych szlakach w sercu pustyni."],
+                    ["Wioska beduińska", "Poznanie tradycyjnej wioski, herbata beduińska i pieczony na miejscu chleb."],
+                    ["Jazda na wielbłądzie", "Krótka przejażdżka na wielbłądzie w pustynnej scenerii."],
+                    ["Kolacja i pokaz", "Kolacja, a następnie orientalny wieczór z pokazem."],
+                    ["Powrót", "Prywatny transfer powrotny do hotelu."],
+                ],
+                "included": ["Prywatne transfery z hotelu i z powrotem", "Quad, przejażdżka na wielbłądzie i aktywności z programu", "Herbata beduińska, tradycyjny chleb i kolacja", "Pokaz orientalny"],
+                "practical": ["Zabierz wygodne ubranie, okulary i ochronę przeciwsłoneczną.", "Przyda się chusta na twarz chroniąca przed piaskiem.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": ["Oferta VIP - transfery są prywatne; aktywności odbywają się w miejscu wspólnym z innymi gośćmi."],
+            },
+            "ro": {
+                "name": "VIP Quad Safari",
+                "tagline": "ATV, sat beduin și seară orientală",
+                "intro": "O evadare în deșertul din Hurghada cu ATV-ul, urmată de o vizită într-un sat beduin tradițional și o seară orientală. Transferuri private dus-întors de la hotel incluse.",
+                "highlights": ["Tură cu ATV-ul în deșert", "Sat beduin și plimbare cu cămila", "Cină și spectacol oriental", "Transferuri private incluse"],
+                "program": [
+                    ["Preluare cu transfer privat", "Transfer privat de la hotel spre baza din deșert."],
+                    ["Tură cu ATV-ul", "Pilotaj pe pistele de nisip, în inima deșertului."],
+                    ["Sat beduin", "Descoperirea unui sat tradițional, ceai beduin și pâine coaptă pe loc."],
+                    ["Plimbare cu cămila", "O scurtă plimbare cu cămila în decorul deșertic."],
+                    ["Cină & spectacol", "Cină, apoi seară și spectacol oriental."],
+                    ["Retur", "Transfer privat de întoarcere la hotel."],
+                ],
+                "included": ["Transferuri private dus-întors de la hotel", "ATV, plimbare cu cămila și activitățile din program", "Ceai beduin, pâine tradițională și cină", "Spectacol oriental"],
+                "practical": ["Ia haine comode, ochelari și protecție solară.", "O eșarfă pentru față e utilă împotriva nisipului.", "Plata la începutul excursiei, în numerar."],
+                "conditions": ["Experiență VIP - transferurile sunt private; activitățile au loc într-o locație comună cu alți vizitatori."],
+            },
+        },
+    },
+
+    {
+        "id": "vip-super-safari",
+        "slug": "vip-super-safari",
+        "category": "desert_safari",
+        "price": 35, "price_type": "per_person",
+        "featured": True, "active": True, "ads_safe": True, "restricted": False,
+        "image": "vip-super-safari", "schedule": None,
+        "addons": [
+            {"id": "lion-cub-addon", "price": 25, "price_type": "per_person", "restricted": True,
+             "name": {"fr": "Option séance photo avec un lionceau", "pl": "Opcja: sesja zdjęciowa z lwiątkiem", "ro": "Opțional: ședință foto cu un pui de leu"}},
+        ],
+        "content": {
+            "fr": {
+                "name": "VIP Super Safari",
+                "tagline": "Quad, jeep ET spider car - le grand programme",
+                "intro": "La version la plus complète de notre safari : au quad s'ajoutent une virée en jeep 4x4 et un spider car, avant le village bédouin et la soirée orientale. Transferts privés aller-retour inclus.",
+                "highlights": ["Quad, jeep 4x4 ET spider car", "Programme le plus complet de nos safaris", "Village bédouin, chameau et dîner", "Soirée et spectacle orientaux"],
+                "program": [
+                    ["Prise en charge privée", "Transfert privé depuis votre hôtel vers la base du désert."],
+                    ["Randonnée en quad", "Première montée d'adrénaline sur les pistes de sable."],
+                    ["Safari en jeep 4x4", "Traversée du désert en jeep tout-terrain (en plus du quad)."],
+                    ["Spider car", "Tour en spider car, une activité supplémentaire du Super Safari."],
+                    ["Village bédouin & chameau", "Village traditionnel, thé, pain bédouin et balade à dos de chameau."],
+                    ["Dîner, spectacle & retour", "Dîner, spectacle oriental, puis transfert privé de retour."],
+                ],
+                "included": ["Transferts privés aller-retour depuis l'hôtel", "Quad, jeep 4x4 et spider car", "Balade à chameau et activités du programme", "Thé bédouin, pain traditionnel et dîner", "Spectacle oriental"],
+                "practical": ["Programme plus riche que le Quad Safari : jeep 4x4 et spider car en plus.", "Prévoyez des vêtements confortables, des lunettes et une protection solaire.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": ["Plus complet que le Quad Safari : il ajoute le safari en jeep 4x4 et le spider car.", "Expérience VIP - les transferts sont privés ; les activités se déroulent sur un site partagé."],
+            },
+            "pl": {
+                "name": "VIP Super Safari",
+                "tagline": "Quad, jeep ORAZ spider car - pełny program",
+                "intro": "Najbardziej rozbudowana wersja naszego safari: oprócz quada czekają na Ciebie przejazd jeepem 4x4 i spider car, a potem wioska beduińska i orientalny wieczór. Prywatne transfery w obie strony w cenie.",
+                "highlights": ["Quad, jeep 4x4 ORAZ spider car", "Najbogatszy program z naszych safari", "Wioska beduińska, wielbłąd i kolacja", "Orientalny wieczór z pokazem"],
+                "program": [
+                    ["Odbiór prywatnym transferem", "Prywatny transfer z hotelu do bazy na pustyni."],
+                    ["Przejażdżka quadem", "Pierwsza dawka adrenaliny na piaszczystych szlakach."],
+                    ["Safari jeepem 4x4", "Przejazd przez pustynię terenowym jeepem (oprócz quada)."],
+                    ["Spider car", "Przejazd spider carem - dodatkowa atrakcja Super Safari."],
+                    ["Wioska beduińska i wielbłąd", "Tradycyjna wioska, herbata, chleb beduiński i jazda na wielbłądzie."],
+                    ["Kolacja, pokaz i powrót", "Kolacja, pokaz orientalny, a potem prywatny transfer powrotny."],
+                ],
+                "included": ["Prywatne transfery z hotelu i z powrotem", "Quad, jeep 4x4 i spider car", "Przejażdżka na wielbłądzie i aktywności z programu", "Herbata beduińska, tradycyjny chleb i kolacja", "Pokaz orientalny"],
+                "practical": ["Program bogatszy niż Quad Safari: dodatkowo jeep 4x4 i spider car.", "Zabierz wygodne ubranie, okulary i ochronę przeciwsłoneczną.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": ["Bogatszy niż Quad Safari: dochodzą safari jeepem 4x4 oraz spider car.", "Oferta VIP - transfery są prywatne; aktywności odbywają się w miejscu wspólnym."],
+            },
+            "ro": {
+                "name": "VIP Super Safari",
+                "tagline": "ATV, jeep ȘI spider car - programul complet",
+                "intro": "Cea mai completă versiune a safari-ului nostru: pe lângă ATV, ai parte de o tură cu jeep-ul 4x4 și cu spider car, apoi satul beduin și seara orientală. Transferuri private dus-întors incluse.",
+                "highlights": ["ATV, jeep 4x4 ȘI spider car", "Cel mai complet program dintre safari-urile noastre", "Sat beduin, cămilă și cină", "Seară și spectacol oriental"],
+                "program": [
+                    ["Preluare cu transfer privat", "Transfer privat de la hotel spre baza din deșert."],
+                    ["Tură cu ATV-ul", "Prima doză de adrenalină pe pistele de nisip."],
+                    ["Safari cu jeep 4x4", "Traversarea deșertului cu jeep-ul de teren (pe lângă ATV)."],
+                    ["Spider car", "Tură cu spider car - o activitate în plus a Super Safari."],
+                    ["Sat beduin & cămilă", "Sat tradițional, ceai, pâine beduină și plimbare cu cămila."],
+                    ["Cină, spectacol & retur", "Cină, spectacol oriental, apoi transfer privat de întoarcere."],
+                ],
+                "included": ["Transferuri private dus-întors de la hotel", "ATV, jeep 4x4 și spider car", "Plimbare cu cămila și activitățile din program", "Ceai beduin, pâine tradițională și cină", "Spectacol oriental"],
+                "practical": ["Program mai bogat decât Quad Safari: în plus jeep 4x4 și spider car.", "Ia haine comode, ochelari și protecție solară.", "Plata la începutul excursiei, în numerar."],
+                "conditions": ["Mai complet decât Quad Safari: adaugă safari-ul cu jeep 4x4 și spider car-ul.", "Experiență VIP - transferurile sunt private; activitățile au loc într-o locație comună."],
+            },
+        },
+    },
+
+    # =================================================================
+    # HISTORY & CULTURE
+    # =================================================================
+    {
+        "id": "cairo-gem",
+        "slug": "cairo-giza-pyramids-grand-egyptian-museum",
+        "category": "history_culture",
+        "price": 85, "price_type": "per_person",
+        "featured": True, "active": True, "ads_safe": True, "restricted": False,
+        "image": "cairo-gem", "schedule": None, "addons": [],
+        "content": {
+            "fr": {
+                "name": "Le Caire : Pyramides de Gizeh & Grand Musée égyptien",
+                "tagline": "Les Pyramides et le GEM depuis Hurghada",
+                "intro": "Une journée complète au départ de Hurghada vers Le Caire pour découvrir les Pyramides de Gizeh et le nouveau Grand Musée égyptien. Transport en minibus climatisé, aller-retour, avec guide professionnel et déjeuner inclus.",
+                "highlights": ["Pyramides de Gizeh et Grand Sphinx", "Grand Musée égyptien (GEM)", "Guide professionnel et déjeuner inclus", "Minibus climatisé aller-retour"],
+                "program": [
+                    ["Départ de Hurghada", "Trajet en minibus climatisé vers Le Caire, accompagné de votre guide."],
+                    ["Pyramides de Gizeh & Sphinx", "Découverte des célèbres pyramides et du Grand Sphinx sur le plateau de Gizeh."],
+                    ["Grand Musée égyptien", "Visite du GEM et de ses collections de l'Égypte ancienne."],
+                    ["Déjeuner", "Pause déjeuner incluse pendant la journée."],
+                    ["Parfumerie & papyrus", "Arrêt dans une fabrique de parfums traditionnelle et un institut du papyrus."],
+                    ["Retour à Hurghada", "Retour en minibus climatisé vers votre hôtel."],
+                ],
+                "included": ["Transport en minibus climatisé (aller-retour)", "Déjeuner", "Guide touristique professionnel"],
+                "practical": ["Longue journée : départ tôt, l'heure exacte de prise en charge est confirmée via WhatsApp.", "Prévoyez des vêtements confortables et une protection solaire.", "Détails des billets d'entrée aux sites à confirmer via WhatsApp."],
+                "conditions": ["Transport en groupe en minibus climatisé : il ne s'agit pas d'un transport privé.", "Détails des billets d'entrée aux sites à confirmer via WhatsApp."],
+            },
+            "pl": {
+                "name": "Kair: piramidy w Gizie i Wielkie Muzeum Egipskie",
+                "tagline": "Piramidy i GEM z Hurghady",
+                "intro": "Całodniowa wycieczka z Hurghady do Kairu, aby zobaczyć piramidy w Gizie i nowe Wielkie Muzeum Egipskie. Przejazd klimatyzowanym minibusem w obie strony, z profesjonalnym przewodnikiem i obiadem.",
+                "highlights": ["Piramidy w Gizie i Wielki Sfinks", "Wielkie Muzeum Egipskie (GEM)", "Profesjonalny przewodnik i obiad w cenie", "Klimatyzowany minibus w obie strony"],
+                "program": [
+                    ["Wyjazd z Hurghady", "Przejazd klimatyzowanym minibusem do Kairu w towarzystwie przewodnika."],
+                    ["Piramidy w Gizie i Sfinks", "Zwiedzanie słynnych piramid i Wielkiego Sfinksa na płaskowyżu Giza."],
+                    ["Wielkie Muzeum Egipskie", "Wizyta w GEM i jego zbiorach starożytnego Egiptu."],
+                    ["Obiad", "Przerwa na obiad w ciągu dnia."],
+                    ["Perfumeria i papirus", "Postój w tradycyjnej wytwórni perfum i instytucie papirusu."],
+                    ["Powrót do Hurghady", "Powrót klimatyzowanym minibusem do hotelu."],
+                ],
+                "included": ["Przejazd klimatyzowanym minibusem (w obie strony)", "Obiad", "Profesjonalny przewodnik"],
+                "practical": ["Długi dzień: wczesny wyjazd, dokładną godzinę odbioru potwierdzamy przez WhatsApp.", "Zabierz wygodne ubranie i ochronę przeciwsłoneczną.", "Szczegóły biletów wstępu do obiektów do potwierdzenia przez WhatsApp."],
+                "conditions": ["Przejazd grupowy klimatyzowanym minibusem - to nie jest transport prywatny.", "Szczegóły biletów wstępu do obiektów do potwierdzenia przez WhatsApp."],
+            },
+            "ro": {
+                "name": "Cairo: Piramidele din Giza și Marele Muzeu Egiptean",
+                "tagline": "Piramidele și GEM din Hurghada",
+                "intro": "O zi întreagă plecând din Hurghada spre Cairo pentru a descoperi Piramidele din Giza și noul Mare Muzeu Egiptean. Transport cu minibuz climatizat, dus-întors, cu ghid profesionist și prânz incluse.",
+                "highlights": ["Piramidele din Giza și Marele Sfinx", "Marele Muzeu Egiptean (GEM)", "Ghid profesionist și prânz incluse", "Minibuz climatizat dus-întors"],
+                "program": [
+                    ["Plecare din Hurghada", "Drum cu minibuzul climatizat spre Cairo, însoțit de ghidul tău."],
+                    ["Piramidele din Giza & Sfinxul", "Descoperirea celebrelor piramide și a Marelui Sfinx pe platoul Giza."],
+                    ["Marele Muzeu Egiptean", "Vizită la GEM și la colecțiile sale din Egiptul antic."],
+                    ["Prânz", "Pauză de prânz inclusă în timpul zilei."],
+                    ["Parfumerie & papirus", "Oprire la o fabrică tradițională de parfumuri și un institut de papirus."],
+                    ["Retur la Hurghada", "Întoarcere cu minibuzul climatizat la hotel."],
+                ],
+                "included": ["Transport cu minibuz climatizat (dus-întors)", "Prânz", "Ghid turistic profesionist"],
+                "practical": ["Zi lungă: plecare devreme, ora exactă de preluare se confirmă prin WhatsApp.", "Ia haine comode și protecție solară.", "Detaliile biletelor de intrare la obiective se confirmă prin WhatsApp."],
+                "conditions": ["Transport în grup cu minibuz climatizat: nu este transport privat.", "Detaliile biletelor de intrare la obiective se confirmă prin WhatsApp."],
+            },
+        },
+    },
+
+    {
+        "id": "luxor",
+        "slug": "luxor-ancient-egypt-highlights",
+        "category": "history_culture",
+        "price": 70, "price_type": "per_person",
+        "featured": True, "active": True, "ads_safe": True, "restricted": False,
+        "image": "luxor", "schedule": None, "addons": [],
+        "content": {
+            "fr": {
+                "name": "Louxor : les trésors de l'Égypte ancienne",
+                "tagline": "Karnak, la Vallée des Rois et plus encore",
+                "intro": "Partez à la journée depuis Hurghada à la découverte de Louxor, véritable musée à ciel ouvert de l'Égypte antique. Transport en minibus climatisé, aller-retour, avec guide professionnel et déjeuner inclus.",
+                "highlights": ["Temple de Karnak", "Vallée des Rois", "Temple d'Hatchepsout et Colosses de Memnon", "Guide professionnel et déjeuner inclus"],
+                "program": [
+                    ["Départ de Hurghada", "Trajet en minibus climatisé vers Louxor avec votre guide."],
+                    ["Temple de Karnak", "Immense cité de temples et sa célèbre salle hypostyle aux colonnes géantes."],
+                    ["Vallée des Rois", "Les tombeaux creusés dans la roche des pharaons du Nouvel Empire."],
+                    ["Temple d'Hatchepsout", "Impressionnant temple à terrasses adossé à la falaise."],
+                    ["Colosses de Memnon", "Deux statues monumentales qui gardaient un temple disparu."],
+                    ["Déjeuner & retour", "Déjeuner inclus, puis retour en minibus climatisé vers Hurghada."],
+                ],
+                "included": ["Transport en minibus climatisé (aller-retour)", "Déjeuner", "Guide touristique professionnel"],
+                "practical": ["Longue journée : départ tôt, l'heure exacte de prise en charge est confirmée via WhatsApp.", "Prévoyez des vêtements confortables et une protection solaire.", "Détails des billets d'entrée aux sites à confirmer via WhatsApp."],
+                "conditions": ["Transport en groupe en minibus climatisé : il ne s'agit pas d'une excursion privée.", "Détails des billets d'entrée aux sites à confirmer via WhatsApp."],
+            },
+            "pl": {
+                "name": "Luksor: skarby starożytnego Egiptu",
+                "tagline": "Karnak, Dolina Królów i więcej",
+                "intro": "Całodniowa wyprawa z Hurghady do Luksoru - prawdziwego muzeum starożytnego Egiptu pod otwartym niebem. Przejazd klimatyzowanym minibusem w obie strony, z profesjonalnym przewodnikiem i obiadem.",
+                "highlights": ["Świątynia w Karnaku", "Dolina Królów", "Świątynia Hatszepsut i Kolosy Memnona", "Profesjonalny przewodnik i obiad w cenie"],
+                "program": [
+                    ["Wyjazd z Hurghady", "Przejazd klimatyzowanym minibusem do Luksoru z przewodnikiem."],
+                    ["Świątynia w Karnaku", "Ogromny kompleks świątyń i słynna sala hypostylowa z gigantycznymi kolumnami."],
+                    ["Dolina Królów", "Wykute w skale grobowce faraonów Nowego Państwa."],
+                    ["Świątynia Hatszepsut", "Imponująca tarasowa świątynia wtulona w skalny klif."],
+                    ["Kolosy Memnona", "Dwa monumentalne posągi, które strzegły nieistniejącej już świątyni."],
+                    ["Obiad i powrót", "Obiad w cenie, a następnie powrót klimatyzowanym minibusem do Hurghady."],
+                ],
+                "included": ["Przejazd klimatyzowanym minibusem (w obie strony)", "Obiad", "Profesjonalny przewodnik"],
+                "practical": ["Długi dzień: wczesny wyjazd, dokładną godzinę odbioru potwierdzamy przez WhatsApp.", "Zabierz wygodne ubranie i ochronę przeciwsłoneczną.", "Szczegóły biletów wstępu do obiektów do potwierdzenia przez WhatsApp."],
+                "conditions": ["Przejazd grupowy klimatyzowanym minibusem - to nie jest wycieczka prywatna.", "Szczegóły biletów wstępu do obiektów do potwierdzenia przez WhatsApp."],
+            },
+            "ro": {
+                "name": "Luxor: comorile Egiptului antic",
+                "tagline": "Karnak, Valea Regilor și nu numai",
+                "intro": "O excursie de o zi din Hurghada pentru a descoperi Luxorul, un adevărat muzeu în aer liber al Egiptului antic. Transport cu minibuz climatizat, dus-întors, cu ghid profesionist și prânz incluse.",
+                "highlights": ["Templul Karnak", "Valea Regilor", "Templul Hatșepsut și Coloșii lui Memnon", "Ghid profesionist și prânz incluse"],
+                "program": [
+                    ["Plecare din Hurghada", "Drum cu minibuzul climatizat spre Luxor, cu ghidul tău."],
+                    ["Templul Karnak", "Imens oraș al templelor și faimoasa sală hipostilă cu coloane uriașe."],
+                    ["Valea Regilor", "Mormintele săpate în stâncă ale faraonilor din Noul Regat."],
+                    ["Templul Hatșepsut", "Impresionant templu în terase, lipit de faleza stâncoasă."],
+                    ["Coloșii lui Memnon", "Două statui monumentale care străjuiau un templu dispărut."],
+                    ["Prânz & retur", "Prânz inclus, apoi întoarcere cu minibuzul climatizat la Hurghada."],
+                ],
+                "included": ["Transport cu minibuz climatizat (dus-întors)", "Prânz", "Ghid turistic profesionist"],
+                "practical": ["Zi lungă: plecare devreme, ora exactă de preluare se confirmă prin WhatsApp.", "Ia haine comode și protecție solară.", "Detaliile biletelor de intrare la obiective se confirmă prin WhatsApp."],
+                "conditions": ["Transport în grup cu minibuz climatizat: nu este o excursie privată.", "Detaliile biletelor de intrare la obiective se confirmă prin WhatsApp."],
+            },
+        },
+    },
+
+    # =================================================================
+    # ACTIVITIES & UNIQUE EXPERIENCES
+    # =================================================================
+    {
+        "id": "horse-riding-swimming",
+        "slug": "horse-riding-desert-beach-swimming",
+        "category": "activities",
+        "price": 35, "price_type": "per_person",
+        "featured": False, "active": True, "ads_safe": True, "restricted": False,
+        "image": "horse-riding-swimming", "schedule": None, "addons": [],
+        "content": {
+            "fr": {
+                "name": "Équitation : désert, plage et baignade",
+                "tagline": "À cheval entre désert et mer",
+                "intro": "Une balade à cheval qui relie le désert et le bord de mer, avec la possibilité de nager avec les chevaux dans la mer. Guide accompagnateur et transfert privé aller-retour inclus.",
+                "highlights": ["Balade à cheval entre désert et mer", "Baignade avec les chevaux dans la mer", "Guide accompagnateur professionnel", "Transfert privé inclus"],
+                "program": [
+                    ["Transfert privé", "Prise en charge à votre hôtel et route vers les écuries."],
+                    ["À cheval dans le désert", "Balade accompagnée sur les sentiers du désert côtier."],
+                    ["Au bord de l'eau", "Chevauchée le long de la plage et au bord de la mer."],
+                    ["Baignade avec les chevaux", "Moment fort de l'expérience : entrer dans la mer avec les chevaux."],
+                    ["Retour", "Transfert privé de retour vers votre hôtel."],
+                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Balade à cheval accompagnée", "Guide accompagnateur professionnel"],
+                "practical": ["Prévoyez une tenue adaptée à l'équitation et à la baignade, ainsi qu'une serviette.", "Crème solaire et chapeau recommandés.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": ["L'ambiance au coucher du soleil dépend des conditions du jour et n'est pas garantie."],
+            },
+            "pl": {
+                "name": "Jazda konna: pustynia, plaża i kąpiel",
+                "tagline": "Konno między pustynią a morzem",
+                "intro": "Przejażdżka konna łącząca pustynię i brzeg morza, z możliwością kąpieli z końmi w morzu. W cenie przewodnik i prywatny transfer w obie strony.",
+                "highlights": ["Jazda konna między pustynią a morzem", "Kąpiel z końmi w morzu", "Profesjonalny przewodnik", "Prywatny transfer w cenie"],
+                "program": [
+                    ["Prywatny transfer", "Odbiór z hotelu i przejazd do stajni."],
+                    ["Konno po pustyni", "Przejażdżka z opiekunem po szlakach nadmorskiej pustyni."],
+                    ["Nad wodą", "Jazda wzdłuż plaży i brzegu morza."],
+                    ["Kąpiel z końmi", "Punkt kulminacyjny: wejście do morza razem z końmi."],
+                    ["Powrót", "Prywatny transfer powrotny do hotelu."],
+                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Jazda konna z opiekunem", "Profesjonalny przewodnik towarzyszący"],
+                "practical": ["Zabierz strój do jazdy i do kąpieli oraz ręcznik.", "Zalecane krem z filtrem i czapka.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": ["Klimat zachodu słońca zależy od warunków danego dnia i nie jest gwarantowany."],
+            },
+            "ro": {
+                "name": "Călărie: deșert, plajă și scăldat",
+                "tagline": "Călare între deșert și mare",
+                "intro": "O plimbare călare care leagă deșertul de malul mării, cu posibilitatea de a înota cu caii în mare. Ghid însoțitor și transfer privat dus-întors incluse.",
+                "highlights": ["Călărie între deșert și mare", "Scăldat cu caii în mare", "Ghid însoțitor profesionist", "Transfer privat inclus"],
+                "program": [
+                    ["Transfer privat", "Preluare de la hotel și drum spre grajduri."],
+                    ["Călare în deșert", "Plimbare însoțită pe potecile deșertului de coastă."],
+                    ["La malul apei", "Călărie de-a lungul plajei și pe marginea mării."],
+                    ["Scăldat cu caii", "Momentul-cheie al experienței: intrarea în mare împreună cu caii."],
+                    ["Retur", "Transfer privat de întoarcere la hotel."],
+                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Plimbare călare însoțită", "Ghid însoțitor profesionist"],
+                "practical": ["Ia ținută potrivită pentru călărie și scăldat, plus un prosop.", "Recomandate cremă de protecție solară și pălărie.", "Plata la începutul excursiei, în numerar."],
+                "conditions": ["Atmosfera de apus depinde de condițiile din ziua respectivă și nu este garantată."],
+            },
+        },
+    },
+
+    {
+        "id": "el-gouna-go-kart",
+        "slug": "el-gouna-go-kart",
+        "category": "activities",
+        "price": 35, "price_type": "per_person",
+        "featured": False, "active": True, "ads_safe": True, "restricted": False,
+        "image": "el-gouna-go-kart", "schedule": None, "addons": [],
+        "content": {
+            "fr": {
+                "name": "Karting à El Gouna",
+                "tagline": "Sensations sur piste à El Gouna",
+                "intro": "Direction El Gouna pour une séance de karting sur piste, pleine de sensations. Transfert privé aller-retour depuis votre hôtel inclus.",
+                "highlights": ["Pilotage de kart sur piste", "Montée d'adrénaline à El Gouna", "Session de pilotage de 10 à 15 minutes", "Transfert privé inclus"],
+                "program": [
+                    ["Transfert privé vers El Gouna", "Prise en charge à votre hôtel et route vers la piste d'El Gouna."],
+                    ["Briefing & équipement", "Consignes de sécurité et mise en place de l'équipement."],
+                    ["Session de karting", "Pilotage sur la piste : la session de conduite dure environ 10 à 15 minutes."],
+                    ["Retour", "Transfert privé de retour vers votre hôtel."],
+                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Séance de karting sur piste"],
+                "practical": ["Prévoyez des vêtements confortables et des chaussures fermées.", "Le transfert depuis l'hôtel est confirmé via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": ["La durée de 10 à 15 minutes correspond à la séance de pilotage, pas à l'ensemble de l'excursion."],
+            },
+            "pl": {
+                "name": "Gokarty w El Gouna",
+                "tagline": "Emocje na torze w El Gouna",
+                "intro": "Wyprawa do El Gouna na emocjonującą sesję jazdy gokartami po torze. W cenie prywatny transfer z hotelu i z powrotem.",
+                "highlights": ["Jazda gokartem po torze", "Dawka adrenaliny w El Gouna", "Sesja jazdy 10-15 minut", "Prywatny transfer w cenie"],
+                "program": [
+                    ["Prywatny transfer do El Gouna", "Odbiór z hotelu i przejazd na tor w El Gouna."],
+                    ["Briefing i sprzęt", "Zasady bezpieczeństwa i przygotowanie sprzętu."],
+                    ["Sesja gokartowa", "Jazda po torze: sama jazda trwa około 10-15 minut."],
+                    ["Powrót", "Prywatny transfer powrotny do hotelu."],
+                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Sesja jazdy gokartem po torze"],
+                "practical": ["Zabierz wygodne ubranie i pełne obuwie.", "Transfer z hotelu potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": ["Czas 10-15 minut dotyczy samej jazdy, a nie całej wycieczki."],
+            },
+            "ro": {
+                "name": "Karting la El Gouna",
+                "tagline": "Senzații pe pistă la El Gouna",
+                "intro": "Mergem la El Gouna pentru o sesiune de karting pe pistă, plină de senzații. Transfer privat dus-întors de la hotel inclus.",
+                "highlights": ["Pilotaj de kart pe pistă", "Doză de adrenalină la El Gouna", "Sesiune de pilotaj de 10-15 minute", "Transfer privat inclus"],
+                "program": [
+                    ["Transfer privat spre El Gouna", "Preluare de la hotel și drum spre pista din El Gouna."],
+                    ["Briefing & echipament", "Instrucțiuni de siguranță și pregătirea echipamentului."],
+                    ["Sesiune de karting", "Pilotaj pe pistă: sesiunea de condus durează aproximativ 10-15 minute."],
+                    ["Retur", "Transfer privat de întoarcere la hotel."],
+                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Sesiune de karting pe pistă"],
+                "practical": ["Ia haine comode și încălțăminte închisă.", "Transferul de la hotel se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
+                "conditions": ["Durata de 10-15 minute se referă la sesiunea de pilotaj, nu la întreaga excursie."],
+            },
+        },
+    },
+
+    {
+        "id": "lion-cub-photo",
+        "slug": "lion-cub-photo",
+        "category": "activities",
+        "price": 30, "price_type": "per_person",
+        "featured": False, "active": True, "ads_safe": False, "restricted": True,
+        "image": "lion-cub-photo", "schedule": None, "addons": [],
+        "content": {
+            "fr": {
+                "name": "Séance photo avec un lionceau",
+                "tagline": "Rencontre encadrée et photo souvenir",
+                "intro": "Une rencontre encadrée avec un lionceau le temps d'une séance photo souvenir à Hurghada. Transfert privé depuis et vers votre hôtel inclus.",
+                "highlights": ["Rencontre encadrée avec un lionceau", "Séance photo souvenir", "Transfert privé aller-retour", "Encadrement sur place"],
+                "program": [
+                    ["Prise en charge privée", "Transfert privé depuis votre hôtel vers l'établissement."],
+                    ["Rencontre encadrée", "Rencontre avec le lionceau sous la supervision du personnel."],
+                    ["Séance photo souvenir", "Photos souvenirs de votre rencontre."],
+                    ["Retour", "Transfert privé de retour vers votre hôtel."],
+                ],
+                "included": ["Transfert privé aller-retour depuis l'hôtel", "Séance photo encadrée"],
+                "practical": ["Soumis à la disponibilité et au règlement de l'établissement.", "Les conditions exactes sont confirmées via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
+                "conditions": [
+                    "Soumis à la disponibilité, au règlement de l'établissement et aux exigences de sécurité et de bien-être animal.",
+                    "Expérience impliquant un animal sauvage : en cours de revue légale, de bien-être animal et de conformité avant toute promotion payante.",
+                ],
+            },
+            "pl": {
+                "name": "Sesja zdjęciowa z lwiątkiem",
+                "tagline": "Spotkanie pod opieką i zdjęcie na pamiątkę",
+                "intro": "Spotkanie z lwiątkiem pod opieką opiekuna podczas pamiątkowej sesji zdjęciowej w Hurghadzie. W cenie prywatny transfer z hotelu i z powrotem.",
+                "highlights": ["Spotkanie z lwiątkiem pod opieką", "Pamiątkowa sesja zdjęciowa", "Prywatny transfer w obie strony", "Opieka na miejscu"],
+                "program": [
+                    ["Odbiór prywatnym transferem", "Prywatny transfer z hotelu do obiektu."],
+                    ["Spotkanie pod opieką", "Spotkanie z lwiątkiem pod nadzorem personelu."],
+                    ["Pamiątkowa sesja zdjęciowa", "Zdjęcia na pamiątkę ze spotkania."],
+                    ["Powrót", "Prywatny transfer powrotny do hotelu."],
+                ],
+                "included": ["Prywatny transfer z hotelu i z powrotem", "Sesja zdjęciowa pod opieką"],
+                "practical": ["W zależności od dostępności i regulaminu obiektu.", "Dokładne warunki potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
+                "conditions": [
+                    "W zależności od dostępności, regulaminu obiektu oraz wymogów bezpieczeństwa i dobrostanu zwierząt.",
+                    "Oferta z udziałem dzikiego zwierzęcia: w trakcie przeglądu prawnego, dobrostanu zwierząt i zgodności przed płatną promocją.",
+                ],
+            },
+            "ro": {
+                "name": "Ședință foto cu un pui de leu",
+                "tagline": "Întâlnire supravegheată și fotografie de amintire",
+                "intro": "O întâlnire supravegheată cu un pui de leu în timpul unei ședințe foto de amintire la Hurghada. Transfer privat dus-întors de la hotel inclus.",
+                "highlights": ["Întâlnire supravegheată cu un pui de leu", "Ședință foto de amintire", "Transfer privat dus-întors", "Supraveghere la fața locului"],
+                "program": [
+                    ["Preluare cu transfer privat", "Transfer privat de la hotel spre locație."],
+                    ["Întâlnire supravegheată", "Întâlnire cu puiul de leu sub supravegherea personalului."],
+                    ["Ședință foto de amintire", "Fotografii de amintire ale întâlnirii."],
+                    ["Retur", "Transfer privat de întoarcere la hotel."],
+                ],
+                "included": ["Transfer privat dus-întors de la hotel", "Ședință foto supravegheată"],
+                "practical": ["În funcție de disponibilitate și de regulamentul locației.", "Condițiile exacte se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
+                "conditions": [
+                    "În funcție de disponibilitate, de regulamentul locației și de cerințele de siguranță și de bunăstare a animalelor.",
+                    "Experiență cu un animal sălbatic: în curs de verificare legală, de bunăstare a animalelor și de conformitate înainte de orice promovare plătită.",
                 ],
             },
         },

@@ -23,7 +23,7 @@ WHATSAPP_NUMBER = "201278378685"  # official KeRo Tours booking line (+20 127 83
 # ---------------------------------------------------------------------------
 # Used for canonical URLs, hreflang and the sitemap. Change this if you move
 # to a custom domain.
-SITE_URL = "https://kero-tours-landing.pages.dev"
+SITE_URL = "https://kero-tours-hurghada.pages.dev"
 
 BRAND_NAME = "Hurghada KeRo Tours & Transfer"
 BRAND_SHORT = "KeRo Tours"
@@ -54,14 +54,21 @@ GOOGLE_ADS_CONVERSION_LABEL = ""  # e.g. "abCDefGhIJ"  (for the WhatsApp-click c
 # ---------------------------------------------------------------------------
 # COMPLIANCE FLAGS
 # ---------------------------------------------------------------------------
-# The lion cub photo experience (and the optional lion cub add-on on the
-# safaris) involves direct interaction with a wild animal and requires legal,
-# welfare and advertising-policy review BEFORE promotion. It stays in the
-# source data either way; this flag only controls public visibility.
+# The lion cub photo experience involves direct interaction with a wild animal.
+# The owner has asked for it to appear in the public catalog (Activities), with a
+# factual disclaimer. It is NEVER eligible for Google Ads / paid landing paths
+# until a local legal + animal-welfare + facility + ad-policy review is confirmed.
 #
-#   False  -> preserved in data, hidden from the public site and from ads.
-#   True   -> shown publicly (only flip this AFTER a compliance/welfare review).
-PROMOTE_LION_CUB = False
+#   LION_CUB_PUBLISHED  -> show the tour + detail page in the public catalog.
+#       Keep its URL OUT of Google Ads campaigns regardless of this flag.
+#   SHOW_LION_ADDON     -> show the optional lion-cub add-on inside the safaris.
+#       Kept False by default (same compliance caution).
+LION_CUB_PUBLISHED = True
+SHOW_LION_ADDON = False
+
+# This tour must never be used as a Google Ads final URL / paid landing page
+# until the compliance review is signed off. Build reports it as ads-excluded.
+LION_CUB_ADS_ELIGIBLE = False
 
 # Default language when a visitor hits the root "/" and we cannot detect one.
 DEFAULT_LANG = "fr"
