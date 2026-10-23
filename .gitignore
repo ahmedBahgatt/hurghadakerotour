@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+data/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Note: dist/ IS committed so Cloudflare Pages can serve it directly.
