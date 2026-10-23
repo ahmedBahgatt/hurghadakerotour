@@ -16,7 +16,7 @@ Nothing in here is secret. Do NOT put API keys or passwords in the repo.
 #
 # Format: full international number, digits only, NO "+", NO spaces, NO dashes.
 # Example for an Egyptian number +20 100 123 4567  ->  "201001234567"
-WHATSAPP_NUMBER = ""  # <-- SET THIS BEFORE GOING LIVE
+WHATSAPP_NUMBER = "201278378685"  # official KeRo Tours booking line (+20 127 837 8685)
 
 # ---------------------------------------------------------------------------
 # SITE / DEPLOYMENT
@@ -39,7 +39,7 @@ BUSINESS = {
     "address": "",           # full street address in Hurghada
     "license_number": "",    # tourism / travel licence number
     "email": "",             # public contact email
-    "phone_display": "",     # human-readable phone, e.g. "+20 100 123 4567"
+    "phone_display": "+20 127 837 8685",  # official KeRo Tours booking line (WhatsApp)
 }
 
 # ---------------------------------------------------------------------------

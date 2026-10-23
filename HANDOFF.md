@@ -28,8 +28,12 @@ Pages. Build is complete and QA-passed locally.
   (owner ahmedBahgatt, confirmed by user). Branch `main`.
 
 ## 4. Next steps / blockers
-- [ ] LAUNCH BLOCKER: set real `WHATSAPP_NUMBER` in `site_config.py`, rebuild.
+- [x] WhatsApp number set: 201278378685 (+20 127 837 8685). 672 live links, 0 pending.
+      Also added to footer business contact.
 - [ ] Deploy on Cloudflare Pages (README section 4). No live URL yet.
+- [ ] After deploy: set `SITE_URL` to the pages.dev URL, rebuild, push (updates
+      canonical/hreflang/sitemap).
+- [ ] NOT Google-Ads-ready until real licensed photos + business legal info verified.
 - [ ] Real photos: all placeholders; reuse rights from egipskiewakacje.pl
       unconfirmed. See IMAGE_AUDIT.md.
 - [ ] Lion cub tour: hidden by default (PROMOTE_LION_CUB=False) pending legal +
