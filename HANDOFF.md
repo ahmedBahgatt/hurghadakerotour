@@ -125,9 +125,17 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 - **Tour content:** complete in FR/PL/RO for all 11 tours (name, intro,
   highlights, program, included, practical, conditions).
-- **Photo galleries: 46 images.** Per tour: cairo 5, luxor 3, quad 5, super 5,
-  three-islands 5, orange-bay+hula 5, speedboat 4, horse 4, dolphin 5,
+- **Photo galleries: 52 images.** Per tour: cairo 5, luxor 6, quad 5, super 5,
+  three-islands 5, orange-bay+hula 5, speedboat 6, horse 5, dolphin 5,
   lion cub 5 (+cover), **go-kart 0 (branded placeholder - still the only gap)**.
+- **2026-10-25 GALLERY EXPANSION (speedboat/Luxor/horse):** the three thin
+  galleries were rebuilt from the exact Egipskie Wakacje tour-page image sets
+  (Sanity ej04dib0 assets pulled from the live pages): speedboat 4->6 (aerial boat
+  cover + dolphins/lagoon/snorkel), Luxor 3->6 (added Hatshepsut + Valley of the
+  Kings + Karnak Osiride/hypostyle + Luxor colossi; kept sunset-colonnade cover),
+  horse 4->5 (surf bathing + beach canter/walk + sunset + brown horse in sea;
+  NO quad). Operator frames removed from speedboat/horse. Earlier shortfalls
+  closed. Baby Lion + Go-Kart untouched.
 - **2026-10-25 PHOTO-QUALITY REFRESH (this session):** the nine excursion
   galleries were rebuilt to drop soft / low-res TikTok video frames and replace
   them with sharp, high-resolution photographs from the Egipskie Wakacje repo
@@ -213,11 +221,11 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 ## H. Pending tasks / next priorities
 
-- Photos: galleries refreshed to 46 HQ images (2026-10-25). **Shortfalls to close
-  when the owner can supply better source photos:** Luxor (3 — needs Valley of the
-  Kings / Hatshepsut / Colossi shots), private-speedboat (4 — needs more real
-  speedboat stills), horse-riding (4 — needs more horse-on-beach stills). **Only
-  `el-gouna-go-kart`** has no media at all - the operator has NO go-kart photo/video on TikTok
+- Photos: galleries at 52 HQ images (2026-10-25). Luxor/speedboat/horse shortfalls
+  now CLOSED via the Egipskie tour-page sets (>=5 each). Note the Egipskie page
+  images are modest resolution (668-900px for several Luxor/speedboat/horse tiles);
+  swap for larger masters if the owner provides them. **Only `el-gouna-go-kart`**
+  has no media at all - the operator has NO go-kart photo/video on TikTok
   or Instagram (whole IG grid scanned 2026-10-25) and none online under their
   name; it keeps its branded placeholder. Get a real go-kart clip/photo from
   the owner to finish it. Do NOT substitute stock/third-party karting imagery.

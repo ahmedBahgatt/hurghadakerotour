@@ -27,18 +27,37 @@ the lightbox shows each image at its native ratio, so no source was hard-cropped
 **Baby Lion Photo Experience and El Gouna Go-Kart were NOT touched** in this
 refresh (see bottom). Lion-cub compliance state is unchanged.
 
-## Gallery coverage — 46 images (9 refreshed tours = 41; lion-cub 5; go-kart 0)
+## 2026-10-25 gallery expansion (speedboat / Luxor / horse)
+
+Second pass on the three thin galleries, sourced from the **exact Egipskie Wakacje
+tour-page image sets** (Sanity project `ej04dib0`, pulled from the live pages the
+owner referenced) re-encoded to WebP (`cwebp -q 82`, <=1600px). This closes the
+earlier shortfalls. Covers updated for speedboat + horse; Luxor cover kept
+(highest-res sunset colonnade). Operator video frames removed from speedboat and
+horse. **Baby Lion and El Gouna Go-Kart still untouched.**
+
+- **Private Speedboat 4 -> 6** (egipskiewakacje.pl/wycieczki-z-hurghady/prywatny-speedboat/):
+  aerial private boat (new cover), guests driving, wild-dolphin freedive, dolphin
+  selfie, lagoon fruit on board, snorkel gear on stern.
+- **Luxor 3 -> 6** (…/luksor-dolina-krolow/): sunset colonnade (cover, repo
+  `h-luksor-dolina-krolow`) + Hatshepsut, Valley of the Kings painted tomb, Karnak
+  Osiride court, Karnak hypostyle, Luxor Temple colossi — the requested balanced mix.
+- **Horse Riding 4 -> 5** (…/jazda-konno-kapiel-w-morzu/): surf bathing, beach
+  canter, white-horse beach walk, shallow-water sunset, brown horse in turquoise
+  sea (cover, repo `s-jazda-na-wielbladzie`). Horse/beach/swimming only — **NO quad**.
+
+## Gallery coverage — 52 images (9 refreshed tours = 47; lion-cub 5; go-kart 0)
 
 | Tour (id) | Imgs | Source (egipskiewakacje.pl `public/media/…`) | Cover replaced | Notes |
 |---|---|---|---|---|
 | cairo-gem | 5 | `kair-piramidy/piramida-cheopsa-giza-zachod-slonca` (2000px, cover), `categories/kair` (Sphinx+Khafre), `tours/h-kair-wielkie-muzeum-gem` (GEM hall), `kair-piramidy/piramidy-giza-wielblad-turysci`, `kair-piramidy/turysci-wielblady-piramida-giza` | yes | Museum = **GEM** (matches itinerary). Old Tahrir-museum shots deliberately dropped (different building). cairo 04/05 are 669px (max available). |
-| luxor | 3 | `tours/h-luksor-dolina-krolow` (colonnade sunset, cover), `categories/luksor` (Karnak hypostyle+obelisk), `tours/ma-luksor-dolina-krolow` (statue colonnade) | yes | **SHORTFALL (3<5).** Only 3 accurate, itinerary-matching Luxor temple photos exist in the repo. Balloon and Dendera shots exist but are NOT in KeRo's Luxor itinerary (Karnak/VoK/Hatshepsut/Colossi) — excluded to avoid misrepresentation. No VoK/Hatshepsut/Colossi-specific photo available. |
+| luxor | 6 | `tours/h-luksor-dolina-krolow` (sunset colonnade, cover) + Egipskie page set: Hatshepsut temple, Valley of the Kings painted tomb, Karnak Osiride court, Karnak hypostyle, Luxor Temple colossi | yes (kept sunset colonnade) | Balanced Karnak / VoK / Hatshepsut / temple-statue mix from the Egipskie Luxor page (Sanity ej04dib0). Earlier shortfall resolved. Page images are 668-900px originals; sunset colonnade is 1600px. |
 | vip-quad-safari | 5 | `tours/s-quad-safari-3h` (action, cover), `categories/safari` (quad dust), `tours/h-quad-safari-3h`, `tours/h-quad-safari-5h`, `tours/h-jazda-na-wielbladzie` (camel) | yes | Desert quad activity is location-agnostic; `s-` (Sharm-tagged) quad shot used because the activity depicted is identical Eastern-Desert quad safari. |
 | vip-super-safari | 5 | `tours/h-buggy-safari` (spider cars, cover), `tours/ma-jeep-safari` (4x4), `tours/h-super-safari-sahara-park` (Bedouin camels), `tours/s-buggy-safari` (spider car), `tours/ma-quad-safari-5h` (quad+camel) | yes | Combines quad + jeep + spider car + Bedouin per brief. Fully distinct file set from vip-quad-safari (no shared images). `s-`/`ma-` = same desert activity. |
 | three-islands | 5 | `tours/orange-bay/orange-bay-molo-giftun` (Giftun jetty, cover), `tours/h-wyspa-magawish` (Magawish sign), `tours/orange-bay/orange-bay-plaza-parasole`, `tours/orange-bay/orange-bay-plaza-pomosty` (island boat), `tours/orange-bay/snorkeling-rafa-orange-bay` | yes | Represents Orange Bay + Magawish + snorkeling. **No authentic Hurghada "White Island" photo exists** in the repo, so White Island is not depicted (not faked). Distinct file set from orange-bay-hula-hula. plaza-pomosty 800px, snorkeling-rafa 720px (max available). |
 | orange-bay-hula-hula | 5 | `tours/orange-bay/orange-bay-hustawka-morze` (swing-in-sea 1920px, cover), `tours/h-wyspa-hula-hula` (Hula Hula hammock), `tours/h-orange-bay` (Orange Bay beach), `tours/h-plaza-orange-ozirea`, `tours/orange-bay/orange-bay-lodz-rejs` | yes | Genuine Orange Bay + Hula Hula imagery. Distinct file set from three-islands. |
-| private-speedboat | 4 | **egipskie (1):** `tours/h-prywatny-speedboat` (cover). **operator video frames (3):** flag+wake, prow-over-turquoise, outboard+wake. | yes (egipskie) | **SHORTFALL.** Repo has only ONE genuine private-speedboat photo. The Orange-Bay day-yacht shots would misrepresent "private speedboat", so 3 of the operator's OWN speedboat frames (their actual boat) were retained; the 2 weakest frames were dropped. |
-| horse-riding-swimming | 4 | **egipskie (2):** `tours/h-jazda-konno-kapiel-w-morzu` (horse in sea, cover), `tours/s-jazda-na-wielbladzie` (horse in turquoise shallows — source filename says "camel" but the photo is a horse; verified visually). **operator frames (2):** sunset horse-by-sea ×2. | yes (egipskie) | **SHORTFALL.** Repo has only 2 genuine horse-riding photos. 2 of the operator's own (attractive) sunset frames retained for variety; repetitive ones dropped. |
+| private-speedboat | 6 | Egipskie speedboat page set (Sanity ej04dib0): aerial private boat (new cover), guests driving, wild-dolphin freedive, dolphin selfie, lagoon fruit on board, snorkel gear on stern | yes (aerial) | Rebuilt from the Egipskie `prywatny-speedboat` page gallery. Operator video frames removed. aerial 1280x720, lagoon 1200x900, rest 669x446. |
+| horse-riding-swimming | 5 | Egipskie horse page set (Sanity ej04dib0): rider bathing with horse in surf, beach canter, white-horse beach walk, shallow-water sunset + repo `tours/s-jazda-na-wielbladzie` (brown horse in turquoise sea, cover) | yes (s-jazda) | Rebuilt from the Egipskie `jazda-konno-kapiel-w-morzu` page. Horse/beach/swimming ONLY — the 2 quad shots from that page's set were deliberately excluded (per request: this is the horse tour, not the horse+quad variant). Operator frames removed. Page images 669-830px; cover 1600px. |
 | dolphin-house | 5 | `categories/snorkeling-delfiny` (snorkeler+pod, cover), `tours/h-dom-delfinow-snorkeling`, `tours/h-dom-delfinow-nurkowanie`, `tours/h-abu-dabbab-snorkeling` (reef), `tours/s-white-island-ras-mohamed` (reef+eagle ray) | yes | **WILD dolphins + reef snorkeling only.** `h-delfinarium-dolphin-show` / `s-dolphin-show` (captive shows) deliberately EXCLUDED per brief. |
 
 ## NOT modified in this task (left exactly as-is)
