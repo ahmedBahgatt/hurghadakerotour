@@ -125,15 +125,32 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 - **Tour content:** complete in FR/PL/RO for all 11 tours (name, intro,
   highlights, program, included, practical, conditions).
-- **Photo galleries: 28 of 55 target images.** Per tour:
-  cairo 5, luxor 2, quad 4, super 4, three-islands 4, orange-bay+hula 4,
-  speedboat 1, dolphin 3, horse 1, **go-kart 0 (placeholder)**, **lion cub 0 (placeholder)**.
-- **Missing slots:** luxor +3, speedboat +4, dolphin +2, horse +4, go-kart 5
-  (incl. cover), lion cub 5 (after compliance review).
-- **Image source/rights:** photos reused from the owner's own repo
-  `ahmedBahgatt/egipskiewakacje.pl` (read-only), **owner-asserted** rights (no
-  licence file there). Only Hurghada (`h-*`) and matching assets used; no Sharm/
-  Marsa Alam/stock; no mislabeled images. Full log in `IMAGE_AUDIT.md`.
+- **Photo galleries: 55 of 55 target images (every public tour >=5).** Per tour:
+  cairo 8, luxor 5, quad 5, super 5, three-islands 5, orange-bay+hula 5,
+  speedboat 6, dolphin 6, horse 5, lion cub 5 (+cover),
+  **go-kart 0 (branded placeholder - still the only gap)**.
+- **2026-10-25 media refresh:** galleries enriched from the operator's OWN
+  content: (a) the six creative tour videos in `/Users/ahmedbahgat/Desktop/Final`
+  (local, HQ 1080x1920) and (b) their TikTok posts `@hurghadakerotours`
+  (public, pulled with yt-dlp). Frames were extracted, cropped 16:11 to remove
+  the ads' promo captions/price badges, and saved as webp. Lion cub now uses
+  real family+cub frames (video `KeRo_Tours_Creative_01`). Dolphin-house uses
+  only WILD-dolphin-at-sea frames (the captive dolphin-show footage was
+  deliberately NOT used - would misrepresent the wild Dolphin House trip).
+- **Hero:** homepage hero is now a Ken-Burns crossfade **slideshow** of 5
+  verified text-free stills (Orange Bay, Giza pyramids, Luxor, GEM, quad safari)
+  in `assets/img/hero/slide1..5.webp` (~356KB total, lazy-loaded). A silent
+  VIDEO montage was built and rejected: the source ad clips have baked-in promo
+  captions that can't be cleanly removed for a silent hero, so the polished
+  slideshow (the owner's accepted fallback) was shipped instead. Degrades
+  without JS and freezes under prefers-reduced-motion.
+- **Social media:** official Instagram / Facebook / TikTok icon links added to
+  the footer (all pages) + homepage contact card (open in new tab), and to the
+  TravelAgency JSON-LD `sameAs`. URLs live in `site_config.py` (`SOCIAL`).
+- **Image source/rights:** earlier photos reused from the owner's own repo
+  `ahmedBahgatt/egipskiewakacje.pl` (read-only); new media is the operator's own
+  video + TikTok content. All **owner-asserted** rights. No stock, no AI images
+  in galleries, no mislabeled/unrelated images. Full log in `IMAGE_AUDIT.md`.
 - **Known missing business info:** legal name, street address, tourism licence
   number, public email (see F).
 
@@ -184,7 +201,11 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 ## H. Pending tasks / next priorities
 
-- Photos: fill galleries to 55; **go-kart** and **lion cub** still placeholders.
+- Photos: galleries now 55/55 (>=5 per tour). **Only `el-gouna-go-kart`
+  remains without media** - the operator has NO go-kart photo/video on TikTok
+  or Instagram (whole IG grid scanned 2026-10-25) and none online under their
+  name; it keeps its branded placeholder. Get a real go-kart clip/photo from
+  the owner to finish it. Do NOT substitute stock/third-party karting imagery.
 - Business legal info (address, licence, email) - owner to provide; never fake.
 - **Sanity integration: postponed** until explicit authorization. (Pipeline already
   has `CONTENT_SOURCE` var + `sanity-publish` dispatch; content is in `data/*.py`.)
