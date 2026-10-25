@@ -67,6 +67,13 @@ ICON = {
     "sparkle": _line('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>'),
     "zoom": _line('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/>'),
     "close": _line('<path d="M18 6 6 18M6 6l12 12"/>'),
+    # --- social brand glyphs (filled, monochrome via currentColor) ---
+    "instagram": ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+                  '<path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.22.42.56.22.96.48 1.38.9.42.42.68.82.9 1.38.17.42.37 1.05.42 2.22.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.42 2.22-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.17-1.05.37-2.22.42-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.22-.42-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.17-.42-.37-1.05-.42-2.22-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.42-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.17 1.05-.37 2.22-.42 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.12 1.38C1.35 2.67.94 3.34.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.08 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.08-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12-.66-.66-1.33-1.08-2.12-1.38-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0m0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84M12 16a4 4 0 1 1 4-4 4 4 0 0 1-4 4m6.41-10.85a1.44 1.44 0 1 0 1.44 1.44 1.44 1.44 0 0 0-1.44-1.44"/></svg>'),
+    "facebook": ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+                 '<path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07"/></svg>'),
+    "tiktok": ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+               '<path d="M16.6 5.82a4.28 4.28 0 0 1-1.01-2.82h-3.3v12.9a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-.6-5.11v-3.37a5.92 5.92 0 0 0-5.3 5.88 5.92 5.92 0 0 0 11.84 0V8.9a7.57 7.57 0 0 0 4.42 1.42V7.02a4.27 4.27 0 0 1-3.46-1.2"/></svg>'),
 }
 
 CATEGORY_ICON = {"sea_islands": "boat", "desert_safari": "sun",
@@ -168,6 +175,9 @@ def sd_org(lang):
     }
     if cfg.WHATSAPP_NUMBER:
         org["telephone"] = "+" + cfg.WHATSAPP_NUMBER
+    same_as = [u for u in getattr(cfg, "SOCIAL", {}).values() if u]
+    if same_as:
+        org["sameAs"] = same_as
     return org
 
 def sd_website(lang):
@@ -247,6 +257,25 @@ def brand(lang, extra_cls=""):
     return ('<a class="brand %s" href="/%s/" aria-label="%s">'
             '<img class="brand__logo" src="/assets/img/logo.png" alt="%s" width="120" height="120"></a>'
             % (extra_cls, lang, esca(cfg.BRAND_NAME), LOGO_ALT))
+
+SOCIAL_NAMES = {"instagram": "Instagram", "facebook": "Facebook", "tiktok": "TikTok"}
+
+def social_links(lang, cls="social", with_label=True):
+    """Row of brand icon links (open in a new tab). Empty if none configured."""
+    social = getattr(cfg, "SOCIAL", {})
+    links = [(k, v) for k, v in social.items() if v and k in ICON]
+    if not links:
+        return ""
+    tr = T[lang]
+    items = []
+    for key, url in links:
+        net = SOCIAL_NAMES.get(key, key.title())
+        aria = tr["social_aria"].format(brand=cfg.BRAND_SHORT, network=net)
+        items.append('<a class="social__link social__link--%s" href="%s" target="_blank" '
+                     'rel="noopener" aria-label="%s">%s</a>' % (key, esca(url), esca(aria), ICON[key]))
+    label = ('<span class="social__label">%s</span>' % esc(tr["social_follow"])) if with_label else ""
+    return ('<div class="%s">%s<div class="social__row" role="list" aria-label="%s">%s</div></div>'
+            % (cls, label, esca(tr["social_follow"]), "".join(items)))
 
 def analytics_head():
     ga, ads = cfg.GA4_MEASUREMENT_ID.strip(), cfg.GOOGLE_ADS_ID.strip()
@@ -415,6 +444,7 @@ def footer(lang, public_tours, home_base=None):
 <img class="footer__logo" src="/assets/img/logo.png" alt="%s" width="150" height="150">
 <p>%s</p>
 <p class="footer__pay">%s %s</p>
+%s
 </div>
 <nav class="footer__col" aria-label="%s"><h4>%s</h4><div class="footer__links footer__cats">%s</div></nav>
 <div class="footer__col"><h4>%s</h4><div class="footer__links">%s</div></div>
@@ -427,6 +457,7 @@ def footer(lang, public_tours, home_base=None):
 </footer>""" % (
         LOGO_ALT, esc(tr["footer_about"]),
         ICON["shield"], esc(tr["payment_line"]),
+        social_links(lang, "footer__social"),
         esca(tr["footer_excursions_title"]), esc(tr["footer_excursions_title"]), cat_links,
         esc(tr["footer_contact_title"]), "".join(contact_rows),
         YEAR, esc(cfg.BRAND_NAME), esc(tr["footer_rights"]), legal,
@@ -498,6 +529,32 @@ def gallery_html(tour, lang):
     return '<div class="gallery" data-gallery data-images="%s">%s%s</div>' % (data, main, thumbs)
 
 # ---------------------------------------------------------------------------
+# hero media (slideshow of clean stills, or single image / placeholder)
+# ---------------------------------------------------------------------------
+def hero_media_html(lang):
+    """Premium hero: Ken-Burns crossfade slideshow when slide*.webp exist,
+    else a single hero image, else a branded placeholder. Degrades without JS
+    (first slide stays visible) and freezes under prefers-reduced-motion."""
+    hdir = os.path.join(SRC_ASSETS, "img", "hero")
+    slides = []
+    if os.path.isdir(hdir):
+        slides = sorted(f for f in os.listdir(hdir)
+                        if f.startswith("slide") and f.lower().endswith(IMG_EXTS))
+    if len(slides) >= 2:
+        cards = []
+        for i, f in enumerate(slides):
+            cls = "hero__slide is-active" if i == 0 else "hero__slide"
+            load = ' fetchpriority="high"' if i == 0 else ' loading="lazy"'
+            cards.append('<div class="%s"><img src="/assets/img/hero/%s" alt="" aria-hidden="true" '
+                         'decoding="async"%s></div>' % (cls, esca(f), load))
+        return '<div class="hero__media hero__slides" data-hero-slides>%s</div>' % "".join(cards)
+    for ext in IMG_EXTS:
+        if os.path.isfile(os.path.join(SRC_ASSETS, "img", "hero" + ext)):
+            return ('<div class="hero__media"><img src="/assets/img/hero%s" alt="" aria-hidden="true"></div>'
+                    % ext)
+    return '<div class="hero__media">%s</div>' % placeholder_svg("sea_islands")
+
+# ---------------------------------------------------------------------------
 # homepage
 # ---------------------------------------------------------------------------
 def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base=None):
@@ -505,14 +562,10 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
     alt_paths = {l: url_home(l) for l in LANG_ORDER}
     canonical_path = canonical_path or url_home(lang)
 
-    hero_media = placeholder_svg("sea_islands")
-    for ext in IMG_EXTS:
-        if os.path.isfile(os.path.join(SRC_ASSETS, "img", "hero" + ext)):
-            hero_media = '<img src="/assets/img/hero%s" alt="%s">' % (ext, esca(tr["hero_kicker"]))
-            break
+    hero_media = hero_media_html(lang)
 
     hero = """<section class="hero" id="top">
-<div class="hero__media">%s</div>
+%s
 <div class="container"><div class="hero__inner">
 <span class="hero__kicker">%s %s</span>
 <h1>%s</h1>
@@ -568,8 +621,10 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
 <h2 class="section__title">%s</h2></div><div class="faq reveal">%s</div></div></section>""" % (esc(tr["faq_title"]), faqs)
 
     contact_sec = """<section class="section" id="contact">
-<div class="container"><div class="contact__card reveal"><h2>%s</h2><p>%s</p>%s</div></div></section>""" % (
-        esc(tr["contact_title"]), esc(tr["contact_sub"]), wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact"))
+<div class="container"><div class="contact__card reveal"><h2>%s</h2><p>%s</p>%s%s</div></div></section>""" % (
+        esc(tr["contact_title"]), esc(tr["contact_sub"]),
+        wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact"),
+        social_links(lang, "contact__social"))
 
     org = sd_org(lang)
     org["makesOffer"] = [{"@type": "Offer", "name": t["content"][lang]["name"], "price": t["price"],

@@ -29,6 +29,18 @@ BRAND_NAME = "Hurghada KeRo Tours & Transfer"
 BRAND_SHORT = "KeRo Tours"
 OPERATING_BASE = "Hurghada, Egypt"
 
+# ---------------------------------------------------------------------------
+# SOCIAL MEDIA  (official KeRo Tours accounts)
+# ---------------------------------------------------------------------------
+# Rendered as icon links in the footer and contact card (open in a new tab).
+# Order here is the order shown. Leave a value empty to hide that icon.
+# Also fed into the TravelAgency JSON-LD "sameAs" for entity consistency.
+SOCIAL = {
+    "instagram": "https://www.instagram.com/hurghada.kero.tours.transfer?utm_source=qr&psln=MXA5c3Zzazc2ZDVjbA==",
+    "facebook":  "https://www.facebook.com/share/19PCB5Vn9v/",
+    "tiktok":    "https://www.tiktok.com/@hurghadakerotours?_r=1&_t=ZS-9AT2Q4CvIO4",
+}
+
 # Operating area (Hurghada) - used for LocalBusiness / geo structured data.
 # This is the public service area, not a fabricated street address.
 GEO = {"locality": "Hurghada", "region": "Red Sea Governorate", "country": "EG",

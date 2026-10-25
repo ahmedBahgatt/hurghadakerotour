@@ -183,4 +183,19 @@
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
     revealEls.forEach(function (el) { io.observe(el); });
   }
+
+  /* ---- Hero slideshow (Ken-Burns crossfade) ---- */
+  var heroWrap = document.querySelector("[data-hero-slides]");
+  if (heroWrap) {
+    var slides = heroWrap.querySelectorAll(".hero__slide");
+    if (slides.length > 1 && !reduced) {
+      var hi = 0;
+      setInterval(function () {
+        if (document.hidden) return;
+        slides[hi].classList.remove("is-active");
+        hi = (hi + 1) % slides.length;
+        slides[hi].classList.add("is-active");
+      }, 5000);
+    }
+  }
 })();

@@ -521,3 +521,35 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 h1, h2, h3, h4, .card__title, .tour-hero h1 { overflow-wrap: break-word; }
 .card__title { font-size: 1.24rem; }
 .section__title { overflow-wrap: break-word; }
+
+/* =========================================================================
+   V4: hero slideshow (Ken-Burns crossfade) + social links
+   ========================================================================= */
+
+/* ---- Hero slideshow ---- */
+.hero__slides { } /* inherits .hero__media (absolute, inset:0, z-index:-2) */
+.hero__slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; will-change: opacity; }
+.hero__slide.is-active { opacity: 1; }
+/* .hero__media img already sets width/height/object-fit:cover */
+.hero__slide img { transform: scale(1.001); transition: transform .2s linear; }
+.hero__slide.is-active img { transform: scale(1.09); transition: transform 7s ease-out; }
+
+/* ---- Social links (footer + contact card) ---- */
+.social__label { display: block; font-size: .76rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 11px; }
+.social__row { display: flex; gap: 10px; flex-wrap: wrap; }
+.social__link { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); color: #fff; transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast); }
+.social__link svg { width: 19px; height: 19px; }
+.social__link:hover { transform: translateY(-2px); color: #fff; border-color: transparent; }
+.social__link--instagram:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+.social__link--facebook:hover { background: #1877f2; }
+.social__link--tiktok:hover { background: #010101; border-color: #25f4ee; }
+.footer__social { margin-top: 18px; }
+.contact__social { margin-top: 24px; }
+.contact__social .social__label { color: rgba(255,255,255,.78); }
+
+/* ---- Hero slideshow + reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .hero__slide { transition: none; }
+  .hero__slide:not(.is-active) { display: none; }
+  .hero__slide img, .hero__slide.is-active img { transform: none; transition: none; }
+}
