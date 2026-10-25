@@ -197,7 +197,7 @@ def wa_text(lang, tour=None):
         return T[lang]["wa_message_generic"]
     return T[lang]["wa_message_tour"].format(tour=tour["content"][lang]["name"])
 
-def wa_link(lang, label, classes, pos, tour=None, with_icon=True):
+def wa_link(lang, label, classes, pos, tour=None, with_icon=True, aria_label=None):
     tid = tour["id"] if tour else "none"
     text = wa_text(lang, tour)
     cls = classes
@@ -207,10 +207,11 @@ def wa_link(lang, label, classes, pos, tour=None, with_icon=True):
     else:
         cls += " is-pending"
         hattr = 'href="#" aria-disabled="true"'
+    aria = ' aria-label="%s"' % esca(aria_label) if aria_label else ""
     icon = ICON["wa"] if with_icon else ""
-    return ('<a class="%s" %s data-wa data-wa-text="%s" data-tour="%s" data-pos="%s">'
+    return ('<a class="%s" %s%s data-wa data-wa-text="%s" data-tour="%s" data-pos="%s">'
             '%s<span>%s</span></a>'
-            % (cls, hattr, esca(text), tid, pos, icon, esc(label)))
+            % (cls, hattr, aria, esca(text), tid, pos, icon, esc(label)))
 
 def wa_float(lang):
     text = wa_text(lang, None)
@@ -272,9 +273,10 @@ CSP = ("default-src 'self'; "
        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
 
 def security_meta():
+    robots = "index,follow,max-image-preview:large" if getattr(cfg, "ALLOW_INDEXING", True) else "noindex,follow"
     m = ['<meta name="referrer" content="strict-origin-when-cross-origin">',
          '<meta http-equiv="Content-Security-Policy" content="%s">' % CSP,
-         '<meta name="robots" content="index,follow,max-image-preview:large">']
+         '<meta name="robots" content="%s">' % robots]
     if cfg.GOOGLE_SITE_VERIFICATION.strip():
         m.append('<meta name="google-site-verification" content="%s">' % esca(cfg.GOOGLE_SITE_VERIFICATION.strip()))
     if cfg.BING_SITE_VERIFICATION.strip():
@@ -330,9 +332,9 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
            ogimg=og_img, brand=esca(cfg.BRAND_NAME), analytics=analytics_head(),
            jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]))
 
-def header(lang, alt_paths):
+def header(lang, alt_paths, home_base=None):
     tr = T[lang]
-    home = url_home(lang)
+    home = home_base or url_home(lang)
     # Excursions dropdown items
     dd_items = ['<a href="%s#excursions" role="menuitem">%s</a>' % (esca(home), esc(tr["nav_excursions_all"]))]
     for cid in CATEGORY_ORDER:
@@ -382,10 +384,13 @@ def header(lang, alt_paths):
         langswitch, book_btn, esca(tr["open_menu"]),
         esc(tr["nav_excursions"]), mob_cats, mob_other, mob_book)
 
-def footer(lang, public_tours):
+def footer(lang, public_tours, home_base=None):
     tr = T[lang]
-    exc_links = "".join('<a href="%s">%s</a>' % (esca(url_tour(lang, t["slug"])), esc(t["content"][lang]["name"]))
-                        for t in public_tours)
+    home = home_base or url_home(lang)
+    # Column 2 - Explore: the four categories only (not all 11 tours).
+    cat_links = "".join('<a href="%s#cat-%s">%s%s</a>' % (esca(home), cid, ICON[CATEGORY_ICON[cid]], esc(CATEGORIES[lang][cid]))
+                        for cid in CATEGORY_ORDER)
+    # Column 3 - Contact.
     contact_rows = [wa_link(lang, tr["contact_whatsapp"], "footer__wa", "footer")]
     if cfg.BUSINESS["phone_display"]:
         contact_rows.append('<a href="tel:%s">%s %s</a>'
@@ -393,8 +398,8 @@ def footer(lang, public_tours):
     if cfg.BUSINESS["email"]:
         contact_rows.append('<a href="mailto:%s">%s %s</a>' % (esca(cfg.BUSINESS["email"]), ICON["mail"], esc(cfg.BUSINESS["email"])))
     if cfg.BUSINESS["address"]:
-        contact_rows.append('<div>%s %s</div>' % (ICON["pin"], esc(cfg.BUSINESS["address"])))
-    langs = " ".join('<a href="%s" hreflang="%s">%s</a>' % (esca(url_home(l)), HTML_LANG[l], esc(LANG_NATIVE[l])) for l in LANG_ORDER)
+        contact_rows.append('<div class="footer__addr">%s %s</div>' % (ICON["pin"], esc(cfg.BUSINESS["address"])))
+    langs = " ".join('<a href="%s" hreflang="%s">%s</a>' % (esca(url_home(l)), HTML_LANG[l], l.upper()) for l in LANG_ORDER)
     legal = ""
     if cfg.BUSINESS["legal_name"] or cfg.BUSINESS["license_number"]:
         bits = []
@@ -402,30 +407,30 @@ def footer(lang, public_tours):
             bits.append(esc(cfg.BUSINESS["legal_name"]))
         if cfg.BUSINESS["license_number"]:
             bits.append(esc(cfg.BUSINESS["license_number"]))
-        legal = '<div class="footer__legal">%s</div>' % " &middot; ".join(bits)
+        legal = ' <span class="footer__legal">&middot; %s</span>' % " &middot; ".join(bits)
     return """<footer class="footer">
 <div class="container">
 <div class="footer__grid">
 <div class="footer__brand">
 <img class="footer__logo" src="/assets/img/logo.png" alt="%s" width="150" height="150">
 <p>%s</p>
+<p class="footer__pay">%s %s</p>
 </div>
-<div><h4>%s</h4><div class="footer__links">%s</div></div>
-<div><h4>%s</h4><div class="footer__links">%s</div></div>
+<nav class="footer__col" aria-label="%s"><h4>%s</h4><div class="footer__links footer__cats">%s</div></nav>
+<div class="footer__col"><h4>%s</h4><div class="footer__links">%s</div></div>
 </div>
-<div class="footer__disclaimer">%s<p>%s</p></div>
 <div class="footer__bottom">
-<div>&copy; %d %s. %s%s</div>
-<div class="footer__langs"><span>%s:</span> %s</div>
+<div class="footer__copy">&copy; %d %s. %s%s</div>
+<div class="footer__langs">%s</div>
 </div>
 </div>
 </footer>""" % (
         LOGO_ALT, esc(tr["footer_about"]),
-        esc(tr["footer_excursions_title"]), exc_links,
+        ICON["shield"], esc(tr["payment_line"]),
+        esca(tr["footer_excursions_title"]), esc(tr["footer_excursions_title"]), cat_links,
         esc(tr["footer_contact_title"]), "".join(contact_rows),
-        ICON["info"], esc(tr["footer_disclaimer"]),
         YEAR, esc(cfg.BRAND_NAME), esc(tr["footer_rights"]), legal,
-        esc(tr["footer_lang_title"]), langs)
+        langs)
 
 def scripts():
     return '<script src="/assets/js/app.js" defer></script>\n</body>\n</html>\n'
@@ -444,7 +449,7 @@ def tour_card(lang, tour, delay=0):
 <h3 class="card__title">%s</h3>
 <p class="card__tag">%s</p>
 <div class="card__actions">
-<a class="btn btn--outline" href="%s">%s</a>
+<a class="btn btn--outline btn--sm" href="%s" aria-label="%s">%s</a>
 %s
 </div>
 </div>
@@ -452,8 +457,10 @@ def tour_card(lang, tour, delay=0):
         tour["category"], delay % 3, esca(detail), esca(tour["content"][lang]["name"]),
         media(tour, lang), esc(cat), flag, card_price(lang, tour),
         esc(tour["content"][lang]["name"]), esc(tour["content"][lang]["tagline"]),
-        esca(detail), esc(tr["view_details"]),
-        wa_link(lang, tr["book_whatsapp"], "btn btn--wa", "card", tour))
+        esca(detail), esca("%s - %s" % (tr["view_details"], tour["content"][lang]["name"])),
+        esc(tr["card_details"]),
+        wa_link(lang, tr["card_book"], "btn btn--wa btn--sm", "card", tour,
+                aria_label="%s - %s" % (tr["book_whatsapp"], tour["content"][lang]["name"])))
 
 def trust_strip(lang):
     tr = T[lang]
@@ -493,9 +500,10 @@ def gallery_html(tour, lang):
 # ---------------------------------------------------------------------------
 # homepage
 # ---------------------------------------------------------------------------
-def build_home(lang, public_tours):
+def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base=None):
     tr = T[lang]
     alt_paths = {l: url_home(l) for l in LANG_ORDER}
+    canonical_path = canonical_path or url_home(lang)
 
     hero_media = placeholder_svg("sea_islands")
     for ext in IMG_EXTS:
@@ -568,11 +576,11 @@ def build_home(lang, public_tours):
                           "priceCurrency": "EUR", "url": abs_url(url_tour(lang, t["slug"]))} for t in public_tours]
     jsonld = {"@context": "https://schema.org", "@graph": [sd_website(lang), org, sd_faq(lang)]}
 
-    body = (header(lang, alt_paths) + '<main id="main">' + hero + trust_strip(lang) + chipbar
+    body = (header(lang, alt_paths, home_base) + '<main id="main">' + hero + trust_strip(lang) + chipbar
             + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
-            + "</main>" + footer(lang, public_tours) + wa_float(lang))
-    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], url_home(lang), alt_paths, "/", jsonld) + body + scripts()
-    write(os.path.join(DIST, lang, "index.html"), doc)
+            + "</main>" + footer(lang, public_tours, home_base) + wa_float(lang))
+    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths, "/", jsonld) + body + scripts()
+    write(out_path or os.path.join(DIST, lang, "index.html"), doc)
 
 # ---------------------------------------------------------------------------
 # tour detail
@@ -712,49 +720,14 @@ def lightbox_html(lang):
 # ---------------------------------------------------------------------------
 # root splash + 404
 # ---------------------------------------------------------------------------
-def build_root():
-    links = "".join('<a href="%s" hreflang="%s">%s</a>' % (esca(url_home(l)), HTML_LANG[l], esc(LANG_NATIVE[l])) for l in LANG_ORDER)
-    alts = "".join('<link rel="alternate" hreflang="%s" href="%s">' % (HTML_LANG[l], abs_url(url_home(l))) for l in LANG_ORDER)
-    alts += '<link rel="alternate" hreflang="x-default" href="%s">' % abs_url("/")
-    doc = """<!doctype html>
-<html lang="%s">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>%s - Hurghada VIP Excursions | FR / PL / RO</title>
-<meta name="description" content="%s">
-<link rel="canonical" href="%s">
-%s
-<meta property="og:image" content="%s">
-<meta name="theme-color" content="#0bb4c4">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/styles.css">
-<script>
-(function(){try{var m={fr:'/fr/',pl:'/pl/',ro:'/ro/'};var l=(navigator.language||'').slice(0,2).toLowerCase();if(m[l]){location.replace(m[l]);}}catch(e){}})();
-</script>
-</head>
-<body>
-<main class="splash">
-<div class="splash__card">
-<img class="splash__logo" src="/assets/img/logo.png" alt="%s" width="220" height="220">
-<h1>%s</h1>
-<p>%s</p>
-<div class="splash__langs">%s</div>
-</div>
-</main>
-</body>
-</html>
-""" % (cfg.DEFAULT_LANG, esc(cfg.BRAND_NAME),
-       "Excursions VIP a Hurghada / Wycieczki VIP / Excursii VIP - FR PL RO",
-       abs_url("/"), alts, abs_url("/assets/img/og-logo.png"), LOGO_ALT,
-       "Hurghada VIP Excursions",
-       "Choisissez votre langue &middot; Wybierz jezyk &middot; Alege limba", links)
-    write(os.path.join(DIST, "index.html"), doc)
+def build_root(public_tours):
+    # The root URL "/" serves the full French homepage immediately (no splash,
+    # no JS redirect). It canonicalises to /fr/ so there is no duplicate content;
+    # /pl/ and /ro/ stay the entry points for Polish/Romanian (e.g. Google Ads).
+    build_home(cfg.DEFAULT_LANG, public_tours,
+               out_path=os.path.join(DIST, "index.html"),
+               canonical_path=url_home(cfg.DEFAULT_LANG),
+               home_base="/")
 
 def build_404():
     lang = cfg.DEFAULT_LANG
@@ -841,7 +814,7 @@ def main():
         for t in public_tours:
             build_tour(lang, t, public_tours)
 
-    build_root()
+    build_root(public_tours)
     build_404()
     build_sitemap(public_tours)
     build_robots()

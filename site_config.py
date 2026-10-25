@@ -43,6 +43,16 @@ GOOGLE_SITE_VERIFICATION = ""
 BING_SITE_VERIFICATION = ""
 
 # ---------------------------------------------------------------------------
+# INDEXING  (owner postponed Google indexing until the site is finalized)
+# ---------------------------------------------------------------------------
+# False -> every page emits <meta name="robots" content="noindex,follow">, so
+#          search engines CAN crawl (robots.txt still allows) and read the
+#          directive, but will NOT index yet. Fully reversible.
+# True  -> pages become indexable (index,follow,max-image-preview:large).
+# Flip to True only when the owner approves indexing, then rebuild.
+ALLOW_INDEXING = False
+
+# ---------------------------------------------------------------------------
 # BUSINESS INFORMATION  --  REQUIRES REAL OWNER INPUT
 # ---------------------------------------------------------------------------
 # Leave a value as "" to keep it hidden. Do NOT invent a licence number,
