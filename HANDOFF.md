@@ -212,6 +212,28 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   Verified FR/PL/RO messages for speedboat (per-boat) + per-person tours, all
   entry points, validation, and no console errors.
   Files: `build.py`, `assets/js/app.js`, `assets/css/styles.css`, `data/i18n.py`.
+- **V5.2 MOBILE UI POLISH (2026-10-26):** owner review follow-ups, verified at
+  320/375/390/414px (iframe true-width). Changes:
+  (1) **Navbar strategy** - mobile header is now logo LEFT / language switcher
+  CENTER / hamburger RIGHT. The centered langs are a 2nd `langswitch--mobile`
+  instance absolutely centered (`left:50%;translate(-50%,-50%)`), measured dead-
+  center (lang center == viewport center) at all four widths, no overlap with
+  logo/hamburger, 0px overflow. Social icons were REMOVED from the header and now
+  live only in the drawer foot (cleaner header per owner preference). The
+  `header_social_links()` builder + `header__social` CSS were deleted.
+  (2) **Hamburger** - refined 44x44 rounded button: 3 rounded 18x2px lines,
+  gap 4px, perfectly centered (measured 13/13 side pad, 15/15 top/bottom),
+  subtle shadow + hover border.
+  (3) **Floating WhatsApp** - homepage `wa-float` is now a 56px circle on mobile
+  (icon-only, `place-items:center`), WA glyph centered to 0px offset; the
+  tour-page `wa-bubble` keeps its centered circle (`line-height:0` safety).
+  (4) **Booking form symmetry** - room number + number of people share one grid
+  row, equal 48px height, equal width, inputs bottom-aligned via
+  `.bookform__grid{align-items:end}` (stays aligned even if a label wraps at
+  320px); labels also top-align at 375/390/414 after shortening the room label to
+  `Numéro de chambre` / `Numer pokoju` / `Număr cameră`. Form order unchanged
+  (Hotel full-width -> Room+People row -> Notes); no name field, no dropdown on
+  detail pages. Files: `build.py`, `assets/css/styles.css`, `data/i18n.py`.
 - **Social media:** official Instagram / Facebook / TikTok icon links added to
   the footer (all pages) + homepage contact card (open in new tab), and to the
   TravelAgency JSON-LD `sameAs`. URLs live in `site_config.py` (`SOCIAL`).

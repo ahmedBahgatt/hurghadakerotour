@@ -727,24 +727,18 @@ h1, h2, h3, h4, .card__title, .tour-hero h1 { overflow-wrap: break-word; }
   .nav__toggle { margin-left: 0; }
 }
 
-/* ---- Compact header social icons (mobile only) ---- */
-.header__social { display: none; align-items: center; gap: 6px; }
-.header__social-link {
-  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
-  color: var(--ink-soft); background: var(--bg-soft); border: 1px solid var(--line);
-  transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+/* ---- V5.2 mobile header strategy: logo left / languages center / menu right.
+   Socials moved fully into the drawer to keep the header clean. ---- */
+.nav { position: relative; }
+.langswitch--mobile {
+  display: none; position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); margin: 0;
 }
-.header__social-link svg { width: 18px; height: 18px; }
-.header__social-link:active { transform: translateY(1px); }
-.header__social--instagram:hover { color: #fff; background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); border-color: transparent; }
-.header__social--facebook:hover { color: #fff; background: #1877f2; border-color: transparent; }
-.header__social--tiktok:hover { color: #fff; background: #010101; border-color: #25f4ee; }
-@media (max-width: 999.98px) { .header__social { display: flex; } }
-@media (min-width: 1000px)   { .header__social { display: none; } }
-/* graceful reduction on narrow phones: drop 3rd icon, then the whole row
-   (<340px) - the drawer still carries the full social set */
-@media (max-width: 360px)    { .header__social-link:nth-of-type(n+3) { display: none; } }
-@media (max-width: 339.98px) { .header__social { display: none; } }
+@media (max-width: 999.98px) { .langswitch--mobile { display: flex; } }
+@media (min-width: 1000px)   { .langswitch--mobile { display: none; } }
+/* keep the center pills compact so they never crowd logo/hamburger at 320px */
+.langswitch--mobile a { padding: 6px 10px; font-size: .8rem; }
+@media (max-width: 340px) { .langswitch--mobile a { padding: 5px 8px; font-size: .76rem; } }
 
 /* ---- Sticky-bar BOOKING button: KeRo teal, never WhatsApp green/icon ---- */
 .btn--book { background: linear-gradient(135deg, var(--sea) 0%, var(--sea-deep) 100%); color: #fff; box-shadow: 0 8px 22px rgba(8,122,138,.34); }
@@ -775,3 +769,43 @@ body:has(.drawer.is-open) .wa-bubble { display: none; }
 .bookform__context-price b { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink); }
 .bookform__note { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 600; color: var(--sea-deep); background: var(--bg-soft); border-radius: 10px; padding: 9px 12px; }
 .bookform__note svg { width: 16px; height: 16px; flex: none; color: var(--sea-deep); }
+
+/* =========================================================================
+   V5.2: hamburger refinement, floating-WhatsApp centering, form symmetry
+   ========================================================================= */
+
+/* ---- Hamburger: 3 lines perfectly centered in a refined rounded button ---- */
+.nav__toggle {
+  width: 44px; height: 44px; padding: 0; border-radius: 12px;
+  border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm);
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+}
+.nav__toggle:hover { border-color: var(--sea); }
+.nav__toggle span {
+  display: block; width: 18px; height: 2px; border-radius: 2px; margin: 0;
+  background: var(--ink); transition: transform var(--t-fast), opacity var(--t-fast);
+}
+.nav__toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav__toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav__toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* ---- Floating WhatsApp: perfectly centered icon ---- */
+/* tour-page bubble is already a circle; make the homepage float a clean circle
+   on mobile (icon-only) so the glyph is centered, not an off-center pill */
+.wa-bubble { line-height: 0; }
+.wa-bubble svg, .wa-float svg { display: block; }
+@media (max-width: 559.98px) {
+  .wa-float {
+    width: 56px; height: 56px; padding: 0; gap: 0; border-radius: 50%;
+    display: grid; place-items: center; line-height: 0;
+  }
+  .wa-float svg { width: 28px; height: 28px; }
+}
+
+/* ---- Booking form: room number + people share one aligned, symmetric row.
+   align-items:end bottom-aligns the two inputs even if one label wraps at 320px;
+   with the shortened single-line labels they also top-align at 375/390/414. ---- */
+.bookform__grid { align-items: end; }
+.bookform__grid .bookform__field > span { line-height: 1.25; }
+.bookform__grid .bookform__field input { height: 48px; }

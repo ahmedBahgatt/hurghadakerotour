@@ -282,25 +282,6 @@ def social_links(lang, cls="social", with_label=True):
     return ('<div class="%s">%s<div class="social__row" role="list" aria-label="%s">%s</div></div>'
             % (cls, label, esca(tr["social_follow"]), "".join(items)))
 
-def header_social_links(lang):
-    """Compact row of social icons for the mobile header (between logo and
-    hamburger). Instagram + Facebook prioritized; the 3rd icon is dropped on
-    very narrow phones and the whole row hides <340px (the drawer still has
-    the full set). Empty if no socials are configured."""
-    social = getattr(cfg, "SOCIAL", {})
-    order = [k for k in ("instagram", "facebook", "tiktok") if social.get(k) and k in ICON]
-    if not order:
-        return ""
-    tr = T[lang]
-    items = []
-    for key in order:
-        net = SOCIAL_NAMES.get(key, key.title())
-        aria = tr["social_aria"].format(brand=cfg.BRAND_SHORT, network=net)
-        items.append('<a class="header__social-link header__social--%s" href="%s" target="_blank" '
-                     'rel="noopener" aria-label="%s">%s</a>'
-                     % (key, esca(social[key]), esca(aria), ICON[key]))
-    return '<div class="header__social" aria-label="%s">%s</div>' % (esca(tr["social_follow"]), "".join(items))
-
 def analytics_head():
     ga, ads = cfg.GA4_MEASUREMENT_ID.strip(), cfg.GOOGLE_ADS_ID.strip()
     if not ga and not ads:
@@ -414,6 +395,9 @@ def header(lang, alt_paths, public_tours, home_base=None):
     other_html = "".join('<li><a href="%s">%s</a></li>' % (esca(h), esc(t)) for t, h in other)
 
     langswitch = langswitch_html(lang, alt_paths)
+    # Mobile header center: language switcher (FR/PL/RO). Socials live in the
+    # drawer only, to keep the mobile header clean (logo / langs / hamburger).
+    langswitch_mobile = langswitch_html(lang, alt_paths, "langswitch langswitch--mobile")
     book_btn = ('<button class="btn btn--wa btn--sm nav__book" data-book-open data-pos="nav">%s<span>%s</span></button>'
                 % (ICON["wa"], esc(tr["nav_book"])))
 
@@ -464,16 +448,17 @@ def header(lang, alt_paths, public_tours, home_base=None):
 <div class="container">
 <nav class="nav" aria-label="%s">
 %s
+%s
 <ul class="nav__links">%s%s</ul>
-<div class="nav__right">%s%s%s
+<div class="nav__right">%s%s
 <button class="nav__toggle" data-drawer-open aria-label="%s" aria-expanded="false" aria-controls="drawer"><span></span><span></span><span></span></button>
 </div>
 </nav>
 </div>
 </header>
 %s""" % (
-        esca(tr["nav_excursions"]), brand(lang), dropdown, other_html,
-        header_social_links(lang), langswitch, book_btn, esca(tr["open_menu"]), drawer)
+        esca(tr["nav_excursions"]), brand(lang), langswitch_mobile, dropdown, other_html,
+        langswitch, book_btn, esca(tr["open_menu"]), drawer)
 
 def footer(lang, public_tours, home_base=None):
     tr = T[lang]
