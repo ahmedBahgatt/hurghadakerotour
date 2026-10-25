@@ -150,6 +150,46 @@ def abs_url(path):
     return cfg.SITE_URL.rstrip("/") + path
 
 # ---------------------------------------------------------------------------
+# structured data (SEO / AEO / GEO)
+# ---------------------------------------------------------------------------
+def sd_org(lang):
+    org = {
+        "@type": "TravelAgency",
+        "@id": abs_url("/") + "#business",
+        "name": cfg.BRAND_NAME,
+        "url": abs_url(url_home(lang)),
+        "image": abs_url("/assets/img/og-logo.png"),
+        "logo": abs_url("/assets/img/logo.png"),
+        "areaServed": {"@type": "City", "name": cfg.GEO["locality"]},
+        "address": {"@type": "PostalAddress", "addressLocality": cfg.GEO["locality"],
+                    "addressRegion": cfg.GEO["region"], "addressCountry": cfg.GEO["country"]},
+        "geo": {"@type": "GeoCoordinates", "latitude": cfg.GEO["latitude"], "longitude": cfg.GEO["longitude"]},
+        "priceRange": "€€",
+    }
+    if cfg.WHATSAPP_NUMBER:
+        org["telephone"] = "+" + cfg.WHATSAPP_NUMBER
+    return org
+
+def sd_website(lang):
+    return {"@type": "WebSite", "@id": abs_url("/") + "#website",
+            "url": abs_url(url_home(lang)), "name": cfg.BRAND_NAME, "inLanguage": HTML_LANG[lang]}
+
+def sd_faq(lang):
+    return {"@type": "FAQPage",
+            "mainEntity": [{"@type": "Question", "name": q,
+                            "acceptedAnswer": {"@type": "Answer", "text": a}}
+                           for q, a in T[lang]["faq"]]}
+
+def sd_breadcrumb(lang, tour):
+    return {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": T[lang]["nav_home"], "item": abs_url(url_home(lang))},
+        {"@type": "ListItem", "position": 2, "name": CATEGORIES[lang][tour["category"]],
+         "item": abs_url(url_home(lang)) + "#cat-" + tour["category"]},
+        {"@type": "ListItem", "position": 3, "name": tour["content"][lang]["name"],
+         "item": abs_url(url_tour(lang, tour["slug"]))},
+    ]}
+
+# ---------------------------------------------------------------------------
 # WhatsApp
 # ---------------------------------------------------------------------------
 def wa_text(lang, tour=None):
@@ -223,6 +263,24 @@ def analytics_head():
     return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
             '<script>%s</script>\n' % (primary, "".join(lines)))
 
+CSP = ("default-src 'self'; "
+       "img-src 'self' data:; "
+       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src https://fonts.gstatic.com; "
+       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; "
+       "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; "
+       "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+
+def security_meta():
+    m = ['<meta name="referrer" content="strict-origin-when-cross-origin">',
+         '<meta http-equiv="Content-Security-Policy" content="%s">' % CSP,
+         '<meta name="robots" content="index,follow,max-image-preview:large">']
+    if cfg.GOOGLE_SITE_VERIFICATION.strip():
+        m.append('<meta name="google-site-verification" content="%s">' % esca(cfg.GOOGLE_SITE_VERIFICATION.strip()))
+    if cfg.BING_SITE_VERIFICATION.strip():
+        m.append('<meta name="msvalidate.01" content="%s">' % esca(cfg.BING_SITE_VERIFICATION.strip()))
+    return "".join(m)
+
 def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=None):
     alts = []
     for l in LANG_ORDER:
@@ -234,21 +292,24 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
         jsonld_tag = '<script type="application/ld+json">%s</script>' % json.dumps(jsonld, ensure_ascii=False, separators=(",", ":"))
     og_img = abs_url("/assets/img/og-logo.png")
     return """<!doctype html>
-<html lang="%s">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>%s</title>
-<meta name="description" content="%s">
-<link rel="canonical" href="%s">
-%s
+{sec}
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{canon}">
+{alts}
 <meta property="og:type" content="website">
-<meta property="og:locale" content="%s">
-<meta property="og:title" content="%s">
-<meta property="og:description" content="%s">
-<meta property="og:url" content="%s">
-<meta property="og:image" content="%s">
-<meta property="og:site_name" content="%s">
+<meta property="og:locale" content="{oglocale}">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="{canon}">
+<meta property="og:image" content="{ogimg}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="{brand}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0bb4c4">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -260,14 +321,14 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/styles.css">
-%s<script src="/assets/js/config.js"></script>
-%s</head>
+{analytics}<script src="/assets/js/config.js"></script>
+{jsonld}</head>
 <body>
-<a class="skip-link" href="#main">%s</a>
-""" % (HTML_LANG[lang], esca(title), esca(desc), abs_url(canonical_path),
-       "\n".join(alts), OG_LOCALE[lang], esca(title), esca(desc),
-       abs_url(canonical_path), og_img, esca(cfg.BRAND_NAME), jsonld_tag,
-       analytics_head(), esc(T[lang]["skip_to_content"]))
+<a class="skip-link" href="#main">{skip}</a>
+""".format(lang=HTML_LANG[lang], sec=security_meta(), title=esca(title), desc=esca(desc),
+           canon=abs_url(canonical_path), alts="\n".join(alts), oglocale=OG_LOCALE[lang],
+           ogimg=og_img, brand=esca(cfg.BRAND_NAME), analytics=analytics_head(),
+           jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]))
 
 def header(lang, alt_paths):
     tr = T[lang]
@@ -502,12 +563,10 @@ def build_home(lang, public_tours):
 <div class="container"><div class="contact__card reveal"><h2>%s</h2><p>%s</p>%s</div></div></section>""" % (
         esc(tr["contact_title"]), esc(tr["contact_sub"]), wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact"))
 
-    jsonld = {
-        "@context": "https://schema.org", "@type": "TravelAgency",
-        "name": cfg.BRAND_NAME, "areaServed": "Hurghada, Egypt", "url": abs_url(url_home(lang)),
-        "makesOffer": [{"@type": "Offer", "name": t["content"][lang]["name"], "price": t["price"],
-                        "priceCurrency": "EUR", "url": abs_url(url_tour(lang, t["slug"]))} for t in public_tours],
-    }
+    org = sd_org(lang)
+    org["makesOffer"] = [{"@type": "Offer", "name": t["content"][lang]["name"], "price": t["price"],
+                          "priceCurrency": "EUR", "url": abs_url(url_tour(lang, t["slug"]))} for t in public_tours]
+    jsonld = {"@context": "https://schema.org", "@graph": [sd_website(lang), org, sd_faq(lang)]}
 
     body = (header(lang, alt_paths) + '<main id="main">' + hero + trust_strip(lang) + chipbar
             + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
@@ -624,12 +683,14 @@ def build_tour(lang, tour, public_tours):
         desc = desc[:155].rstrip() + "..."
     title = "%s - €%d%s" % (c["name"], tour["price"], tr["meta_title_suffix"])
 
-    jsonld = {
-        "@context": "https://schema.org", "@type": "Product", "name": c["name"],
-        "description": c["intro"], "brand": {"@type": "Brand", "name": cfg.BRAND_NAME},
+    product = {
+        "@type": "Product", "name": c["name"], "description": c["intro"],
+        "brand": {"@type": "Brand", "name": cfg.BRAND_NAME},
+        "image": [abs_url(u) for u in gallery_files(tour["id"])] or [abs_url("/assets/img/og-logo.png")],
         "offers": {"@type": "Offer", "price": tour["price"], "priceCurrency": "EUR",
                    "availability": "https://schema.org/InStock", "url": abs_url(canonical)},
     }
+    jsonld = {"@context": "https://schema.org", "@graph": [product, sd_breadcrumb(lang, tour)]}
 
     body = (header(lang, alt_paths) + '<main id="main">' + breadcrumb + tour_hero + body_sec + related_html
             + "</main>" + footer(lang, public_tours) + wa_float(lang) + lightbox_html(lang))
@@ -765,6 +826,8 @@ def main():
         shutil.rmtree(DIST)
     os.makedirs(DIST, exist_ok=True)
     copy_assets()
+    # GitHub Pages: serve files/dirs beginning with "_" and skip Jekyll processing.
+    write(os.path.join(DIST, ".nojekyll"), "")
     # favicon.ico at site root (browsers request /favicon.ico by default)
     ico = os.path.join(SRC_ASSETS, "img", "favicon.ico")
     if os.path.isfile(ico):

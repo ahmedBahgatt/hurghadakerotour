@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://kero-tours-hurghada.pages.dev/sitemap.xml
+Sitemap: https://hurghadakerotour.com/sitemap.xml

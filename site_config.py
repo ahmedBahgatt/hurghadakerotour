@@ -23,11 +23,24 @@ WHATSAPP_NUMBER = "201278378685"  # official KeRo Tours booking line (+20 127 83
 # ---------------------------------------------------------------------------
 # Used for canonical URLs, hreflang and the sitemap. Change this if you move
 # to a custom domain.
-SITE_URL = "https://kero-tours-hurghada.pages.dev"
+SITE_URL = "https://hurghadakerotour.com"
 
 BRAND_NAME = "Hurghada KeRo Tours & Transfer"
 BRAND_SHORT = "KeRo Tours"
 OPERATING_BASE = "Hurghada, Egypt"
+
+# Operating area (Hurghada) - used for LocalBusiness / geo structured data.
+# This is the public service area, not a fabricated street address.
+GEO = {"locality": "Hurghada", "region": "Red Sea Governorate", "country": "EG",
+       "latitude": 27.2579, "longitude": 33.8116}
+
+# ---------------------------------------------------------------------------
+# SEARCH / VERIFICATION  (optional - leave empty until you have the value)
+# ---------------------------------------------------------------------------
+# Google Search Console HTML-tag verification token (the content="..." value).
+GOOGLE_SITE_VERIFICATION = ""
+# Bing Webmaster Tools verification token, if used.
+BING_SITE_VERIFICATION = ""
 
 # ---------------------------------------------------------------------------
 # BUSINESS INFORMATION  --  REQUIRES REAL OWNER INPUT

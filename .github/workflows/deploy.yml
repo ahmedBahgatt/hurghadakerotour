@@ -1,0 +1,70 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  # Lets a future Sanity publish webhook trigger a rebuild (see README / HANDOFF).
+  repository_dispatch:
+    types: [sanity-publish]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel an in-progress production deployment.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Verify and build
+    runs-on: ubuntu-latest
+    env:
+      # Build-only content source switch. Default 'local' uses data/*.py.
+      # Set repo Variable CONTENT_SOURCE=sanity to cut over to the CMS later.
+      CONTENT_SOURCE: ${{ vars.CONTENT_SOURCE || 'local' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Secret scan
+        run: bash scripts/secret-scan.sh
+
+      - name: Build static site
+        run: python3 build.py
+
+      - name: QA checks
+        run: python3 scripts/check.py
+
+      - name: Configure Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
