@@ -102,24 +102,23 @@ ad-policy review is signed off.
 
 ---
 
-## 4. Deploy to Cloudflare Pages (free)
+## 4. Deploy (GitHub Pages)
 
-1. Push this repo to GitHub (see the owner note in the final report).
-2. Cloudflare dashboard -> **Workers & Pages** -> **Create** -> **Pages** ->
-   **Connect to Git** -> pick this repo.
-3. Build settings:
-   - **Framework preset:** None
-   - **Build command:** `python3 build.py`
-   - **Build output directory:** `dist`
-   - (Python 3 is available in the Cloudflare Pages build image.)
-4. Deploy. You get a free `https://<project>.pages.dev` URL.
+The site auto-deploys to **GitHub Pages** on every push to `main` via
+`.github/workflows/deploy.yml` (build + secret scan + QA gate + deploy), served
+on **hurghadakerotour.com** over HTTPS.
 
-**No-build alternative:** because `dist/` is committed, you can instead set the
-build command to empty and output directory to `dist`, and Cloudflare serves the
-committed files as-is.
+Full instructions - DNS records at Hostinger, custom domain, HTTPS, rollback and
+the Sanity cutover path - are in **`DEPLOYMENT.md`**.
 
-After deploying, set the real domain in `site_config.py` -> `SITE_URL` (used by
-canonical tags, hreflang and the sitemap) and rebuild so SEO URLs are correct.
+Quick version:
+1. Push to `main` -> Actions builds and deploys.
+2. At Hostinger, point the domain at GitHub Pages (A/AAAA for `@`, CNAME for
+   `www`); see `DEPLOYMENT.md`.
+3. When the cert is issued, enable **Enforce HTTPS** in Settings -> Pages.
+
+If you move to another domain/host, change `SITE_URL` in `site_config.py` and
+rebuild so canonical/hreflang/sitemap match.
 
 ---
 
