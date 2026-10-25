@@ -10,7 +10,7 @@ repo, and do not change the domain or hosting.
 
 Project: **Hurghada KeRo Tours & Transfer**, a multilingual (French default,
 Polish, Romanian) static website for Hurghada Red Sea excursions. Bookings go
-through WhatsApp `201278378685`; no deposit, the customer pays at the start of the
+through WhatsApp `201288808645`; no deposit, the customer pays at the start of the
 excursion; "VIP" does not mean private (Cairo/Luxor are group minibus).
 
 - Repo: `https://github.com/ahmedBahgatt/hurghadakerotour` (public, branch `main`).

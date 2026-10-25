@@ -4,6 +4,19 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-26 - Official contact number changed site-wide.** The WhatsApp /
+> phone number is now **`201288808645`** (display `+20 128 880 8645`,
+> `https://wa.me/201288808645`). The previous number `201278378685` is retired
+> and must have **zero** references in source or `dist/`. Single source of truth:
+> `site_config.py` -> `WHATSAPP_NUMBER` (+ `BUSINESS["phone_display"]`); every
+> link/JSON-LD/booking script derives from it at build time. The localized
+> WhatsApp messages (FR/PL/RO) were rewritten to read naturally and now carry the
+> exact localized tour URL (tour context) or homepage URL (generic). Regression
+> gate: `scripts/test_whatsapp.py` (run after `build.py`; also wired into the CI
+> workflow) asserts the new number everywhere, the old number nowhere, and the
+> three language builders. To change the number again, edit `site_config.py` and
+> update `NEW_NUMBER`/`OLD_VARIANTS` in `scripts/test_whatsapp.py`.
+
 ---
 
 ## A. Project background and objectives
@@ -112,7 +125,7 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   mobile accordion menu; floating WhatsApp button on mobile.
 - **Footer:** brand + pay-at-departure chip / 4 categories / contact (WhatsApp +
   phone) / compact bottom bar with language pills. (No 11-tour list.)
-- **WhatsApp:** every CTA opens `https://wa.me/201278378685` with a localized,
+- **WhatsApp:** every CTA opens `https://wa.me/201288808645` with a localized,
   tour-specific prefilled message. Short card labels (Details/Reserver etc.) with
   full `aria-label`s.
 - **Branding:** official KeRo logo in header/footer/splash-404; favicon + apple
@@ -172,7 +185,7 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   (`[data-bookdlg]`, bottom-sheet on mobile / modal >=640px) with excursion
   select (preselected from the tour/card/bar), name/date/hotel/adults/children/
   child-ages/notes, localized validation, and a localized WA message to
-  `201278378685` (per-boat price + >5-pax quote line for the speedboat; no false
+  `201288808645` (per-boat price + >5-pax quote line for the speedboat; no false
   confirmation); a **sticky mobile bottom booking bar** on tour pages (price +
   Book, safe-area inset, body padding clearance, hidden >=1000px). The floating
   WhatsApp bubble is removed on tour pages (sticky bar is primary) and kept on the
@@ -208,7 +221,7 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   Message builder sends tour name, canonical URL, EUR price+unit, hotel, room (if
   given), people, notes (if given), a >5-pax quote line for the speedboat, and an
   availability/date/pickup confirmation request, URL-encoded to
-  `wa.me/201278378685`. Speedboat stays €150 total / private boat.
+  `wa.me/201288808645`. Speedboat stays €150 total / private boat.
   Verified FR/PL/RO messages for speedboat (per-boat) + per-person tours, all
   entry points, validation, and no console errors.
   Files: `build.py`, `assets/js/app.js`, `assets/css/styles.css`, `data/i18n.py`.
@@ -246,7 +259,7 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 ## F. Business and compliance (Verified / do-not-fabricate)
 
-- **WhatsApp:** 201278378685 (+20 127 837 8685).
+- **WhatsApp:** 201288808645 (+20 128 880 8645).
 - **Booking:** choose tour -> WhatsApp inquiry -> confirmation + pickup details ->
   pay at the start of the excursion.
 - **Payment:** no deposit / no advance payment; pay at departure.
@@ -281,7 +294,7 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   - canonical = `https://hurghadakerotour.com/fr/`; robots = `noindex,follow`.
   - `/fr/`, `/pl/`, `/ro/` all HTTP 200; HTTPS valid.
   - footer shows the 4 categories (not 11 tours); card labels shortened.
-  - WhatsApp links -> `wa.me/201278378685` intact.
+  - WhatsApp links -> `wa.me/201288808645` intact.
 - **QA gate:** 38/38 HTML valid, canonical present, 0 stale domains, valid JSON-LD.
 - **Known issues / limitations:** mobile screenshots could not be captured at a
   true sub-1000px viewport in this environment (the browser rendered at desktop
@@ -334,7 +347,7 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 >
 > Project: **Hurghada KeRo Tours & Transfer**, a multilingual (French default,
 > Polish, Romanian) static website for Hurghada Red Sea excursions. Bookings go
-> through WhatsApp `201278378685`; no deposit, the customer pays at the start of
+> through WhatsApp `201288808645`; no deposit, the customer pays at the start of
 > the excursion; "VIP" does not mean private (Cairo/Luxor are group minibus).
 >
 > - Repo: `https://github.com/ahmedBahgatt/hurghadakerotour` (public, branch `main`).

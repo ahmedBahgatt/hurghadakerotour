@@ -205,9 +205,13 @@ def sd_breadcrumb(lang, tour):
 # WhatsApp
 # ---------------------------------------------------------------------------
 def wa_text(lang, tour=None):
+    # Generic (no tour): friendly inquiry that carries the localized HOMEPAGE
+    # URL. Tour context: carries the exact localized DETAIL-PAGE URL + name.
     if tour is None:
-        return T[lang]["wa_message_generic"]
-    return T[lang]["wa_message_tour"].format(tour=tour["content"][lang]["name"])
+        return T[lang]["wa_message_generic"].format(url=abs_url(url_home(lang)))
+    return T[lang]["wa_message_tour"].format(
+        tour=tour["content"][lang]["name"],
+        url=abs_url(url_tour(lang, tour["slug"])))
 
 def wa_link(lang, label, classes, pos, tour=None, with_icon=True, aria_label=None, book_open=False):
     tid = tour["id"] if tour else "none"

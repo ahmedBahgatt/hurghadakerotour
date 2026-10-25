@@ -157,9 +157,9 @@ T = {
         "footer_rights": "Tous droits réservés.",
         "footer_lang_title": "Langues",
 
-        "wa_message_tour": "Bonjour ! Je souhaite réserver l'excursion {tour}. Nous sommes [NOMBRE] personnes. Notre hôtel : [HÔTEL]. Date souhaitée : [DATE]. Pouvez-vous confirmer la disponibilité ?",
-        "wa_message_generic": "Bonjour ! Je souhaite des informations sur vos excursions VIP à Hurghada. Pouvez-vous m'aider ?",
-        "wa_tour_direct": "Bonjour ! J'aimerais des informations sur l'excursion {tour} ({url}). Pouvez-vous m'aider ?",
+        "wa_message_tour": "Bonjour !\n\nJe souhaite réserver cette excursion :\n\n{tour}\n\nLien : {url}\n\nPouvez-vous me confirmer les disponibilités, la date de départ souhaitée et les détails de prise en charge, s'il vous plaît ?\n\nMerci !",
+        "wa_message_generic": "Bonjour !\n\nJe souhaite réserver une excursion à Hurghada et j'aimerais quelques informations pour m'aider à choisir.\n\nSite : {url}\n\nMerci d'avance !",
+        "wa_tour_direct": "Bonjour !\n\nJe suis intéressé(e) par cette excursion :\n\n{tour}\n\nLien : {url}\n\nPouvez-vous me confirmer les disponibilités et les détails de la réservation, s'il vous plaît ?\n\nMerci !",
 
         "notfound_title": "Page introuvable",
         "notfound_text": "La page demandée n'existe pas. Retournez à l'accueil.",
@@ -269,9 +269,9 @@ T = {
         "footer_rights": "Wszelkie prawa zastrzeżone.",
         "footer_lang_title": "Języki",
 
-        "wa_message_tour": "Dzień dobry! Chciał(a)bym zarezerwować wycieczkę {tour}. Jest nas [LICZBA] osób. Nasz hotel: [HOTEL]. Preferowana data: [DATA]. Czy możecie potwierdzić dostępność?",
-        "wa_message_generic": "Dzień dobry! Chciał(a)bym uzyskać informacje o Waszych wycieczkach VIP w Hurghadzie. Czy możecie pomóc?",
-        "wa_tour_direct": "Dzień dobry! Chciał(a)bym uzyskać informacje o wycieczce {tour} ({url}). Czy możecie pomóc?",
+        "wa_message_tour": "Dzień dobry!\n\nChciał(a)bym zarezerwować tę wycieczkę:\n\n{tour}\n\nLink: {url}\n\nCzy mogę prosić o potwierdzenie dostępności, preferowanej daty wyjazdu oraz szczegółów odbioru? Dziękuję!",
+        "wa_message_generic": "Dzień dobry!\n\nChciał(a)bym zarezerwować wycieczkę w Hurghadzie i proszę o kilka informacji, które pomogą mi wybrać.\n\nStrona: {url}\n\nZ góry dziękuję!",
+        "wa_tour_direct": "Dzień dobry!\n\nInteresuje mnie ta wycieczka:\n\n{tour}\n\nLink: {url}\n\nCzy mogę prosić o potwierdzenie dostępności oraz szczegółów rezerwacji?\n\nDziękuję!",
 
         "notfound_title": "Nie znaleziono strony",
         "notfound_text": "Żądana strona nie istnieje. Wróć na stronę główną.",
@@ -381,9 +381,9 @@ T = {
         "footer_rights": "Toate drepturile rezervate.",
         "footer_lang_title": "Limbi",
 
-        "wa_message_tour": "Bună ziua! Aș dori să rezerv excursia {tour}. Suntem [NUMĂR] persoane. Hotelul nostru: [HOTEL]. Data dorită: [DATA]. Puteți confirma disponibilitatea?",
-        "wa_message_generic": "Bună ziua! Aș dori informații despre excursiile VIP din Hurghada. Mă puteți ajuta?",
-        "wa_tour_direct": "Bună ziua! Aș dori informații despre excursia {tour} ({url}). Mă puteți ajuta?",
+        "wa_message_tour": "Bună ziua!\n\nAș dori să rezerv această excursie:\n\n{tour}\n\nLink: {url}\n\nÎmi puteți confirma disponibilitatea, data de plecare dorită și detaliile de preluare? Mulțumesc!",
+        "wa_message_generic": "Bună ziua!\n\nAș dori să rezerv o excursie în Hurghada și aș avea nevoie de câteva informații care să mă ajute să aleg.\n\nSite: {url}\n\nMulțumesc anticipat!",
+        "wa_tour_direct": "Bună ziua!\n\nSunt interesat(ă) de această excursie:\n\n{tour}\n\nLink: {url}\n\nÎmi puteți confirma disponibilitatea și detaliile rezervării, vă rog?\n\nMulțumesc!",
 
         "notfound_title": "Pagină inexistentă",
         "notfound_text": "Pagina solicitată nu există. Revino la pagina principală.",
