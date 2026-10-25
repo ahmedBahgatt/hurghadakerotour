@@ -1,59 +1,82 @@
-# Image audit - KeRo Tours (V2)
+# Image audit - KeRo Tours
 
-Source of photos: the operator's own repository
+Primary source of photos: the operator's own repository
 `https://github.com/ahmedBahgatt/egipskiewakacje.pl` (public), cloned read-only
-and never modified. Owner directed reuse of these assets and operates both sites,
-so reuse rights are **owner-asserted**. Only Hurghada (`public/media/tours/h-*`
-and `.../orange-bay/`, `.../kair-piramidy/`) and matching category images were
-used. No third-party/stock images. The brand logo is the owner-supplied
-`Kero_Logo.png`.
+at `/Users/ahmedbahgat/Desktop/projects/egipskiewakacje` and never modified.
+Owner directed reuse of these assets and operates both sites, so reuse rights are
+**owner-asserted**. The brand logo is the owner-supplied `Kero_Logo.png`.
 
-Cover images: `assets/img/tours/<id>.webp` (homepage cards).
-Galleries: `assets/img/gallery/<id>/NN.webp` (detail-page gallery, up to 5).
-Hero: `assets/img/hero.webp`. All referenced locally, never hotlinked.
-`alt` text = localized tour name + index.
+Cover images: `assets/img/tours/<id>.webp` (homepage cards, 16:10).
+Galleries: `assets/img/gallery/<id>/NN.webp` (detail-page gallery + lightbox).
+Hero: `assets/img/hero/slide*.webp`. All referenced locally, never hotlinked.
+`alt` text = localized tour name + index (images are not individually captioned
+with a place name, which removes any per-image mislabel risk).
 
-## Gallery coverage — 28 / 55 target images
+## 2026-10-25 gallery photo refresh
 
-| Tour (id) | Gallery photos | Source stems (egipskiewakacje.pl) | Verified |
-|---|---|---|---|
-| cairo-gem | 5 | kair-piramidy: piramida-cheopsa sunset, piramidy-giza-wielblad, turysci-wielblady, muzeum-gmach, muzeum-wnetrze | yes |
-| luxor | 2 | h-luksor-dolina-krolow, categories/luksor (Karnak) | yes |
-| vip-quad-safari | 4 | h-quad-safari-5h, h-quad-safari-3h, h-jazda-na-wielbladzie, categories/safari | yes |
-| vip-super-safari | 4 | h-super-safari-sahara-park, h-quad-safari-3h, h-jazda-na-wielbladzie, categories/safari | yes |
-| three-islands | 4 | h-wyspa-magawish, orange-bay: plaza-parasole, lodz-rejs, snorkeling-rafa | yes |
-| orange-bay-hula-hula | 4 | h-wyspa-hula-hula, orange-bay: hustawka-morze, plaza-pomosty, molo-giftun | yes |
-| private-speedboat | 1 | h-prywatny-speedboat | yes |
-| dolphin-house | 3 | h-dom-delfinow-snorkeling, h-dom-delfinow-nurkowanie, categories/snorkeling-delfiny | yes |
-| horse-riding-swimming | 1 | h-jazda-konno-kapiel-w-morzu | yes |
-| el-gouna-go-kart | 0 (placeholder) | no go-kart photo in repo; `h-el-gouna` is the town, NOT karting | n/a |
-| lion-cub-photo | 0 (placeholder) | restricted; no photo sourced pending compliance review | n/a |
+The nine excursion galleries below were rebuilt to remove soft / low-resolution
+TikTok video frames and replace them with sharp, high-resolution photographs from
+the Egipskie Wakacje collection. Each selected image was **inspected visually**
+(contact sheets), not chosen by filename. Egipskie JPEG sources (mostly 1600x1000,
+some up to 2000px) were re-encoded to WebP with `cwebp -q 82 -m 6`, capped at
+1600px width (no upscaling), preserving aspect ratio and natural colors.
 
-Missing image slots to fill later (drop files into `assets/img/gallery/<id>/`):
-- luxor: +3, private-speedboat: +4, dolphin-house: +2, horse-riding: +4,
-  el-gouna-go-kart: 5 (incl. cover), lion-cub-photo: 5 (after review).
+Encoding tool: `cwebp 1.x`. Gallery container renders 16:11 (object-fit: cover);
+the lightbox shows each image at its native ratio, so no source was hard-cropped.
+
+**Baby Lion Photo Experience and El Gouna Go-Kart were NOT touched** in this
+refresh (see bottom). Lion-cub compliance state is unchanged.
+
+## Gallery coverage — 46 images (9 refreshed tours = 41; lion-cub 5; go-kart 0)
+
+| Tour (id) | Imgs | Source (egipskiewakacje.pl `public/media/…`) | Cover replaced | Notes |
+|---|---|---|---|---|
+| cairo-gem | 5 | `kair-piramidy/piramida-cheopsa-giza-zachod-slonca` (2000px, cover), `categories/kair` (Sphinx+Khafre), `tours/h-kair-wielkie-muzeum-gem` (GEM hall), `kair-piramidy/piramidy-giza-wielblad-turysci`, `kair-piramidy/turysci-wielblady-piramida-giza` | yes | Museum = **GEM** (matches itinerary). Old Tahrir-museum shots deliberately dropped (different building). cairo 04/05 are 669px (max available). |
+| luxor | 3 | `tours/h-luksor-dolina-krolow` (colonnade sunset, cover), `categories/luksor` (Karnak hypostyle+obelisk), `tours/ma-luksor-dolina-krolow` (statue colonnade) | yes | **SHORTFALL (3<5).** Only 3 accurate, itinerary-matching Luxor temple photos exist in the repo. Balloon and Dendera shots exist but are NOT in KeRo's Luxor itinerary (Karnak/VoK/Hatshepsut/Colossi) — excluded to avoid misrepresentation. No VoK/Hatshepsut/Colossi-specific photo available. |
+| vip-quad-safari | 5 | `tours/s-quad-safari-3h` (action, cover), `categories/safari` (quad dust), `tours/h-quad-safari-3h`, `tours/h-quad-safari-5h`, `tours/h-jazda-na-wielbladzie` (camel) | yes | Desert quad activity is location-agnostic; `s-` (Sharm-tagged) quad shot used because the activity depicted is identical Eastern-Desert quad safari. |
+| vip-super-safari | 5 | `tours/h-buggy-safari` (spider cars, cover), `tours/ma-jeep-safari` (4x4), `tours/h-super-safari-sahara-park` (Bedouin camels), `tours/s-buggy-safari` (spider car), `tours/ma-quad-safari-5h` (quad+camel) | yes | Combines quad + jeep + spider car + Bedouin per brief. Fully distinct file set from vip-quad-safari (no shared images). `s-`/`ma-` = same desert activity. |
+| three-islands | 5 | `tours/orange-bay/orange-bay-molo-giftun` (Giftun jetty, cover), `tours/h-wyspa-magawish` (Magawish sign), `tours/orange-bay/orange-bay-plaza-parasole`, `tours/orange-bay/orange-bay-plaza-pomosty` (island boat), `tours/orange-bay/snorkeling-rafa-orange-bay` | yes | Represents Orange Bay + Magawish + snorkeling. **No authentic Hurghada "White Island" photo exists** in the repo, so White Island is not depicted (not faked). Distinct file set from orange-bay-hula-hula. plaza-pomosty 800px, snorkeling-rafa 720px (max available). |
+| orange-bay-hula-hula | 5 | `tours/orange-bay/orange-bay-hustawka-morze` (swing-in-sea 1920px, cover), `tours/h-wyspa-hula-hula` (Hula Hula hammock), `tours/h-orange-bay` (Orange Bay beach), `tours/h-plaza-orange-ozirea`, `tours/orange-bay/orange-bay-lodz-rejs` | yes | Genuine Orange Bay + Hula Hula imagery. Distinct file set from three-islands. |
+| private-speedboat | 4 | **egipskie (1):** `tours/h-prywatny-speedboat` (cover). **operator video frames (3):** flag+wake, prow-over-turquoise, outboard+wake. | yes (egipskie) | **SHORTFALL.** Repo has only ONE genuine private-speedboat photo. The Orange-Bay day-yacht shots would misrepresent "private speedboat", so 3 of the operator's OWN speedboat frames (their actual boat) were retained; the 2 weakest frames were dropped. |
+| horse-riding-swimming | 4 | **egipskie (2):** `tours/h-jazda-konno-kapiel-w-morzu` (horse in sea, cover), `tours/s-jazda-na-wielbladzie` (horse in turquoise shallows — source filename says "camel" but the photo is a horse; verified visually). **operator frames (2):** sunset horse-by-sea ×2. | yes (egipskie) | **SHORTFALL.** Repo has only 2 genuine horse-riding photos. 2 of the operator's own (attractive) sunset frames retained for variety; repetitive ones dropped. |
+| dolphin-house | 5 | `categories/snorkeling-delfiny` (snorkeler+pod, cover), `tours/h-dom-delfinow-snorkeling`, `tours/h-dom-delfinow-nurkowanie`, `tours/h-abu-dabbab-snorkeling` (reef), `tours/s-white-island-ras-mohamed` (reef+eagle ray) | yes | **WILD dolphins + reef snorkeling only.** `h-delfinarium-dolphin-show` / `s-dolphin-show` (captive shows) deliberately EXCLUDED per brief. |
+
+## NOT modified in this task (left exactly as-is)
+
+| Tour (id) | Imgs | Status |
+|---|---|---|
+| lion-cub-photo | 5 | **UNCHANGED.** Operator's own video frames. Compliance restrictions unchanged: `LION_CUB_ADS_ELIGIBLE=False`, kept out of Google Ads. |
+| el-gouna-go-kart | 0 | **UNCHANGED.** Branded placeholder (no go-kart photo/video exists for the operator). Still the only gallery gap. |
 
 ## Matching rules enforced
 
-- Every photo accurately depicts its excursion. Checked visually for the
-  ambiguous ones (dolphin = WILD dolphins snorkeling, not a captive show;
-  super-safari = desert camp; speedboat = private boat; Orange Bay / Magawish /
-  Hula Hula kept distinct).
-- `three-islands` uses the Magawish cover; `orange-bay-hula-hula` uses the Hula
-  Hula cover; their Orange Bay gallery photos are different files (no overlap).
-- No Sharm (`s-*`) or Marsa Alam (`ma-*`) images. No stock. No image reused five
-  times. Go-kart and lion cub are honest branded placeholders, not substitutes.
-- `h-delfinarium-dolphin-show` (captive show) deliberately NOT used.
+- Every photo accurately depicts its excursion or activity. Ambiguous ones were
+  checked visually: dolphin = WILD dolphins snorkeling (never a captive show);
+  super-safari = quad + jeep + spider car + Bedouin camp; the "camel"-named horse
+  shot is actually a horse; the Cairo museum = GEM (not the old Tahrir museum).
+- The two island galleries are kept **distinct** (no shared files) and each island
+  is represented honestly: Orange Bay, Magawish and Hula Hula by their own photos;
+  White Island is not depicted because no authentic Hurghada White Island photo
+  exists (never substituted with another island).
+- Desert safari images tagged `s-`/`ma-` in the source are used only where the
+  depicted activity (quad / jeep / spider car) is identical to Hurghada's; no
+  Sharm/Marsa Alam *place* (e.g. a specific island or reef name) is passed off as
+  a Hurghada destination.
+- No stock, no AI images, no fabricated imagery. No captive dolphin-show footage.
+- Soft/low-res TikTok frames were removed from all nine refreshed tours **except**
+  where the Egipskie collection could not supply enough genuine photos (speedboat,
+  horse-riding) — there a minimal number of the operator's OWN authentic frames
+  were retained and the shortfall is reported above.
 
-## Brand assets (from Kero_Logo.png)
+## Brand assets (from Kero_Logo.png) — unchanged
 
 - `logo.png` (500x500) — header, footer, splash, 404.
-- `favicon.ico` (16/32/48) + `favicon-16/32/512.png` — the **full logo** in the
-  browser tab (per owner request), not a cropped mark.
-- `apple-touch-icon.png` (180, full logo on white).
-- `og-logo.png` (1200x630, full logo on white) — Open Graph / social.
+- `favicon.ico` + `favicon-16/32/512.png` — full logo in the browser tab.
+- `apple-touch-icon.png` (180), `og-logo.png` (1200x630) — social / Open Graph.
 
 ## Rights caveat
+
 "Owner-asserted": owner directed reuse from their own repo; no explicit licence
-file exists there. If any photo was itself third-party licensed, confirm the
+file exists there. The retained speedboat/horse frames are the operator's own
+video content. If any Egipskie photo was itself third-party licensed, confirm the
 licence covers this domain before running paid ads.

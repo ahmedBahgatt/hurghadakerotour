@@ -125,10 +125,22 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 - **Tour content:** complete in FR/PL/RO for all 11 tours (name, intro,
   highlights, program, included, practical, conditions).
-- **Photo galleries: 55 of 55 target images (every public tour >=5).** Per tour:
-  cairo 8, luxor 5, quad 5, super 5, three-islands 5, orange-bay+hula 5,
-  speedboat 6, dolphin 6, horse 5, lion cub 5 (+cover),
-  **go-kart 0 (branded placeholder - still the only gap)**.
+- **Photo galleries: 46 images.** Per tour: cairo 5, luxor 3, quad 5, super 5,
+  three-islands 5, orange-bay+hula 5, speedboat 4, horse 4, dolphin 5,
+  lion cub 5 (+cover), **go-kart 0 (branded placeholder - still the only gap)**.
+- **2026-10-25 PHOTO-QUALITY REFRESH (this session):** the nine excursion
+  galleries were rebuilt to drop soft / low-res TikTok video frames and replace
+  them with sharp, high-resolution photographs from the Egipskie Wakacje repo
+  (`egipskiewakacje.pl`, cloned read-only at
+  `/Users/ahmedbahgat/Desktop/projects/egipskiewakacje`). Images were inspected
+  visually (contact sheets), re-encoded to WebP (`cwebp -q 82`, <=1600px), covers
+  updated. Count dropped from 55 to 46 **by design — quality over count**: Luxor
+  (3), private-speedboat (4) and horse-riding (4) are reported SHORTFALLS because
+  the repo lacks enough genuine itinerary-matching photos (balloon/Dendera/old
+  Tahrir museum/day-yacht excluded as misleading; captive dolphin-show excluded).
+  Speedboat keeps 3 and horse keeps 2 of the operator's OWN authentic frames to
+  stay usable. Cairo museum now correctly shows the GEM. **Baby Lion and El Gouna
+  Go-Kart were NOT modified.** Full map in `IMAGE_AUDIT.md`.
 - **2026-10-25 media refresh:** galleries enriched from the operator's OWN
   content: (a) the six creative tour videos in `/Users/ahmedbahgat/Desktop/Final`
   (local, HQ 1080x1920) and (b) their TikTok posts `@hurghadakerotours`
@@ -201,8 +213,11 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 ## H. Pending tasks / next priorities
 
-- Photos: galleries now 55/55 (>=5 per tour). **Only `el-gouna-go-kart`
-  remains without media** - the operator has NO go-kart photo/video on TikTok
+- Photos: galleries refreshed to 46 HQ images (2026-10-25). **Shortfalls to close
+  when the owner can supply better source photos:** Luxor (3 — needs Valley of the
+  Kings / Hatshepsut / Colossi shots), private-speedboat (4 — needs more real
+  speedboat stills), horse-riding (4 — needs more horse-on-beach stills). **Only
+  `el-gouna-go-kart`** has no media at all - the operator has NO go-kart photo/video on TikTok
   or Instagram (whole IG grid scanned 2026-10-25) and none online under their
   name; it keeps its branded placeholder. Get a real go-kart clip/photo from
   the owner to finish it. Do NOT substitute stock/third-party karting imagery.
