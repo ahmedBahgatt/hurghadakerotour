@@ -14,7 +14,7 @@ from datetime import date
 from urllib.parse import quote
 
 import site_config as cfg
-from data.i18n import (T, LANG_ORDER, LANG_NATIVE, PATH_TOURS, HTML_LANG,
+from data.i18n import (T, BOOKING, LANG_ORDER, LANG_NATIVE, PATH_TOURS, HTML_LANG,
                        OG_LOCALE, CATEGORIES, CATEGORY_ORDER, CATEGORY_INTRO)
 from data.tours import TOURS
 
@@ -131,7 +131,8 @@ def media(tour, lang, kind="card"):
     fn = tour_image_file(tour["id"])
     if fn:
         loading = "" if kind == "hero" else ' loading="lazy" decoding="async"'
-        return '<img src="/assets/img/tours/%s" alt="%s"%s>' % (esca(fn), alt, loading)
+        dims = ' width="800" height="500"'
+        return '<img src="/assets/img/tours/%s" alt="%s"%s%s>' % (esca(fn), alt, dims, loading)
     svg = placeholder_svg(tour["category"])
     badge = '<span class="ph__badge">%s</span>' % ICON["camera"]
     return svg + badge
@@ -207,7 +208,7 @@ def wa_text(lang, tour=None):
         return T[lang]["wa_message_generic"]
     return T[lang]["wa_message_tour"].format(tour=tour["content"][lang]["name"])
 
-def wa_link(lang, label, classes, pos, tour=None, with_icon=True, aria_label=None):
+def wa_link(lang, label, classes, pos, tour=None, with_icon=True, aria_label=None, book_open=False):
     tid = tour["id"] if tour else "none"
     text = wa_text(lang, tour)
     cls = classes
@@ -219,9 +220,12 @@ def wa_link(lang, label, classes, pos, tour=None, with_icon=True, aria_label=Non
         hattr = 'href="#" aria-disabled="true"'
     aria = ' aria-label="%s"' % esca(aria_label) if aria_label else ""
     icon = ICON["wa"] if with_icon else ""
-    return ('<a class="%s" %s%s data-wa data-wa-text="%s" data-tour="%s" data-pos="%s">'
+    # book_open: JS upgrades this link to open the booking dialog (preselecting
+    # the tour); the wa.me href remains the no-JS fallback.
+    book = ' data-book-open' if book_open else ""
+    return ('<a class="%s" %s%s%s data-wa data-wa-text="%s" data-tour="%s" data-pos="%s">'
             '%s<span>%s</span></a>'
-            % (cls, hattr, aria, esca(text), tid, pos, icon, esc(label)))
+            % (cls, hattr, aria, book, esca(text), tid, pos, icon, esc(label)))
 
 def wa_float(lang):
     text = wa_text(lang, None)
@@ -361,10 +365,21 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
            ogimg=og_img, brand=esca(cfg.BRAND_NAME), analytics=analytics_head(),
            jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]))
 
-def header(lang, alt_paths, home_base=None):
+def langswitch_html(lang, alt_paths, cls="langswitch"):
     tr = T[lang]
+    pills = []
+    for l in LANG_ORDER:
+        target = alt_paths.get(l, url_home(l))
+        cur = ' aria-current="true"' if l == lang else ""
+        pills.append('<a href="%s"%s hreflang="%s">%s</a>' % (esca(target), cur, HTML_LANG[l], l.upper()))
+    return '<div class="%s" role="group" aria-label="%s">%s</div>' % (cls, esca(tr["select_language"]), "".join(pills))
+
+def header(lang, alt_paths, public_tours, home_base=None):
+    tr = T[lang]
+    bk = BOOKING[lang]
     home = home_base or url_home(lang)
-    # Excursions dropdown items
+
+    # --- Desktop: Excursions dropdown ---
     dd_items = ['<a href="%s#excursions" role="menuitem">%s</a>' % (esca(home), esc(tr["nav_excursions_all"]))]
     for cid in CATEGORY_ORDER:
         dd_items.append('<a href="%s#cat-%s" role="menuitem">%s%s</a>'
@@ -378,40 +393,67 @@ def header(lang, alt_paths, home_base=None):
              (tr["nav_faq"], home + "#faq"), (tr["nav_contact"], home + "#contact")]
     other_html = "".join('<li><a href="%s">%s</a></li>' % (esca(h), esc(t)) for t, h in other)
 
-    langpills = []
-    for l in LANG_ORDER:
-        target = alt_paths.get(l, url_home(l))
-        cur = ' aria-current="true"' if l == lang else ""
-        langpills.append('<a href="%s"%s hreflang="%s">%s</a>' % (esca(target), cur, HTML_LANG[l], l.upper()))
-    langswitch = '<div class="langswitch" role="group" aria-label="%s">%s</div>' % (esca(tr["select_language"]), "".join(langpills))
+    langswitch = langswitch_html(lang, alt_paths)
+    book_btn = ('<button class="btn btn--wa btn--sm nav__book" data-book-open data-pos="nav">%s<span>%s</span></button>'
+                % (ICON["wa"], esc(tr["nav_book"])))
 
-    book_btn = wa_link(lang, tr["nav_book"], "btn btn--wa nav__book", "nav")
-
-    # mobile menu
-    mob_cats = "".join('<a href="%s#cat-%s">%s</a>' % (esca(home), cid, esc(CATEGORIES[lang][cid])) for cid in CATEGORY_ORDER)
-    mob_cats += '<a href="%s#excursions">%s</a>' % (esca(home), esc(tr["nav_excursions_all"]))
-    mob_other = "".join('<a href="%s">%s</a>' % (esca(h), esc(t)) for t, h in other)
-    mob_book = wa_link(lang, tr["nav_book"], "btn btn--wa btn--block", "nav-mobile")
+    # --- Mobile slide-in drawer (right) ---
+    # Excursions: one expandable section per category, listing its tour links.
+    draw_cats = []
+    for cid in CATEGORY_ORDER:
+        cts = [t for t in public_tours if t["category"] == cid]
+        if not cts:
+            continue
+        links = "".join('<a href="%s">%s</a>' % (esca(url_tour(lang, t["slug"])), esc(t["content"][lang]["name"])) for t in cts)
+        links += '<a class="draw-cat__all" href="%s#cat-%s">%s</a>' % (esca(home), cid, esc(tr["nav_excursions_all"]))
+        draw_cats.append(
+            '<details class="draw-cat"><summary>%s%s<span class="draw-cat__chev">%s</span></summary>'
+            '<div class="draw-cat__list">%s</div></details>'
+            % (ICON[CATEGORY_ICON[cid]], esc(CATEGORIES[lang][cid]), ICON["chevron"], links))
+    draw_other = "".join('<a class="draw-link" href="%s">%s</a>' % (esca(h), esc(t)) for t, h in other)
+    draw_book = ('<button class="btn btn--wa btn--block drawer__book" data-book-open data-pos="drawer">%s<span>%s</span></button>'
+                 % (ICON["wa"], esc(bk["drawer_book"])))
+    draw_social = social_links(lang, "drawer__social", with_label=False)
+    drawer = """<div class="drawer" data-drawer id="drawer" aria-hidden="true">
+<div class="drawer__scrim" data-drawer-close></div>
+<aside class="drawer__panel" role="dialog" aria-modal="true" aria-label="%s">
+<div class="drawer__head">
+<img class="drawer__logo" src="/assets/img/logo.png" alt="%s" width="44" height="44">
+<button class="drawer__close" data-drawer-close aria-label="%s">%s</button>
+</div>
+<div class="drawer__body">
+%s
+<nav class="drawer__nav" aria-label="%s">
+<p class="drawer__group">%s</p>
+%s
+<div class="drawer__links">%s</div>
+</nav>
+<div class="drawer__foot">
+%s
+%s
+</div>
+</div>
+</aside>
+</div>""" % (
+        esca(bk["menu_title"]), LOGO_ALT, esca(tr["close_menu"]), ICON["close"],
+        draw_book, esca(tr["nav_excursions"]), esc(tr["nav_excursions"]),
+        "".join(draw_cats), draw_other,
+        langswitch_html(lang, alt_paths, "langswitch drawer__lang"), draw_social)
 
     return """<header class="header">
 <div class="container">
-<nav class="nav" data-nav data-open="false" aria-label="%s">
+<nav class="nav" aria-label="%s">
 %s
 <ul class="nav__links">%s%s</ul>
 <div class="nav__right">%s%s
-<button class="nav__toggle" data-nav-toggle aria-label="%s" aria-expanded="false" aria-controls="mobilemenu"><span></span><span></span><span></span></button>
+<button class="nav__toggle" data-drawer-open aria-label="%s" aria-expanded="false" aria-controls="drawer"><span></span><span></span><span></span></button>
 </div>
 </nav>
 </div>
-<div class="mobile-menu" id="mobilemenu">
-<details class="mobile-exc" open><summary>%s</summary><div class="mobile-exc__list">%s</div></details>
-%s
-%s
-</div>
-</header>""" % (
+</header>
+%s""" % (
         esca(tr["nav_excursions"]), brand(lang), dropdown, other_html,
-        langswitch, book_btn, esca(tr["open_menu"]),
-        esc(tr["nav_excursions"]), mob_cats, mob_other, mob_book)
+        langswitch, book_btn, esca(tr["open_menu"]), drawer)
 
 def footer(lang, public_tours, home_base=None):
     tr = T[lang]
@@ -467,6 +509,78 @@ def scripts():
     return '<script src="/assets/js/app.js" defer></script>\n</body>\n</html>\n'
 
 # ---------------------------------------------------------------------------
+# Booking: data for JS, the dialog (bottom-sheet / modal), the sticky bar
+# ---------------------------------------------------------------------------
+def booking_data_script(lang, tour_id=None):
+    """Runtime data for the booking form: baked WhatsApp number + localized
+    message/label strings (+ current tour to preselect). config.js may still
+    override KERO_WHATSAPP."""
+    baked = cfg.WHATSAPP_NUMBER or ""
+    payload = {"wa": baked, "tour": tour_id or "", "s": BOOKING[lang]}
+    return '<script>window.KERO_BK=%s;</script>' % json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+def booking_options(lang, public_tours):
+    opts = []
+    for t in public_tours:
+        opts.append('<option value="%s" data-price="%d" data-type="%s">%s</option>'
+                    % (esca(t["id"]), t["price"], t["price_type"], esc(t["content"][lang]["name"])))
+    return "".join(opts)
+
+def booking_dialog(lang, public_tours):
+    bk = BOOKING[lang]
+    return """<div class="bookdlg" data-bookdlg hidden aria-hidden="true">
+<div class="bookdlg__scrim" data-book-close></div>
+<div class="bookdlg__panel" role="dialog" aria-modal="true" aria-labelledby="bk-title">
+<div class="bookdlg__head">
+<div><h2 id="bk-title">%s</h2><p>%s</p></div>
+<button class="bookdlg__close" type="button" data-book-close aria-label="%s">%s</button>
+</div>
+<form class="bookform" data-bookform novalidate>
+<label class="bookform__field"><span>%s</span>
+<select name="excursion" data-bk-exc required>
+<option value="" disabled selected>%s</option>
+%s
+</select></label>
+<div class="bookform__price" data-bk-price hidden></div>
+<label class="bookform__field"><span>%s</span>
+<input name="name" type="text" autocomplete="name" placeholder="%s" required></label>
+<div class="bookform__grid">
+<label class="bookform__field"><span>%s</span><input name="date" type="date" required></label>
+<label class="bookform__field"><span>%s</span><input name="hotel" type="text" placeholder="%s" required></label>
+</div>
+<div class="bookform__grid">
+<label class="bookform__field"><span>%s</span><input name="adults" type="number" inputmode="numeric" min="1" max="30" value="2" required></label>
+<label class="bookform__field"><span>%s</span><input name="children" type="number" inputmode="numeric" min="0" max="20" value="0" data-bk-children></label>
+</div>
+<label class="bookform__field" data-bk-ages-row hidden><span>%s</span>
+<input name="ages" type="text" inputmode="numeric" placeholder="%s"></label>
+<label class="bookform__field"><span>%s</span>
+<textarea name="notes" rows="2" placeholder="%s"></textarea></label>
+<div class="bookform__err" data-bk-err role="alert" hidden></div>
+<button type="submit" class="btn btn--wa btn--block bookform__submit">%s<span>%s</span></button>
+</form>
+</div>
+</div>""" % (
+        esc(bk["form_title"]), esc(bk["form_sub"]), esca(bk["f_close"]), ICON["close"],
+        esc(bk["f_excursion"]), esc(bk["f_excursion_ph"]), booking_options(lang, public_tours),
+        esc(bk["f_name"]), esca(bk["f_name_ph"]),
+        esc(bk["f_date"]), esc(bk["f_hotel"]), esca(bk["f_hotel_ph"]),
+        esc(bk["f_adults"]), esc(bk["f_children"]),
+        esc(bk["f_child_ages"]), esca(bk["f_child_ages_ph"]),
+        esc(bk["f_notes"]), esca(bk["f_notes_ph"]),
+        ICON["wa"], esc(bk["f_submit"]))
+
+def book_bar(lang, tour):
+    """Sticky mobile bottom booking bar for a tour page."""
+    bk = BOOKING[lang]
+    unit = bk["unit_boat"] if tour["price_type"] == "per_boat" else bk["unit_person"]
+    return ('<div class="bookbar" data-bookbar>'
+            '<div class="bookbar__price"><b>&euro;%d</b> <span>%s</span></div>'
+            '<button class="btn btn--wa bookbar__btn" type="button" data-book-open data-tour="%s" data-pos="bar">'
+            '%s<span>%s</span></button>'
+            '</div>' % (tour["price"], esc(unit), esca(tour["id"]), ICON["wa"], esc(bk["bar_book"])))
+
+# ---------------------------------------------------------------------------
 # components
 # ---------------------------------------------------------------------------
 def tour_card(lang, tour, delay=0):
@@ -491,7 +605,8 @@ def tour_card(lang, tour, delay=0):
         esca(detail), esca("%s - %s" % (tr["view_details"], tour["content"][lang]["name"])),
         esc(tr["card_details"]),
         wa_link(lang, tr["card_book"], "btn btn--wa btn--sm", "card", tour,
-                aria_label="%s - %s" % (tr["book_whatsapp"], tour["content"][lang]["name"])))
+                aria_label="%s - %s" % (tr["book_whatsapp"], tour["content"][lang]["name"]),
+                book_open=True))
 
 def trust_strip(lang):
     tr = T[lang]
@@ -523,7 +638,7 @@ def gallery_html(tour, lang):
         tb = []
         for i, u in enumerate(imgs):
             cls = "gallery__thumb is-active" if i == 0 else "gallery__thumb"
-            tb.append('<button class="%s" data-gthumb="%d" aria-label="%s"><img src="%s" alt="%s - %d" loading="lazy" decoding="async"></button>'
+            tb.append('<button class="%s" data-gthumb="%d" aria-label="%s"><img src="%s" alt="%s - %d" width="160" height="110" loading="lazy" decoding="async"></button>'
                       % (cls, i, esca("%s - %d" % (name, i + 1)), esca(u), esca(name), i + 1))
         thumbs = '<div class="gallery__thumbs">%s</div>' % "".join(tb)
     return '<div class="gallery" data-gallery data-images="%s">%s%s</div>' % (data, main, thumbs)
@@ -532,26 +647,19 @@ def gallery_html(tour, lang):
 # hero media (slideshow of clean stills, or single image / placeholder)
 # ---------------------------------------------------------------------------
 def hero_media_html(lang):
-    """Premium hero: Ken-Burns crossfade slideshow when slide*.webp exist,
-    else a single hero image, else a branded placeholder. Degrades without JS
-    (first slide stays visible) and freezes under prefers-reduced-motion."""
+    """Single responsive panoramic hero image (WebP, srcset). The LCP image:
+    eager + fetchpriority high, explicit intrinsic size to avoid layout shift.
+    Falls back to a branded placeholder if the variants are missing."""
     hdir = os.path.join(SRC_ASSETS, "img", "hero")
-    slides = []
-    if os.path.isdir(hdir):
-        slides = sorted(f for f in os.listdir(hdir)
-                        if f.startswith("slide") and f.lower().endswith(IMG_EXTS))
-    if len(slides) >= 2:
-        cards = []
-        for i, f in enumerate(slides):
-            cls = "hero__slide is-active" if i == 0 else "hero__slide"
-            load = ' fetchpriority="high"' if i == 0 else ' loading="lazy"'
-            cards.append('<div class="%s"><img src="/assets/img/hero/%s" alt="" aria-hidden="true" '
-                         'decoding="async"%s></div>' % (cls, esca(f), load))
-        return '<div class="hero__media hero__slides" data-hero-slides>%s</div>' % "".join(cards)
-    for ext in IMG_EXTS:
-        if os.path.isfile(os.path.join(SRC_ASSETS, "img", "hero" + ext)):
-            return ('<div class="hero__media"><img src="/assets/img/hero%s" alt="" aria-hidden="true"></div>'
-                    % ext)
+    variants = [480, 768, 1200, 1672]
+    have = all(os.path.isfile(os.path.join(hdir, "hero-%d.webp" % w)) for w in variants)
+    if have:
+        srcset = ", ".join("/assets/img/hero/hero-%d.webp %dw" % (w, w) for w in variants)
+        return ('<div class="hero__media">'
+                '<img class="hero__img" src="/assets/img/hero/hero-1200.webp" '
+                'srcset="%s" sizes="100vw" alt="" aria-hidden="true" '
+                'width="1672" height="941" fetchpriority="high" decoding="async"></div>'
+                % srcset)
     return '<div class="hero__media">%s</div>' % placeholder_svg("sea_islands")
 
 # ---------------------------------------------------------------------------
@@ -575,7 +683,7 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
 </div></div>
 </section>""" % (
         hero_media, ICON["pin"], esc(tr["hero_kicker"]), esc(tr["hero_h1"]), esc(tr["hero_sub"]),
-        wa_link(lang, tr["hero_cta_primary"], "btn btn--wa", "hero"),
+        wa_link(lang, tr["hero_cta_primary"], "btn btn--wa", "hero", book_open=True),
         esc(tr["hero_cta_secondary"]), ICON["arrow"], ICON["shield"], esc(tr["payment_line"]))
 
     # category shortcut chips
@@ -623,7 +731,7 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
     contact_sec = """<section class="section" id="contact">
 <div class="container"><div class="contact__card reveal"><h2>%s</h2><p>%s</p>%s%s</div></div></section>""" % (
         esc(tr["contact_title"]), esc(tr["contact_sub"]),
-        wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact"),
+        wa_link(lang, tr["contact_whatsapp"], "btn btn--wa", "contact", book_open=True),
         social_links(lang, "contact__social"))
 
     org = sd_org(lang)
@@ -631,9 +739,10 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
                           "priceCurrency": "EUR", "url": abs_url(url_tour(lang, t["slug"]))} for t in public_tours]
     jsonld = {"@context": "https://schema.org", "@graph": [sd_website(lang), org, sd_faq(lang)]}
 
-    body = (header(lang, alt_paths, home_base) + '<main id="main">' + hero + trust_strip(lang) + chipbar
+    body = (header(lang, alt_paths, public_tours, home_base) + '<main id="main">' + hero + trust_strip(lang) + chipbar
             + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
-            + "</main>" + footer(lang, public_tours, home_base) + wa_float(lang))
+            + "</main>" + footer(lang, public_tours, home_base) + wa_float(lang)
+            + booking_dialog(lang, public_tours) + booking_data_script(lang))
     doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths, "/", jsonld) + body + scripts()
     write(out_path or os.path.join(DIST, lang, "index.html"), doc)
 
@@ -708,7 +817,7 @@ def build_tour(lang, tour, public_tours):
 </div>
 </div></section>""" % (
         gallery_html(tour, lang), esc(CATEGORIES[lang][tour["category"]]), esc(c["name"]), esc(c["intro"]),
-        priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa", "detail-hero", tour),
+        priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa", "detail-hero", tour, book_open=True),
         ICON["wallet"], esc(tr["payment_line"]))
 
     sticky = """<aside>
@@ -718,7 +827,7 @@ def build_tour(lang, tour, public_tours):
 <div class="paybar">%s<span>%s</span></div>
 %s
 </div>
-</aside>""" % (priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa btn--block", "detail-sticky", tour),
+</aside>""" % (priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa btn--block", "detail-sticky", tour, book_open=True),
                ICON["shield"], esc(tr["payment_line"]), schedule_row)
 
     program_panel = ('<div class="panel reveal"><h2>%s</h2><ol class="program">%s</ol></div>' % (esc(tr["label_program"]), program)) if program else ""
@@ -755,8 +864,9 @@ def build_tour(lang, tour, public_tours):
     }
     jsonld = {"@context": "https://schema.org", "@graph": [product, sd_breadcrumb(lang, tour)]}
 
-    body = (header(lang, alt_paths) + '<main id="main">' + breadcrumb + tour_hero + body_sec + related_html
-            + "</main>" + footer(lang, public_tours) + wa_float(lang) + lightbox_html(lang))
+    body = (header(lang, alt_paths, public_tours) + '<main id="main" class="has-bookbar">' + breadcrumb + tour_hero + body_sec + related_html
+            + "</main>" + footer(lang, public_tours) + lightbox_html(lang)
+            + book_bar(lang, tour) + booking_dialog(lang, public_tours) + booking_data_script(lang, tour["id"]))
     doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld) + body + scripts()
     write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)
 

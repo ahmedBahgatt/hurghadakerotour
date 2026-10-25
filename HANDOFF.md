@@ -157,13 +157,29 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   real family+cub frames (video `KeRo_Tours_Creative_01`). Dolphin-house uses
   only WILD-dolphin-at-sea frames (the captive dolphin-show footage was
   deliberately NOT used - would misrepresent the wild Dolphin House trip).
-- **Hero:** homepage hero is now a Ken-Burns crossfade **slideshow** of 5
-  verified text-free stills (Orange Bay, Giza pyramids, Luxor, GEM, quad safari)
-  in `assets/img/hero/slide1..5.webp` (~356KB total, lazy-loaded). A silent
-  VIDEO montage was built and rejected: the source ad clips have baked-in promo
-  captions that can't be cleanly removed for a silent hero, so the polished
-  slideshow (the owner's accepted fallback) was shipped instead. Degrades
-  without JS and freezes under prefers-reduced-motion.
+- **Hero (V6, 2026-10-25):** the slideshow was REPLACED by a single owner-supplied
+  AI panoramic (Cairo + Luxor + lion cub + desert safari + Red Sea) at
+  `assets/img/hero/hero-{480,768,1200,1672}.webp` (responsive `srcset`,
+  fetchpriority high, explicit 1672x941 dims for CLS). Slideshow JS + slide*.webp
+  removed; dark gradient overlay kept for headline legibility.
+- **MOBILE UX OVERHAUL (V6, 2026-10-25):** full mobile-first pass, verified with
+  Playwright on Chromium + WebKit (iOS engine) + Firefox (0px horizontal overflow
+  at 320/390; iPhone-13 emulation). Added: compact ~62px header (logo left,
+  hamburger right; language pill moved into the drawer); a **slide-in right nav
+  drawer** (`[data-drawer]`, app.js) with expandable category sections listing
+  tour links, Booking/Why/FAQ/Contact, FR/PL/RO + socials, scrim/Esc/outside-tap
+  close, focus trap, iOS-safe scroll lock; a **WhatsApp booking form** dialog
+  (`[data-bookdlg]`, bottom-sheet on mobile / modal >=640px) with excursion
+  select (preselected from the tour/card/bar), name/date/hotel/adults/children/
+  child-ages/notes, localized validation, and a localized WA message to
+  `201278378685` (per-boat price + >5-pax quote line for the speedboat; no false
+  confirmation); a **sticky mobile bottom booking bar** on tour pages (price +
+  Book, safe-area inset, body padding clearance, hidden >=1000px). The floating
+  WhatsApp bubble is removed on tour pages (sticky bar is primary) and kept on the
+  homepage. Sticky-header overlap fixed via `--header-h` + `scroll-margin-top`.
+  Main CTAs open the form but keep their `wa.me` href as the no-JS fallback.
+  Files: `build.py` (header/drawer/dialog/bar/hero), `assets/js/app.js` (rewritten),
+  `assets/css/styles.css` (V5 block), `data/i18n.py` (`BOOKING`).
 - **Social media:** official Instagram / Facebook / TikTok icon links added to
   the footer (all pages) + homepage contact card (open in new tab), and to the
   TravelAgency JSON-LD `sameAs`. URLs live in `site_config.py` (`SOCIAL`).

@@ -1,30 +1,251 @@
 /* =========================================================================
    KeRo Tours - progressive enhancement
-   Fully functional without JS; this adds nav, dropdown, gallery, lightbox,
-   scroll reveal, WhatsApp wiring and optional analytics events.
+   Nav drawer, Excursions dropdown, booking dialog + WhatsApp message,
+   sticky booking bar, gallery, lightbox, scroll reveal, WhatsApp wiring.
+   Works without JS for core content; these add the premium interactions.
    ========================================================================= */
 (function () {
   "use strict";
+  var doc = document;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---- Mobile navigation toggle ---- */
-  var nav = document.querySelector("[data-nav]");
-  var toggle = document.querySelector("[data-nav-toggle]");
-  if (nav && toggle) {
-    toggle.addEventListener("click", function () {
-      var open = nav.getAttribute("data-open") === "true";
-      nav.setAttribute("data-open", open ? "false" : "true");
-      toggle.setAttribute("aria-expanded", open ? "false" : "true");
+  /* ---- shared scroll lock (iOS-safe, reference-counted) ---- */
+  var _scrollY = 0, _locks = 0;
+  function lockScroll() {
+    if (_locks++ === 0) {
+      _scrollY = window.scrollY || window.pageYOffset || 0;
+      var b = doc.body;
+      b.style.position = "fixed"; b.style.top = (-_scrollY) + "px";
+      b.style.left = "0"; b.style.right = "0"; b.style.width = "100%";
+    }
+  }
+  function unlockScroll() {
+    if (_locks > 0 && --_locks === 0) {
+      var b = doc.body;
+      b.style.position = ""; b.style.top = ""; b.style.left = "";
+      b.style.right = ""; b.style.width = "";
+      window.scrollTo(0, _scrollY);
+    }
+  }
+
+  var FOCUSABLE = 'a[href],button:not([disabled]),select,textarea,input:not([type=hidden]),[tabindex]:not([tabindex="-1"])';
+  function focusablesIn(el) {
+    return Array.prototype.filter.call(el.querySelectorAll(FOCUSABLE), function (n) {
+      return n.offsetParent !== null || n === doc.activeElement;
     });
-    document.querySelectorAll(".mobile-menu a").forEach(function (a) {
-      a.addEventListener("click", function () {
-        nav.setAttribute("data-open", "false");
-        toggle.setAttribute("aria-expanded", "false");
-      });
+  }
+  function trapTab(container, e) {
+    if (e.key !== "Tab") return;
+    var f = focusablesIn(container);
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && doc.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && doc.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  /* ====================================================================
+     Mobile navigation drawer (slide-in from right)
+     ==================================================================== */
+  var drawer = doc.querySelector("[data-drawer]");
+  var drawerOpenBtn = doc.querySelector("[data-drawer-open]");
+  var drawerLastFocus = null;
+  function openDrawer() {
+    if (!drawer) return;
+    drawer.setAttribute("aria-hidden", "false");
+    drawer.classList.add("is-open");
+    if (drawerOpenBtn) drawerOpenBtn.setAttribute("aria-expanded", "true");
+    drawerLastFocus = doc.activeElement;
+    lockScroll();
+    var c = drawer.querySelector("[data-drawer-close]");
+    if (c) c.focus();
+  }
+  function closeDrawer() {
+    if (!drawer || drawer.getAttribute("aria-hidden") === "true") return;
+    drawer.setAttribute("aria-hidden", "true");
+    drawer.classList.remove("is-open");
+    if (drawerOpenBtn) drawerOpenBtn.setAttribute("aria-expanded", "false");
+    unlockScroll();
+    if (drawerLastFocus && drawerLastFocus.focus) drawerLastFocus.focus();
+  }
+  if (drawer && drawerOpenBtn) {
+    drawerOpenBtn.addEventListener("click", openDrawer);
+    drawer.querySelectorAll("[data-drawer-close]").forEach(function (b) {
+      b.addEventListener("click", closeDrawer);
+    });
+    /* close after navigating to any in-drawer link (not the expanders) */
+    drawer.querySelectorAll(".drawer__nav a, .drawer__lang a").forEach(function (a) {
+      a.addEventListener("click", function () { setTimeout(closeDrawer, 10); });
+    });
+    drawer.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { closeDrawer(); }
+      else { trapTab(drawer.querySelector(".drawer__panel"), e); }
     });
   }
 
-  /* ---- Excursions dropdown (desktop): click + keyboard, hover via CSS ---- */
-  document.querySelectorAll("[data-dd]").forEach(function (dd) {
+  /* ====================================================================
+     Booking dialog (bottom-sheet on mobile, centered modal on desktop)
+     ==================================================================== */
+  var BK = window.KERO_BK || { wa: "", tour: "", s: {} };
+  var S = BK.s || {};
+  var dlg = doc.querySelector("[data-bookdlg]");
+  var form = dlg ? dlg.querySelector("[data-bookform]") : null;
+  var dlgLastFocus = null;
+
+  function waNumber() {
+    var runtime = (window.KERO_WHATSAPP || "").replace(/[^0-9]/g, "");
+    return runtime || (BK.wa || "").replace(/[^0-9]/g, "");
+  }
+  function todayISO() {
+    var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  }
+
+  function updatePrice() {
+    if (!form) return;
+    var sel = form.elements["excursion"];
+    var priceEl = dlg.querySelector("[data-bk-price]");
+    if (!sel || !priceEl) return;
+    var opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) { priceEl.hidden = true; return; }
+    var price = opt.getAttribute("data-price");
+    var type = opt.getAttribute("data-type");
+    var unit = type === "per_boat" ? (S.unit_boat || "") : (S.unit_person || "");
+    var html = '<b>€' + price + '</b> <span>' + unit + '</span>';
+    if (type === "per_boat" && S.note_boat) {
+      html += '<em class="bookform__boatnote">' + S.note_boat + '</em>';
+    }
+    priceEl.innerHTML = html;
+    priceEl.hidden = false;
+  }
+
+  function toggleAges() {
+    if (!form) return;
+    var ch = parseInt(form.elements["children"].value, 10) || 0;
+    var row = dlg.querySelector("[data-bk-ages-row]");
+    if (row) row.hidden = ch <= 0;
+  }
+
+  function openBooking(tourId) {
+    if (!dlg) return;
+    dlgLastFocus = doc.activeElement;
+    var sel = form && form.elements["excursion"];
+    var pre = tourId || BK.tour || "";
+    if (sel && pre) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === pre) { sel.selectedIndex = i; break; }
+      }
+    }
+    var dateEl = form && form.elements["date"];
+    if (dateEl) dateEl.min = todayISO();
+    updatePrice(); toggleAges();
+    var err = dlg.querySelector("[data-bk-err]"); if (err) { err.hidden = true; err.textContent = ""; }
+    dlg.hidden = false; dlg.setAttribute("aria-hidden", "false");
+    dlg.classList.add("is-open");
+    lockScroll();
+    /* focus the first empty useful control */
+    var focusTarget = (sel && !sel.value) ? sel : (form ? form.elements["name"] : null);
+    if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 30);
+  }
+  function closeBooking() {
+    if (!dlg || dlg.hidden) return;
+    dlg.hidden = true; dlg.setAttribute("aria-hidden", "true");
+    dlg.classList.remove("is-open");
+    unlockScroll();
+    if (dlgLastFocus && dlgLastFocus.focus) dlgLastFocus.focus();
+  }
+
+  /* delegated opener: any [data-book-open] (links keep wa.me as no-JS fallback) */
+  doc.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target.closest("[data-book-open]") : null;
+    if (!t || !dlg) return;
+    if (t.classList.contains("is-pending")) { e.preventDefault(); return; }
+    e.preventDefault();
+    if (drawer && drawer.getAttribute("aria-hidden") === "false") closeDrawer();
+    openBooking(t.getAttribute("data-tour"));
+  });
+
+  if (dlg) {
+    dlg.querySelectorAll("[data-book-close]").forEach(function (b) {
+      b.addEventListener("click", closeBooking);
+    });
+    dlg.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { closeBooking(); }
+      else { trapTab(dlg.querySelector(".bookdlg__panel"), e); }
+    });
+  }
+  if (form) {
+    form.elements["excursion"].addEventListener("change", updatePrice);
+    form.elements["children"].addEventListener("input", toggleAges);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var err = dlg.querySelector("[data-bk-err]");
+      function fail(msg, field) {
+        if (err) { err.textContent = msg; err.hidden = false; }
+        if (field && field.focus) field.focus();
+      }
+      var f = form.elements;
+      var exc = f["excursion"];
+      if (!exc.value) return fail(S.err_excursion, exc);
+      var name = f["name"].value.trim();
+      if (!name) return fail(S.err_name, f["name"]);
+      var date = f["date"].value;
+      if (!date) return fail(S.err_date, f["date"]);
+      if (date < todayISO()) return fail(S.err_past, f["date"]);
+      var hotel = f["hotel"].value.trim();
+      if (!hotel) return fail(S.err_hotel, f["hotel"]);
+      var adults = parseInt(f["adults"].value, 10); if (isNaN(adults) || adults < 0) adults = 0;
+      var children = parseInt(f["children"].value, 10); if (isNaN(children) || children < 0) children = 0;
+      if (adults + children < 1) return fail(S.err_travelers, f["adults"]);
+      var ages = (f["ages"].value || "").trim();
+      if (children > 0 && ages) {
+        var parts = ages.split(/[,; ]+/).filter(Boolean);
+        for (var i = 0; i < parts.length; i++) {
+          var n = parseInt(parts[i], 10);
+          if (isNaN(n) || n < 0 || n > 17 || !/^\d{1,2}$/.test(parts[i])) return fail(S.err_ages, f["ages"]);
+        }
+      }
+      var opt = exc.options[exc.selectedIndex];
+      var quote = (opt.getAttribute("data-type") === "per_boat") && (adults + children) > 5;
+
+      var L = [];
+      L.push(S.m_intro); L.push("");
+      L.push("• " + S.m_excursion + ": " + opt.textContent);
+      L.push("• " + S.m_name + ": " + name);
+      L.push("• " + S.m_date + ": " + date);
+      L.push("• " + S.m_hotel + ": " + hotel);
+      L.push("• " + S.m_adults + ": " + adults);
+      if (children > 0) {
+        var cl = "• " + S.m_children + ": " + children;
+        if (ages) cl += " (" + S.m_ages + ": " + ages + ")";
+        L.push(cl);
+      }
+      var notes = f["notes"].value.trim();
+      if (notes) L.push("• " + S.m_notes + ": " + notes);
+      if (quote) { L.push(""); L.push(S.m_quote); }
+      L.push(""); L.push(S.m_outro);
+
+      var num = waNumber();
+      if (!num) { if (err) { err.textContent = "WhatsApp unavailable."; err.hidden = false; } return; }
+      var url = "https://wa.me/" + num + "?text=" + encodeURIComponent(L.join("\n"));
+
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "whatsapp_click", {
+          tour_id: exc.value, language: doc.documentElement.lang || "unknown", cta_position: "booking_form"
+        });
+        var conv = window.KERO_ADS_CONVERSION;
+        if (conv) window.gtag("event", "conversion", { send_to: conv });
+      }
+      var w = window.open(url, "_blank", "noopener");
+      if (!w) window.location.href = url;
+      closeBooking();
+    });
+  }
+
+  /* ====================================================================
+     Excursions dropdown (desktop): click + keyboard, hover via CSS
+     ==================================================================== */
+  doc.querySelectorAll("[data-dd]").forEach(function (dd) {
     var trigger = dd.querySelector("[data-dd-trigger]");
     if (!trigger) return;
     function setOpen(open) {
@@ -37,31 +258,27 @@
     });
     trigger.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setOpen(true);
-        var first = dd.querySelector(".nav__dd a");
-        if (first) first.focus();
+        e.preventDefault(); setOpen(true);
+        var first = dd.querySelector(".nav__dd a"); if (first) first.focus();
       }
     });
-    document.addEventListener("click", function (e) {
-      if (!dd.contains(e.target)) setOpen(false);
-    });
+    doc.addEventListener("click", function (e) { if (!dd.contains(e.target)) setOpen(false); });
     dd.addEventListener("keydown", function (e) {
       if (e.key === "Escape") { setOpen(false); trigger.focus(); }
     });
   });
 
-  /* ---- WhatsApp link wiring ---- */
+  /* ====================================================================
+     WhatsApp link wiring (non-form links: footer, floating, fallbacks)
+     ==================================================================== */
   var runtimeNum = (window.KERO_WHATSAPP || "").replace(/[^0-9]/g, "");
-  document.querySelectorAll("[data-wa]").forEach(function (el) {
+  doc.querySelectorAll("[data-wa]").forEach(function (el) {
     var text = el.getAttribute("data-wa-text") || "";
     var baked = el.getAttribute("data-wa-href") || "";
     var href = "";
     if (runtimeNum) {
       href = "https://wa.me/" + runtimeNum + (text ? "?text=" + encodeURIComponent(text) : "");
-    } else if (baked) {
-      href = baked;
-    }
+    } else if (baked) { href = baked; }
     if (href) {
       el.setAttribute("href", href);
       el.setAttribute("target", "_blank");
@@ -74,14 +291,15 @@
       el.setAttribute("aria-disabled", "true");
     }
   });
-  document.addEventListener("click", function (e) {
+  doc.addEventListener("click", function (e) {
     var el = e.target.closest ? e.target.closest("[data-wa]") : null;
     if (!el) return;
+    if (el.hasAttribute("data-book-open")) return; /* handled by booking opener */
     if (el.classList.contains("is-pending")) { e.preventDefault(); return; }
     if (typeof window.gtag === "function") {
       window.gtag("event", "whatsapp_click", {
         tour_id: el.getAttribute("data-tour") || "none",
-        language: document.documentElement.lang || "unknown",
+        language: doc.documentElement.lang || "unknown",
         cta_position: el.getAttribute("data-pos") || "unknown"
       });
       var conv = window.KERO_ADS_CONVERSION;
@@ -89,31 +307,31 @@
     }
   });
 
-  /* ---- Lightbox (shared) ---- */
-  var lb = document.querySelector("[data-lightbox]");
+  /* ====================================================================
+     Lightbox (shared)
+     ==================================================================== */
+  var lb = doc.querySelector("[data-lightbox]");
   var lbImg = lb ? lb.querySelector("[data-lbimg]") : null;
   var lbCounter = lb ? lb.querySelector("[data-lbcounter]") : null;
   var lbList = [], lbIndex = 0, lbLastFocus = null;
-
   function lbRender() {
     if (!lbImg) return;
-    lbImg.src = lbList[lbIndex];
-    lbImg.alt = "";
+    lbImg.src = lbList[lbIndex]; lbImg.alt = "";
     if (lbCounter) lbCounter.textContent = (lbIndex + 1) + " / " + lbList.length;
   }
   function lbOpen(list, i) {
     if (!lb) return;
-    lbList = list; lbIndex = i; lbLastFocus = document.activeElement;
+    lbList = list; lbIndex = i; lbLastFocus = doc.activeElement;
     lbRender();
     lb.hidden = false; lb.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
+    lockScroll();
     var c = lb.querySelector("[data-lbclose]"); if (c) c.focus();
   }
   function lbClose() {
     if (!lb) return;
     lb.hidden = true; lb.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-    if (lbLastFocus) lbLastFocus.focus();
+    unlockScroll();
+    if (lbLastFocus && lbLastFocus.focus) lbLastFocus.focus();
   }
   function lbStep(d) { lbIndex = (lbIndex + d + lbList.length) % lbList.length; lbRender(); }
   if (lb) {
@@ -121,16 +339,19 @@
     lb.querySelector("[data-lbprev]").addEventListener("click", function () { lbStep(-1); });
     lb.querySelector("[data-lbnext]").addEventListener("click", function () { lbStep(1); });
     lb.addEventListener("click", function (e) { if (e.target === lb) lbClose(); });
-    document.addEventListener("keydown", function (e) {
+    doc.addEventListener("keydown", function (e) {
       if (lb.hidden) return;
       if (e.key === "Escape") lbClose();
       else if (e.key === "ArrowLeft") lbStep(-1);
       else if (e.key === "ArrowRight") lbStep(1);
+      else trapTab(lb, e);
     });
   }
 
-  /* ---- Galleries ---- */
-  document.querySelectorAll("[data-gallery]").forEach(function (g) {
+  /* ====================================================================
+     Galleries
+     ==================================================================== */
+  doc.querySelectorAll("[data-gallery]").forEach(function (g) {
     var images = [];
     try { images = JSON.parse(g.getAttribute("data-images") || "[]"); } catch (e) { images = []; }
     if (!images.length) return;
@@ -138,7 +359,6 @@
     var cur = g.querySelector("[data-gcur]");
     var thumbs = g.querySelectorAll("[data-gthumb]");
     var index = 0;
-
     function show(i) {
       index = (i + images.length) % images.length;
       if (main) main.src = images[index];
@@ -156,8 +376,6 @@
     var zoom = g.querySelector("[data-gzoom]");
     if (zoom) zoom.addEventListener("click", function () { lbOpen(images, index); });
     if (main) main.addEventListener("click", function () { lbOpen(images, index); });
-
-    /* touch swipe on main */
     var x0 = null;
     if (main) {
       main.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
@@ -170,9 +388,10 @@
     }
   });
 
-  /* ---- Scroll reveal ---- */
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var revealEls = document.querySelectorAll(".reveal");
+  /* ====================================================================
+     Scroll reveal
+     ==================================================================== */
+  var revealEls = doc.querySelectorAll(".reveal");
   if (reduced || !("IntersectionObserver" in window)) {
     revealEls.forEach(function (el) { el.classList.add("is-visible"); });
   } else {
@@ -182,20 +401,5 @@
       });
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
     revealEls.forEach(function (el) { io.observe(el); });
-  }
-
-  /* ---- Hero slideshow (Ken-Burns crossfade) ---- */
-  var heroWrap = document.querySelector("[data-hero-slides]");
-  if (heroWrap) {
-    var slides = heroWrap.querySelectorAll(".hero__slide");
-    if (slides.length > 1 && !reduced) {
-      var hi = 0;
-      setInterval(function () {
-        if (document.hidden) return;
-        slides[hi].classList.remove("is-active");
-        hi = (hi + 1) % slides.length;
-        slides[hi].classList.add("is-active");
-      }, 5000);
-    }
   }
 })();

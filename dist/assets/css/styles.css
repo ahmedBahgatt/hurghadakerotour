@@ -523,16 +523,8 @@ h1, h2, h3, h4, .card__title, .tour-hero h1 { overflow-wrap: break-word; }
 .section__title { overflow-wrap: break-word; }
 
 /* =========================================================================
-   V4: hero slideshow (Ken-Burns crossfade) + social links
+   V4: social links  (hero slideshow removed in V5 - single image hero)
    ========================================================================= */
-
-/* ---- Hero slideshow ---- */
-.hero__slides { } /* inherits .hero__media (absolute, inset:0, z-index:-2) */
-.hero__slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; will-change: opacity; }
-.hero__slide.is-active { opacity: 1; }
-/* .hero__media img already sets width/height/object-fit:cover */
-.hero__slide img { transform: scale(1.001); transition: transform .2s linear; }
-.hero__slide.is-active img { transform: scale(1.09); transition: transform 7s ease-out; }
 
 /* ---- Social links (footer + contact card) ---- */
 .social__label { display: block; font-size: .76rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 11px; }
@@ -547,9 +539,176 @@ h1, h2, h3, h4, .card__title, .tour-hero h1 { overflow-wrap: break-word; }
 .contact__social { margin-top: 24px; }
 .contact__social .social__label { color: rgba(255,255,255,.78); }
 
-/* ---- Hero slideshow + reduced motion ---- */
-@media (prefers-reduced-motion: reduce) {
-  .hero__slide { transition: none; }
-  .hero__slide:not(.is-active) { display: none; }
-  .hero__slide img, .hero__slide.is-active img { transform: none; transition: none; }
+
+/* =========================================================================
+   V5: mobile-first overhaul
+   compact header · slide-in drawer · booking dialog · sticky booking bar
+   · responsive hero image · typography & spacing polish
+   ========================================================================= */
+:root {
+  --header-h: 62px;
+  --bar-h: 66px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
 }
+@media (min-width: 1000px) { :root { --header-h: 72px; } }
+
+/* keyframes */
+@keyframes keroSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes keroModalIn { from { transform: translateY(12px); opacity: .5; } to { transform: none; opacity: 1; } }
+
+/* ---------- Header: compact + opaque enough (no content showing through) ---------- */
+.header { background: #ffffff; border-bottom: 1px solid var(--line); }
+@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .header { background: rgba(255,255,255,.86); -webkit-backdrop-filter: saturate(170%) blur(14px); backdrop-filter: saturate(170%) blur(14px); }
+}
+.nav { height: var(--header-h); gap: 14px; }
+.brand__logo { height: 38px; }
+@media (min-width: 1000px) { .brand__logo { height: 48px; } }
+
+/* desktop-only controls hidden on mobile; the drawer carries them */
+.langswitch { display: none; }
+.nav__toggle { margin-left: auto; display: inline-flex; }
+.nav__right { gap: 10px; }
+.nav__toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav__toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav__toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+@media (min-width: 1000px) {
+  .langswitch { display: flex; }
+  .nav__toggle { display: none; }
+}
+
+/* ---------- Slide-in drawer (from the right) ---------- */
+.drawer { position: fixed; inset: 0; z-index: 300; visibility: hidden; }
+.drawer.is-open { visibility: visible; }
+.drawer__scrim { position: absolute; inset: 0; background: rgba(6,20,25,.5); opacity: 0; transition: opacity .3s ease; }
+.drawer.is-open .drawer__scrim { opacity: 1; }
+.drawer__panel {
+  position: absolute; top: 0; right: 0; height: 100%;
+  width: min(87vw, 366px); background: #fff; box-shadow: -22px 0 54px rgba(6,20,25,.3);
+  transform: translateX(100%); transition: transform .33s cubic-bezier(.22,.61,.36,1);
+  display: flex; flex-direction: column; overscroll-behavior: contain;
+}
+.drawer.is-open .drawer__panel { transform: none; }
+.drawer__head { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--line); }
+.drawer__logo { height: 40px; width: auto; }
+.drawer__close { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; color: var(--ink); }
+.drawer__close svg { width: 22px; height: 22px; }
+.drawer__body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px calc(20px + var(--safe-b)); display: flex; flex-direction: column; gap: 14px; }
+.drawer__book { margin-bottom: 2px; }
+.drawer__group { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 0 4px; }
+.draw-cat { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.draw-cat summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 13px 14px; font-weight: 700; font-size: 1rem; color: var(--ink); min-height: 48px; }
+.draw-cat summary::-webkit-details-marker { display: none; }
+.draw-cat summary > svg:first-child { width: 20px; height: 20px; color: var(--sea-deep); flex: none; }
+.draw-cat__chev { margin-left: auto; display: grid; place-items: center; transition: transform var(--t-fast); }
+.draw-cat__chev svg { width: 18px; height: 18px; color: var(--muted); }
+.draw-cat[open] .draw-cat__chev { transform: rotate(180deg); }
+.draw-cat__list { display: grid; gap: 2px; padding: 0 8px 10px; }
+.draw-cat__list a { padding: 11px 12px; border-radius: 10px; color: var(--ink-soft); font-weight: 600; font-size: .95rem; min-height: 44px; display: flex; align-items: center; }
+.draw-cat__list a:hover, .draw-cat__list a:focus-visible { background: var(--bg-soft); }
+.draw-cat__all { color: var(--sea-deep); font-weight: 700; }
+.drawer__links { display: grid; gap: 2px; }
+.drawer__links a { padding: 12px; border-radius: 10px; font-weight: 600; color: var(--ink-soft); min-height: 44px; display: flex; align-items: center; }
+.drawer__links a:hover, .drawer__links a:focus-visible { background: var(--bg-soft); }
+.drawer__foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.drawer__lang { display: flex; align-self: flex-start; }
+.drawer__social .social__link { background: var(--bg-soft); border-color: var(--line); color: var(--ink-soft); }
+.drawer__social .social__link:hover { color: #fff; }
+@media (min-width: 1000px) { .drawer { display: none; } }
+
+/* ---------- Booking dialog (bottom-sheet mobile / modal desktop) ---------- */
+.bookdlg { position: fixed; inset: 0; z-index: 320; display: flex; }
+.bookdlg[hidden] { display: none; }
+.bookdlg__scrim { position: absolute; inset: 0; background: rgba(6,20,25,.55); }
+.bookdlg__panel {
+  position: relative; margin-top: auto; width: 100%; background: #fff;
+  border-radius: 22px 22px 0 0; max-height: 92vh; max-height: 92dvh;
+  display: flex; flex-direction: column; box-shadow: var(--shadow-lg);
+  animation: keroSheetUp .3s cubic-bezier(.22,.61,.36,1);
+}
+.bookdlg__head { position: sticky; top: 0; z-index: 1; background: #fff; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 18px 12px; border-bottom: 1px solid var(--line); border-radius: 22px 22px 0 0; }
+.bookdlg__head h2 { font-size: 1.3rem; }
+.bookdlg__head p { color: var(--muted); font-size: .88rem; margin-top: 4px; }
+.bookdlg__close { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; flex: none; color: var(--ink); }
+.bookdlg__close svg { width: 22px; height: 22px; }
+.bookform { padding: 14px 18px calc(16px + var(--safe-b)); overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 12px; }
+.bookform__field { display: flex; flex-direction: column; gap: 6px; }
+.bookform__field > span { font-weight: 700; font-size: .84rem; color: var(--ink-soft); }
+.bookform input, .bookform select, .bookform textarea {
+  font: inherit; width: 100%; padding: 12px 14px; border: 1.5px solid var(--line);
+  border-radius: 12px; background: #fff; color: var(--ink); min-height: 48px; appearance: none; -webkit-appearance: none;
+}
+.bookform textarea { min-height: 62px; resize: vertical; }
+.bookform input:focus, .bookform select:focus, .bookform textarea:focus { outline: none; border-color: var(--sea); box-shadow: 0 0 0 3px rgba(11,180,196,.18); }
+.bookform__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bookform__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.bookform__price b { font-family: var(--font-display); font-size: 1.5rem; color: var(--ink); }
+.bookform__price span { color: var(--muted); font-weight: 600; }
+.bookform__boatnote { flex-basis: 100%; font-style: normal; font-size: .82rem; line-height: 1.4; color: var(--gold-deep); }
+.bookform__err { background: #fdecec; color: #b4231f; border: 1px solid #f3c2c0; border-radius: 10px; padding: 10px 12px; font-size: .9rem; font-weight: 600; }
+.bookform__submit { margin-top: 2px; position: sticky; bottom: 0; }
+@media (min-width: 640px) {
+  .bookdlg { align-items: center; justify-content: center; padding: 24px; }
+  .bookdlg__panel { margin: 0; width: min(520px, 100%); border-radius: 20px; max-height: 88vh; animation: keroModalIn .24s ease; }
+  .bookdlg__head { border-radius: 20px 20px 0 0; }
+  .bookform__submit { position: static; }
+}
+
+/* ---------- Sticky bottom booking bar (tour pages, mobile) ---------- */
+.bookbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 110;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px calc(10px + var(--safe-b));
+  background: rgba(255,255,255,.97); border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 24px rgba(14,42,49,.1);
+}
+.bookbar__price { display: flex; align-items: baseline; gap: 6px; line-height: 1.1; min-width: 0; }
+.bookbar__price b { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink); }
+.bookbar__price span { color: var(--muted); font-weight: 600; font-size: .84rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bookbar__btn { margin-left: auto; padding: 12px 24px; min-height: 48px; flex: none; }
+@media (min-width: 1000px) { .bookbar { display: none; } }
+/* content clearance so the sticky bar never covers the last content/footer */
+@media (max-width: 999.98px) {
+  body:has(.bookbar) { padding-bottom: calc(var(--bar-h) + var(--safe-b)); }
+}
+
+/* ---------- Responsive hero image ---------- */
+.hero { min-height: clamp(460px, 76svh, 740px); display: flex; align-items: center; }
+.hero__img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+.hero::after { background: linear-gradient(180deg, rgba(6,34,42,.5) 0%, rgba(6,34,42,.34) 42%, rgba(6,34,42,.8) 100%); }
+.hero__inner { padding-block: clamp(40px, 10vw, 118px); }
+.hero h1 { font-size: clamp(1.85rem, 5.2vw, 3.8rem); line-height: 1.08; }
+.hero__sub { font-size: clamp(1rem, 2.1vw, 1.26rem); }
+
+/* ---------- Typography & spacing polish (mobile) ---------- */
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+  .section { padding-block: clamp(44px, 11vw, 72px); }
+  .section__title { font-size: clamp(1.6rem, 7vw, 2rem); }
+  .tour-hero h1 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+  .priceblock b { font-size: 2rem; }
+}
+@media (max-width: 400px) {
+  .hero h1 { font-size: 1.72rem; }
+  .hero__sub { font-size: 1rem; }
+  .hero__kicker { font-size: .7rem; padding: 6px 12px; margin-bottom: 14px; }
+  .hero__cta { gap: 10px; }
+  .hero__cta .btn { width: 100%; }
+}
+
+/* ---------- Anchor offset: clear the sticky header on scroll ---------- */
+#top, #excursions, #process, #why, #faq, #contact, .cat-section[id] {
+  scroll-margin-top: calc(var(--header-h) + 14px);
+}
+.anchor { scroll-margin-top: calc(var(--header-h) + 14px); }
+
+/* ---------- Reduced motion for drawer/dialog ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .drawer__panel { transition: none; }
+  .drawer__scrim { transition: none; }
+  .bookdlg__panel { animation: none; }
+}
+
+/* Ensure the hidden attribute always wins over component display rules
+   (price box, child-ages row, inline errors toggle via [hidden]). */
+[hidden] { display: none !important; }

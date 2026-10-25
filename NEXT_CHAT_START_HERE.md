@@ -23,9 +23,14 @@ excursion; "VIP" does not mean private (Cairo/Luxor are group minibus).
 
 Current verified state: root `/` shows the French homepage (canonical `/fr/`);
 `/fr/ /pl/ /ro/` work; 4 categories (Sea & Islands, Desert & Safari, History &
-Culture, Activities); 11 tours with fixed EUR prices; 28/55 gallery photos
-(go-kart + lion cub are placeholders); official logo + full-logo favicon; compact
-card buttons; concise footer; JSON-LD (TravelAgency geo + FAQPage + BreadcrumbList).
+Culture, Activities); 11 tours with fixed EUR prices; all 11 have real photo
+galleries (57 images); official logo + full-logo favicon; JSON-LD (TravelAgency
+geo + FAQPage + BreadcrumbList). V6 (2026-10-25) mobile-first overhaul is LIVE:
+single AI panoramic hero (responsive WebP, slideshow removed), compact header +
+slide-in right nav drawer, a WhatsApp booking-form dialog (bottom-sheet/modal,
+localized FR/PL/RO, validation, preselected excursion), and a sticky mobile
+booking bar on tour pages (speedboat priced per boat). Verified with Playwright
+on Chromium/WebKit/Firefox (0px overflow at 320/390). See HANDOFF.md section E.
 Indexing is intentionally OFF: every page emits `noindex,follow` via
 `ALLOW_INDEXING=False` - keep it off until the owner approves. Lion Cub is
 published but ad-excluded (`LION_CUB_ADS_ELIGIBLE=False`) - keep it out of Google
