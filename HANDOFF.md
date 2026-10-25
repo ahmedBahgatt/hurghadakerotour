@@ -16,6 +16,15 @@ is labelled where used.
 > workflow) asserts the new number everywhere, the old number nowhere, and the
 > three language builders. To change the number again, edit `site_config.py` and
 > update `NEW_NUMBER`/`OLD_VARIANTS` in `scripts/test_whatsapp.py`.
+>
+> **2026-10-26 - Desktop navbar hamburger hidden.** The hamburger (`.nav__toggle`)
+> was leaking onto desktop because a late unconditional `display:inline-flex` rule
+> overrode the earlier `@media (min-width:1000px){display:none}`. Fixed with a
+> final `@media (min-width:1000px){.nav__toggle{display:none !important}}` (last in
+> `styles.css`, wins the cascade). 1000px is the single shared desktop breakpoint
+> (nav links/Book/langs/drawer). `app.js` now closes the drawer on resize up to
+> desktop (releases the scroll lock, resets aria/focus). Mobile/tablet (<1000px)
+> hamburger + drawer unchanged.
 
 ---
 

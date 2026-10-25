@@ -80,6 +80,13 @@
       if (e.key === "Escape") { closeDrawer(); }
       else { trapTab(drawer.querySelector(".drawer__panel"), e); }
     });
+    /* Resizing up to the desktop breakpoint hides the hamburger + drawer via CSS;
+       force the drawer closed so the scroll lock is released and aria state /
+       focus are reset (no stuck body, no hidden-but-"open" dialog). */
+    var deskMQ = window.matchMedia("(min-width: 1000px)");
+    var onDesk = function (e) { if (e.matches) closeDrawer(); };
+    if (deskMQ.addEventListener) deskMQ.addEventListener("change", onDesk);
+    else if (deskMQ.addListener) deskMQ.addListener(onDesk);
   }
 
   /* ====================================================================

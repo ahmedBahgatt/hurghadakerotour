@@ -790,6 +790,16 @@ body:has(.drawer.is-open) .wa-bubble { display: none; }
 .nav__toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
 .nav__toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
+/* ---- Desktop (>=1000px): the full nav (links + langs + Book) is shown, so the
+   hamburger is redundant. This block is LAST in the file so it reliably wins the
+   cascade over the earlier unconditional `.nav__toggle { display: inline-flex }`.
+   `display:none` also removes it from the tab order (no hidden focusable control).
+   1000px is the single shared breakpoint used by .nav__links / .nav__book /
+   .langswitch / .drawer, so the full nav and the hamburger are never both shown. */
+@media (min-width: 1000px) {
+  .nav__toggle { display: none !important; }
+}
+
 /* ---- Floating WhatsApp: perfectly centered icon ---- */
 /* tour-page bubble is already a circle; make the homepage float a clean circle
    on mobile (icon-only) so the glyph is centered, not an off-center pill */
