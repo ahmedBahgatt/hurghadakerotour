@@ -125,9 +125,9 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 - **Tour content:** complete in FR/PL/RO for all 11 tours (name, intro,
   highlights, program, included, practical, conditions).
-- **Photo galleries: 52 images.** Per tour: cairo 5, luxor 6, quad 5, super 5,
+- **Photo galleries: 57 images.** Per tour: cairo 5, luxor 6, quad 5, super 5,
   three-islands 5, orange-bay+hula 5, speedboat 6, horse 5, dolphin 5,
-  lion cub 5 (+cover), **go-kart 0 (branded placeholder - still the only gap)**.
+  lion cub 5 (+cover), **go-kart 5 (+cover)**. All 11 excursions now have photos.
 - **2026-10-25 GALLERY EXPANSION (speedboat/Luxor/horse):** the three thin
   galleries were rebuilt from the exact Egipskie Wakacje tour-page image sets
   (Sanity ej04dib0 assets pulled from the live pages): speedboat 4->6 (aerial boat
@@ -221,14 +221,15 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 
 ## H. Pending tasks / next priorities
 
-- Photos: galleries at 52 HQ images (2026-10-25). Luxor/speedboat/horse shortfalls
-  now CLOSED via the Egipskie tour-page sets (>=5 each). Note the Egipskie page
-  images are modest resolution (668-900px for several Luxor/speedboat/horse tiles);
-  swap for larger masters if the owner provides them. **Only `el-gouna-go-kart`**
-  has no media at all - the operator has NO go-kart photo/video on TikTok
-  or Instagram (whole IG grid scanned 2026-10-25) and none online under their
-  name; it keeps its branded placeholder. Get a real go-kart clip/photo from
-  the owner to finish it. Do NOT substitute stock/third-party karting imagery.
+- Photos: galleries at 57 images (2026-10-25). **All 11 excursions now have real
+  photos** - Baby Lion (5) and El Gouna Go-Kart (5) installed from owner-supplied
+  Desktop folders; go-kart placeholder gap CLOSED. Lion images are LOW-RES/portrait
+  (335-415px, cropped to 16:11); go-kart mixed (best 1400px). RIGHTS: both new
+  folders have web/stock-style filenames (not original camera files) - owner-
+  asserted, confirm before paid use. `LION_CUB_ADS_ELIGIBLE=False` kept.
+  Egipskie page tiles for Luxor/speedboat/horse remain modest res (668-900px);
+  swap for larger masters if the owner provides them. If the owner later supplies
+  higher-res ORIGINAL lion/go-kart photos (esp. landscape), swap them in.
 - Business legal info (address, licence, email) - owner to provide; never fake.
 - **Sanity integration: postponed** until explicit authorization. (Pipeline already
   has `CONTENT_SOURCE` var + `sanity-publish` dispatch; content is in `data/*.py`.)

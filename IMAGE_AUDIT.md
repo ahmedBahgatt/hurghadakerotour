@@ -46,7 +46,9 @@ horse. **Baby Lion and El Gouna Go-Kart still untouched.**
   canter, white-horse beach walk, shallow-water sunset, brown horse in turquoise
   sea (cover, repo `s-jazda-na-wielbladzie`). Horse/beach/swimming only — **NO quad**.
 
-## Gallery coverage — 52 images (9 refreshed tours = 47; lion-cub 5; go-kart 0)
+## Gallery coverage — 57 images (9 Egipskie tours = 47; lion-cub 5; go-kart 5)
+
+All 11 excursions now have real-photo galleries (go-kart's placeholder gap closed).
 
 | Tour (id) | Imgs | Source (egipskiewakacje.pl `public/media/…`) | Cover replaced | Notes |
 |---|---|---|---|---|
@@ -60,12 +62,23 @@ horse. **Baby Lion and El Gouna Go-Kart still untouched.**
 | horse-riding-swimming | 5 | Egipskie horse page set (Sanity ej04dib0): rider bathing with horse in surf, beach canter, white-horse beach walk, shallow-water sunset + repo `tours/s-jazda-na-wielbladzie` (brown horse in turquoise sea, cover) | yes (s-jazda) | Rebuilt from the Egipskie `jazda-konno-kapiel-w-morzu` page. Horse/beach/swimming ONLY — the 2 quad shots from that page's set were deliberately excluded (per request: this is the horse tour, not the horse+quad variant). Operator frames removed. Page images 669-830px; cover 1600px. |
 | dolphin-house | 5 | `categories/snorkeling-delfiny` (snorkeler+pod, cover), `tours/h-dom-delfinow-snorkeling`, `tours/h-dom-delfinow-nurkowanie`, `tours/h-abu-dabbab-snorkeling` (reef), `tours/s-white-island-ras-mohamed` (reef+eagle ray) | yes | **WILD dolphins + reef snorkeling only.** `h-delfinarium-dolphin-show` / `s-dolphin-show` (captive shows) deliberately EXCLUDED per brief. |
 
-## NOT modified in this task (left exactly as-is)
+## 2026-10-25 Baby Lion + Go-Kart photo install (last two excursions)
 
-| Tour (id) | Imgs | Status |
-|---|---|---|
-| lion-cub-photo | 5 | **UNCHANGED.** Operator's own video frames. Compliance restrictions unchanged: `LION_CUB_ADS_ELIGIBLE=False`, kept out of Google Ads. |
-| el-gouna-go-kart | 0 | **UNCHANGED.** Branded placeholder (no go-kart photo/video exists for the operator). Still the only gallery gap. |
+Owner supplied photo folders for the two remaining excursions. Images were
+inspected visually, the strongest selected, cropped to the gallery aspect
+(16:11) and cover aspect (16:10) keeping the key subject, and encoded to WebP
+(PIL q85, no upscaling). Source folders left untouched (worked on copies).
+
+**Compliance unchanged: `LION_CUB_ADS_ELIGIBLE=False` — Baby Lion stays OUT of
+Google Ads. Adding photos is NOT an animal-welfare/legal/ad-policy approval.**
+
+| Tour (id) | Imgs | Source folder | Selected | Cover | Notes |
+|---|---|---|---|---|---|
+| lion-cub-photo | 5 | `~/Desktop/Photo session with a lion cub` | `images (4)` (cub facing camera + child), `images (3)` (cheek-to-cheek), `images (1)` + `images (2)` (adult holding cub), `images.jpeg` (family group) | `images (4)` (cub facing camera) | Replaced the prior video frames. **LOW RES / PORTRAIT source** (335-415px wide, vertical) → cropped to 16:11 keeping the cub; adult faces are partly cropped on 2 tiles. Genuine cub-photo-session shots. **RIGHTS: filenames (`images (N).jpeg`) look web-sourced, not original camera files — owner-asserted; confirm before any paid use.** |
+| el-gouna-go-kart | 5 | `~/Desktop/GO KART À EL GOUNA` | `elgouna-karting-night` (kid in kart), `2000x2000-…` (kart pack), `900x600-…` (karts on bend), `images (1)` (rental-kart driver #20), `karting-636x426` (indoor fist-bump) | `elgouna-karting-night` (1400x1050, kid in kart) | First real media for this tour (was a placeholder). `images.jpeg` was a **duplicate** of `images (1)` → excluded. Tile 05 is **indoor/generic** karting (not the El Gouna outdoor track) — flagged. **RIGHTS: stock-style filenames (hash/size names) suggest web-sourced, not owner originals — owner-asserted; confirm before paid use.** |
+
+### Earlier status (now superseded)
+Before this pass: lion-cub = 5 operator video frames; el-gouna-go-kart = 0 (branded placeholder, the last gallery gap). Both are now real-photo galleries.
 
 ## Matching rules enforced
 
