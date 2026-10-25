@@ -180,6 +180,38 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
   Main CTAs open the form but keep their `wa.me` href as the no-JS fallback.
   Files: `build.py` (header/drawer/dialog/bar/hero), `assets/js/app.js` (rewritten),
   `assets/css/styles.css` (V5 block), `data/i18n.py` (`BOOKING`).
+- **V5.1 MOBILE NAVBAR / BOOKING / FORM FIXES (2026-10-25):** targeted pass on top
+  of V6, verified with real 320/375/390/414px rendering (page embedded in a
+  fixed-width same-origin iframe so media queries fire at the true width; the
+  session's browser window would not shrink below ~1728px). Changes:
+  (1) **Navbar** - root cause of the "logo+hamburger both on the left" bug was
+  `.nav__links + .nav__right { margin-left: 24px }` overriding the intended
+  `margin-left:auto`; restored auto under `<=999.98px`. Logo now far-left,
+  compact IG/FB/TikTok social icons (`header__social`, mobile-only) + hamburger
+  far-right. Socials drop the 3rd icon `<=360px` and hide entirely `<340px`
+  (the drawer still carries the full set). 0px horizontal overflow at all four
+  widths.
+  (2) **Booking vs WhatsApp split** - the sticky bottom bar's CTA is now a
+  KeRo-teal `btn--book` (calendar icon, opens the form, never WhatsApp, no green).
+  A separate circular green `wa-bubble` sits just above the bar's right side on
+  tour pages: it opens a DIRECT WhatsApp chat prefilled with the tour name +
+  canonical URL (no form), and is hidden via `:has()` while the drawer or form is
+  open. Homepage keeps its `wa-float` pill (direct WA); no bubble on the homepage.
+  (3) **Simplified form** - removed the excursion dropdown and the customer-name
+  field, and the date field (date is confirmed on WhatsApp). On a tour page /
+  clicked card / sticky bar the form shows a READ-ONLY tour context (title +
+  price) derived from the clicked element's `data-tour`, falling back to the
+  page's own tour (`BK.tour`) - never a global default. Homepage general CTAs
+  (hero, contact, drawer) show a tour selector. Fields: hotel (required), room
+  (optional), number of people (required, positive int), notes (optional). Entry
+  is preserved in-memory across close/reopen within the page (NOT localStorage).
+  Message builder sends tour name, canonical URL, EUR price+unit, hotel, room (if
+  given), people, notes (if given), a >5-pax quote line for the speedboat, and an
+  availability/date/pickup confirmation request, URL-encoded to
+  `wa.me/201278378685`. Speedboat stays €150 total / private boat.
+  Verified FR/PL/RO messages for speedboat (per-boat) + per-person tours, all
+  entry points, validation, and no console errors.
+  Files: `build.py`, `assets/js/app.js`, `assets/css/styles.css`, `data/i18n.py`.
 - **Social media:** official Instagram / Facebook / TikTok icon links added to
   the footer (all pages) + homepage contact card (open in new tab), and to the
   TravelAgency JSON-LD `sameAs`. URLs live in `site_config.py` (`SOCIAL`).

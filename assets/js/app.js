@@ -85,69 +85,101 @@
   /* ====================================================================
      Booking dialog (bottom-sheet on mobile, centered modal on desktop)
      ==================================================================== */
-  var BK = window.KERO_BK || { wa: "", tour: "", s: {} };
+  var BK = window.KERO_BK || { wa: "", tour: "", s: {}, tours: {} };
   var S = BK.s || {};
+  var TOURS = BK.tours || {};
   var dlg = doc.querySelector("[data-bookdlg]");
   var form = dlg ? dlg.querySelector("[data-bookform]") : null;
   var dlgLastFocus = null;
+  var activeTourId = "";           /* tour resolved for the open form (context mode) */
+  var lastEntry = {};              /* in-memory ONLY (never localStorage) - preserves
+                                      input if the sheet is closed and reopened */
 
   function waNumber() {
     var runtime = (window.KERO_WHATSAPP || "").replace(/[^0-9]/g, "");
     return runtime || (BK.wa || "").replace(/[^0-9]/g, "");
   }
-  function todayISO() {
-    var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 10);
+
+  function priceLine(t) {
+    var html = '<b>€' + t.price + '</b> <span>' + (t.unit || "") + '</span>';
+    if (t.type === "per_boat" && S.note_boat) {
+      html += '<em class="bookform__boatnote">' + S.note_boat + '</em>';
+    }
+    return html;
   }
 
-  function updatePrice() {
+  function updateSelectPrice() {
     if (!form) return;
     var sel = form.elements["excursion"];
     var priceEl = dlg.querySelector("[data-bk-price]");
     if (!sel || !priceEl) return;
-    var opt = sel.options[sel.selectedIndex];
-    if (!opt || !opt.value) { priceEl.hidden = true; return; }
-    var price = opt.getAttribute("data-price");
-    var type = opt.getAttribute("data-type");
-    var unit = type === "per_boat" ? (S.unit_boat || "") : (S.unit_person || "");
-    var html = '<b>€' + price + '</b> <span>' + unit + '</span>';
-    if (type === "per_boat" && S.note_boat) {
-      html += '<em class="bookform__boatnote">' + S.note_boat + '</em>';
-    }
-    priceEl.innerHTML = html;
+    var t = TOURS[sel.value];
+    if (!t) { priceEl.hidden = true; return; }
+    priceEl.innerHTML = priceLine(t);
     priceEl.hidden = false;
   }
 
-  function toggleAges() {
+  /* context mode = the tour is already known (tour page / clicked card / bar):
+     show a read-only title + price, hide the selector. Otherwise show the
+     selector (homepage / general CTAs). */
+  function setMode(tourId) {
+    var ctx = dlg.querySelector("[data-bk-context]");
+    var selField = dlg.querySelector("[data-bk-select-field]");
+    var priceEl = dlg.querySelector("[data-bk-price]");
+    var sel = form && form.elements["excursion"];
+    var t = TOURS[tourId];
+    activeTourId = t ? tourId : "";
+    if (t) {
+      if (ctx) {
+        var nameEl = ctx.querySelector("[data-bk-context-name]");
+        var priceCtx = ctx.querySelector("[data-bk-context-price]");
+        if (nameEl) nameEl.textContent = t.name;
+        if (priceCtx) priceCtx.innerHTML = priceLine(t);
+        ctx.hidden = false;
+      }
+      if (selField) selField.hidden = true;
+      if (sel) sel.disabled = true;     /* excluded from submission/validation */
+      if (priceEl) priceEl.hidden = true;
+    } else {
+      if (ctx) ctx.hidden = true;
+      if (selField) selField.hidden = false;
+      if (sel) sel.disabled = false;
+      updateSelectPrice();
+    }
+  }
+
+  function restoreEntry() {
     if (!form) return;
-    var ch = parseInt(form.elements["children"].value, 10) || 0;
-    var row = dlg.querySelector("[data-bk-ages-row]");
-    if (row) row.hidden = ch <= 0;
+    ["hotel", "room", "people", "notes"].forEach(function (k) {
+      if (lastEntry[k] != null && form.elements[k]) form.elements[k].value = lastEntry[k];
+    });
+  }
+  function saveEntry() {
+    if (!form) return;
+    ["hotel", "room", "people", "notes"].forEach(function (k) {
+      if (form.elements[k]) lastEntry[k] = form.elements[k].value;
+    });
   }
 
   function openBooking(tourId) {
     if (!dlg) return;
     dlgLastFocus = doc.activeElement;
-    var sel = form && form.elements["excursion"];
-    var pre = tourId || BK.tour || "";
-    if (sel && pre) {
-      for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === pre) { sel.selectedIndex = i; break; }
-      }
-    }
-    var dateEl = form && form.elements["date"];
-    if (dateEl) dateEl.min = todayISO();
-    updatePrice(); toggleAges();
+    /* derive context from the clicked element, else the current page's tour */
+    var resolved = (tourId && tourId !== "none") ? tourId : (BK.tour || "");
+    if (!TOURS[resolved]) resolved = "";
+    setMode(resolved);
+    restoreEntry();
     var err = dlg.querySelector("[data-bk-err]"); if (err) { err.hidden = true; err.textContent = ""; }
     dlg.hidden = false; dlg.setAttribute("aria-hidden", "false");
     dlg.classList.add("is-open");
     lockScroll();
-    /* focus the first empty useful control */
-    var focusTarget = (sel && !sel.value) ? sel : (form ? form.elements["name"] : null);
+    var sel = form && form.elements["excursion"];
+    var focusTarget = (!resolved && sel && !sel.disabled) ? sel : (form ? form.elements["hotel"] : null);
     if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 30);
   }
   function closeBooking() {
     if (!dlg || dlg.hidden) return;
+    saveEntry();
     dlg.hidden = true; dlg.setAttribute("aria-hidden", "true");
     dlg.classList.remove("is-open");
     unlockScroll();
@@ -174,8 +206,7 @@
     });
   }
   if (form) {
-    form.elements["excursion"].addEventListener("change", updatePrice);
-    form.elements["children"].addEventListener("input", toggleAges);
+    if (form.elements["excursion"]) form.elements["excursion"].addEventListener("change", updateSelectPrice);
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -185,42 +216,31 @@
         if (field && field.focus) field.focus();
       }
       var f = form.elements;
-      var exc = f["excursion"];
-      if (!exc.value) return fail(S.err_excursion, exc);
-      var name = f["name"].value.trim();
-      if (!name) return fail(S.err_name, f["name"]);
-      var date = f["date"].value;
-      if (!date) return fail(S.err_date, f["date"]);
-      if (date < todayISO()) return fail(S.err_past, f["date"]);
+      /* resolve the tour: context mode (activeTourId) or the selector */
+      var tourId = activeTourId;
+      if (!tourId) {
+        var sel = f["excursion"];
+        if (!sel || !sel.value) return fail(S.err_excursion, sel);
+        tourId = sel.value;
+      }
+      var t = TOURS[tourId];
+      if (!t) return fail(S.err_excursion, f["excursion"]);
       var hotel = f["hotel"].value.trim();
       if (!hotel) return fail(S.err_hotel, f["hotel"]);
-      var adults = parseInt(f["adults"].value, 10); if (isNaN(adults) || adults < 0) adults = 0;
-      var children = parseInt(f["children"].value, 10); if (isNaN(children) || children < 0) children = 0;
-      if (adults + children < 1) return fail(S.err_travelers, f["adults"]);
-      var ages = (f["ages"].value || "").trim();
-      if (children > 0 && ages) {
-        var parts = ages.split(/[,; ]+/).filter(Boolean);
-        for (var i = 0; i < parts.length; i++) {
-          var n = parseInt(parts[i], 10);
-          if (isNaN(n) || n < 0 || n > 17 || !/^\d{1,2}$/.test(parts[i])) return fail(S.err_ages, f["ages"]);
-        }
-      }
-      var opt = exc.options[exc.selectedIndex];
-      var quote = (opt.getAttribute("data-type") === "per_boat") && (adults + children) > 5;
+      var people = parseInt(f["people"].value, 10);
+      if (isNaN(people) || people < 1) return fail(S.err_people, f["people"]);
+      var room = (f["room"].value || "").trim();
+      var notes = (f["notes"].value || "").trim();
+      var quote = (t.type === "per_boat") && people > 5;
 
       var L = [];
       L.push(S.m_intro); L.push("");
-      L.push("• " + S.m_excursion + ": " + opt.textContent);
-      L.push("• " + S.m_name + ": " + name);
-      L.push("• " + S.m_date + ": " + date);
+      L.push("• " + S.m_excursion + ": " + t.name);
+      if (t.url) L.push("• " + S.m_url + ": " + t.url);
+      L.push("• " + S.m_price + ": €" + t.price + " " + (t.unit || ""));
       L.push("• " + S.m_hotel + ": " + hotel);
-      L.push("• " + S.m_adults + ": " + adults);
-      if (children > 0) {
-        var cl = "• " + S.m_children + ": " + children;
-        if (ages) cl += " (" + S.m_ages + ": " + ages + ")";
-        L.push(cl);
-      }
-      var notes = f["notes"].value.trim();
+      if (room) L.push("• " + S.m_room + ": " + room);
+      L.push("• " + S.m_people + ": " + people);
       if (notes) L.push("• " + S.m_notes + ": " + notes);
       if (quote) { L.push(""); L.push(S.m_quote); }
       L.push(""); L.push(S.m_outro);
@@ -231,11 +251,12 @@
 
       if (typeof window.gtag === "function") {
         window.gtag("event", "whatsapp_click", {
-          tour_id: exc.value, language: doc.documentElement.lang || "unknown", cta_position: "booking_form"
+          tour_id: tourId, language: doc.documentElement.lang || "unknown", cta_position: "booking_form"
         });
         var conv = window.KERO_ADS_CONVERSION;
         if (conv) window.gtag("event", "conversion", { send_to: conv });
       }
+      saveEntry();
       var w = window.open(url, "_blank", "noopener");
       if (!w) window.location.href = url;
       closeBooking();

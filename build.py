@@ -61,6 +61,7 @@ ICON = {
     "mail": _line('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
     "arrow": _line('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'),
     "chevron": _line('<path d="m6 9 6 6 6-6"/>'),
+    "calendar": _line('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
     "boat": _line('<path d="M3 15h18l-2 4a2 2 0 0 1-1.8 1H6.8A2 2 0 0 1 5 19z"/><path d="M5 15V8l7-3 7 3v7"/><path d="M12 5V2"/>'),
     "sun": _line('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
     "landmark": _line('<path d="M3 21h18"/><path d="M5 21V10M10 21V10M14 21V10M19 21V10"/><path d="m3 10 9-6 9 6z"/>'),
@@ -281,6 +282,25 @@ def social_links(lang, cls="social", with_label=True):
     return ('<div class="%s">%s<div class="social__row" role="list" aria-label="%s">%s</div></div>'
             % (cls, label, esca(tr["social_follow"]), "".join(items)))
 
+def header_social_links(lang):
+    """Compact row of social icons for the mobile header (between logo and
+    hamburger). Instagram + Facebook prioritized; the 3rd icon is dropped on
+    very narrow phones and the whole row hides <340px (the drawer still has
+    the full set). Empty if no socials are configured."""
+    social = getattr(cfg, "SOCIAL", {})
+    order = [k for k in ("instagram", "facebook", "tiktok") if social.get(k) and k in ICON]
+    if not order:
+        return ""
+    tr = T[lang]
+    items = []
+    for key in order:
+        net = SOCIAL_NAMES.get(key, key.title())
+        aria = tr["social_aria"].format(brand=cfg.BRAND_SHORT, network=net)
+        items.append('<a class="header__social-link header__social--%s" href="%s" target="_blank" '
+                     'rel="noopener" aria-label="%s">%s</a>'
+                     % (key, esca(social[key]), esca(aria), ICON[key]))
+    return '<div class="header__social" aria-label="%s">%s</div>' % (esca(tr["social_follow"]), "".join(items))
+
 def analytics_head():
     ga, ads = cfg.GA4_MEASUREMENT_ID.strip(), cfg.GOOGLE_ADS_ID.strip()
     if not ga and not ads:
@@ -445,7 +465,7 @@ def header(lang, alt_paths, public_tours, home_base=None):
 <nav class="nav" aria-label="%s">
 %s
 <ul class="nav__links">%s%s</ul>
-<div class="nav__right">%s%s
+<div class="nav__right">%s%s%s
 <button class="nav__toggle" data-drawer-open aria-label="%s" aria-expanded="false" aria-controls="drawer"><span></span><span></span><span></span></button>
 </div>
 </nav>
@@ -453,7 +473,7 @@ def header(lang, alt_paths, public_tours, home_base=None):
 </header>
 %s""" % (
         esca(tr["nav_excursions"]), brand(lang), dropdown, other_html,
-        langswitch, book_btn, esca(tr["open_menu"]), drawer)
+        header_social_links(lang), langswitch, book_btn, esca(tr["open_menu"]), drawer)
 
 def footer(lang, public_tours, home_base=None):
     tr = T[lang]
@@ -511,12 +531,26 @@ def scripts():
 # ---------------------------------------------------------------------------
 # Booking: data for JS, the dialog (bottom-sheet / modal), the sticky bar
 # ---------------------------------------------------------------------------
-def booking_data_script(lang, tour_id=None):
+def booking_data_script(lang, public_tours, tour_id=None):
     """Runtime data for the booking form: baked WhatsApp number + localized
-    message/label strings (+ current tour to preselect). config.js may still
-    override KERO_WHATSAPP."""
+    message/label strings + a tour map (name, price, unit, type, canonical URL)
+    so the form can show read-only tour context and build the message without
+    an editable dropdown. `tour` is the current page's tour (reliable context on
+    a tour page); empty on general pages. config.js may still override
+    KERO_WHATSAPP."""
     baked = cfg.WHATSAPP_NUMBER or ""
-    payload = {"wa": baked, "tour": tour_id or "", "s": BOOKING[lang]}
+    bk = BOOKING[lang]
+    tours = {}
+    for t in public_tours:
+        unit = bk["unit_boat"] if t["price_type"] == "per_boat" else bk["unit_person"]
+        tours[t["id"]] = {
+            "name": t["content"][lang]["name"],
+            "price": t["price"],
+            "unit": unit,
+            "type": t["price_type"],
+            "url": abs_url(url_tour(lang, t["slug"])),
+        }
+    payload = {"wa": baked, "tour": tour_id or "", "s": bk, "tours": tours}
     return '<script>window.KERO_BK=%s;</script>' % json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 def booking_options(lang, public_tours):
@@ -527,6 +561,12 @@ def booking_options(lang, public_tours):
     return "".join(opts)
 
 def booking_dialog(lang, public_tours):
+    """Booking dialog. Two modes, resolved by JS:
+    - tour context present (tour page / clicked card / sticky bar): read-only
+      tour title + price, no excursion dropdown;
+    - no context (homepage general CTAs): an excursion selector is shown.
+    Fields: hotel (required), room (optional), people (required int), notes
+    (optional). No customer-name field. No date field (confirmed on WhatsApp)."""
     bk = BOOKING[lang]
     return """<div class="bookdlg" data-bookdlg hidden aria-hidden="true">
 <div class="bookdlg__scrim" data-book-close></div>
@@ -536,49 +576,69 @@ def booking_dialog(lang, public_tours):
 <button class="bookdlg__close" type="button" data-book-close aria-label="%s">%s</button>
 </div>
 <form class="bookform" data-bookform novalidate>
-<label class="bookform__field"><span>%s</span>
-<select name="excursion" data-bk-exc required>
+<div class="bookform__context" data-bk-context hidden>
+<span class="bookform__context-label">%s</span>
+<b data-bk-context-name></b>
+<span class="bookform__context-price" data-bk-context-price></span>
+</div>
+<label class="bookform__field" data-bk-select-field hidden><span>%s</span>
+<select name="excursion" data-bk-exc>
 <option value="" disabled selected>%s</option>
 %s
 </select></label>
 <div class="bookform__price" data-bk-price hidden></div>
 <label class="bookform__field"><span>%s</span>
-<input name="name" type="text" autocomplete="name" placeholder="%s" required></label>
+<input name="hotel" type="text" autocomplete="off" placeholder="%s" required></label>
 <div class="bookform__grid">
-<label class="bookform__field"><span>%s</span><input name="date" type="date" required></label>
-<label class="bookform__field"><span>%s</span><input name="hotel" type="text" placeholder="%s" required></label>
+<label class="bookform__field"><span>%s</span><input name="room" type="text" inputmode="numeric" autocomplete="off" placeholder="%s"></label>
+<label class="bookform__field"><span>%s</span><input name="people" type="number" inputmode="numeric" min="1" max="40" step="1" value="2" placeholder="%s" required></label>
 </div>
-<div class="bookform__grid">
-<label class="bookform__field"><span>%s</span><input name="adults" type="number" inputmode="numeric" min="1" max="30" value="2" required></label>
-<label class="bookform__field"><span>%s</span><input name="children" type="number" inputmode="numeric" min="0" max="20" value="0" data-bk-children></label>
-</div>
-<label class="bookform__field" data-bk-ages-row hidden><span>%s</span>
-<input name="ages" type="text" inputmode="numeric" placeholder="%s"></label>
 <label class="bookform__field"><span>%s</span>
 <textarea name="notes" rows="2" placeholder="%s"></textarea></label>
+<p class="bookform__note">%s<span>%s</span></p>
 <div class="bookform__err" data-bk-err role="alert" hidden></div>
 <button type="submit" class="btn btn--wa btn--block bookform__submit">%s<span>%s</span></button>
 </form>
 </div>
 </div>""" % (
         esc(bk["form_title"]), esc(bk["form_sub"]), esca(bk["f_close"]), ICON["close"],
+        esc(bk["f_excursion"]),
         esc(bk["f_excursion"]), esc(bk["f_excursion_ph"]), booking_options(lang, public_tours),
-        esc(bk["f_name"]), esca(bk["f_name_ph"]),
-        esc(bk["f_date"]), esc(bk["f_hotel"]), esca(bk["f_hotel_ph"]),
-        esc(bk["f_adults"]), esc(bk["f_children"]),
-        esc(bk["f_child_ages"]), esca(bk["f_child_ages_ph"]),
+        esc(bk["f_hotel"]), esca(bk["f_hotel_ph"]),
+        esc(bk["f_room"]), esca(bk["f_room_ph"]),
+        esc(bk["f_people"]), esca(bk["f_people_ph"]),
         esc(bk["f_notes"]), esca(bk["f_notes_ph"]),
+        ICON["shield"], esc(bk["f_nodeposit"]),
         ICON["wa"], esc(bk["f_submit"]))
 
 def book_bar(lang, tour):
-    """Sticky mobile bottom booking bar for a tour page."""
+    """Sticky mobile bottom booking bar for a tour page. LEFT: localized price +
+    unit. RIGHT: one premium KeRo-teal BOOKING button (opens the form, never
+    WhatsApp directly, no WhatsApp icon/color)."""
     bk = BOOKING[lang]
     unit = bk["unit_boat"] if tour["price_type"] == "per_boat" else bk["unit_person"]
     return ('<div class="bookbar" data-bookbar>'
             '<div class="bookbar__price"><b>&euro;%d</b> <span>%s</span></div>'
-            '<button class="btn btn--wa bookbar__btn" type="button" data-book-open data-tour="%s" data-pos="bar">'
+            '<button class="btn btn--book bookbar__btn" type="button" data-book-open data-tour="%s" data-pos="bar">'
             '%s<span>%s</span></button>'
-            '</div>' % (tour["price"], esc(unit), esca(tour["id"]), ICON["wa"], esc(bk["bar_book"])))
+            '</div>' % (tour["price"], esc(unit), esca(tour["id"]), ICON["calendar"], esc(bk["bar_book"])))
+
+def wa_tour_float(lang, tour):
+    """Separate floating circular WhatsApp button on a tour page, sitting just
+    above the right side of the sticky booking bar. Opens a DIRECT WhatsApp chat
+    (no booking form) with the tour name + canonical URL prefilled. Green
+    WhatsApp identity, clearly distinct from the teal booking CTA."""
+    text = T[lang]["wa_tour_direct"].format(tour=tour["content"][lang]["name"],
+                                            url=abs_url(url_tour(lang, tour["slug"])))
+    cls = "wa-bubble"
+    if cfg.WHATSAPP_NUMBER:
+        href = "https://wa.me/%s?text=%s" % (cfg.WHATSAPP_NUMBER, quote(text, safe=""))
+        hattr = 'href="%s" data-wa-href="%s" target="_blank" rel="noopener"' % (esca(href), esca(href))
+    else:
+        cls += " is-pending"
+        hattr = 'href="#" aria-disabled="true"'
+    return ('<a class="%s" %s data-wa data-wa-text="%s" data-tour="%s" data-pos="tour-float" aria-label="%s">%s</a>'
+            % (cls, hattr, esca(text), esca(tour["id"]), esca(T[lang]["floating_wa_label"]), ICON["wa"]))
 
 # ---------------------------------------------------------------------------
 # components
@@ -742,7 +802,7 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
     body = (header(lang, alt_paths, public_tours, home_base) + '<main id="main">' + hero + trust_strip(lang) + chipbar
             + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
             + "</main>" + footer(lang, public_tours, home_base) + wa_float(lang)
-            + booking_dialog(lang, public_tours) + booking_data_script(lang))
+            + booking_dialog(lang, public_tours) + booking_data_script(lang, public_tours))
     doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths, "/", jsonld) + body + scripts()
     write(out_path or os.path.join(DIST, lang, "index.html"), doc)
 
@@ -866,7 +926,8 @@ def build_tour(lang, tour, public_tours):
 
     body = (header(lang, alt_paths, public_tours) + '<main id="main" class="has-bookbar">' + breadcrumb + tour_hero + body_sec + related_html
             + "</main>" + footer(lang, public_tours) + lightbox_html(lang)
-            + book_bar(lang, tour) + booking_dialog(lang, public_tours) + booking_data_script(lang, tour["id"]))
+            + book_bar(lang, tour) + wa_tour_float(lang, tour)
+            + booking_dialog(lang, public_tours) + booking_data_script(lang, public_tours, tour["id"]))
     doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld) + body + scripts()
     write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)
 
