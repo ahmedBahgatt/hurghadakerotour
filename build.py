@@ -554,10 +554,11 @@ def booking_dialog(lang, public_tours):
     - tour context present (tour page / clicked card / sticky bar): read-only
       tour title + price, no excursion dropdown;
     - no context (homepage general CTAs): an excursion selector is shown.
-    Fields: hotel (required), room (optional), people (required int), preferred
-    excursion date (required, native date picker; min = today in Africa/Cairo,
-    set by JS), notes (optional). No customer-name field. The date is a REQUESTED
-    date - availability is still confirmed on WhatsApp."""
+    Field order: preferred excursion date (required, FIRST; native date picker,
+    min = today in Africa/Cairo set by JS on init + each open), hotel (required),
+    room (optional, left), people (required int, right), notes (optional). No
+    customer-name field. The date is a REQUESTED date - availability is still
+    confirmed on WhatsApp."""
     bk = BOOKING[lang]
     return """<div class="bookdlg" data-bookdlg hidden aria-hidden="true">
 <div class="bookdlg__scrim" data-book-close></div>
@@ -578,14 +579,14 @@ def booking_dialog(lang, public_tours):
 %s
 </select></label>
 <div class="bookform__price" data-bk-price hidden></div>
+<label class="bookform__field bookform__field--date"><span>%s</span>
+<input name="date" type="date" data-bk-date required></label>
 <label class="bookform__field"><span>%s</span>
 <input name="hotel" type="text" autocomplete="off" placeholder="%s" required></label>
 <div class="bookform__grid">
 <label class="bookform__field"><span>%s</span><input name="room" type="text" inputmode="numeric" autocomplete="off" placeholder="%s"></label>
 <label class="bookform__field"><span>%s</span><input name="people" type="number" inputmode="numeric" min="1" max="40" step="1" value="2" placeholder="%s" required></label>
 </div>
-<label class="bookform__field bookform__field--date"><span>%s</span>
-<input name="date" type="date" data-bk-date required></label>
 <label class="bookform__field"><span>%s</span>
 <textarea name="notes" rows="2" placeholder="%s"></textarea></label>
 <p class="bookform__note">%s<span>%s</span></p>
@@ -597,10 +598,10 @@ def booking_dialog(lang, public_tours):
         esc(bk["form_title"]), esc(bk["form_sub"]), esca(bk["f_close"]), ICON["close"],
         esc(bk["f_excursion"]),
         esc(bk["f_excursion"]), esc(bk["f_excursion_ph"]), booking_options(lang, public_tours),
+        esc(bk["f_date"]),
         esc(bk["f_hotel"]), esca(bk["f_hotel_ph"]),
         esc(bk["f_room"]), esca(bk["f_room_ph"]),
         esc(bk["f_people"]), esca(bk["f_people_ph"]),
-        esc(bk["f_date"]),
         esc(bk["f_notes"]), esca(bk["f_notes_ph"]),
         ICON["shield"], esc(bk["f_nodeposit"]),
         ICON["wa"], esc(bk["f_submit"]))

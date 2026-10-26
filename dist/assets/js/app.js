@@ -221,6 +221,14 @@
     });
   }
 
+  /* The date field's minimum selectable day is ALWAYS "today in Cairo". Set it on
+     init and on every open so the native picker greys out / blocks past days, and
+     a page left open across Egyptian midnight still refuses yesterday. Never
+     hardcoded; recomputed from Africa/Cairo each time. */
+  var dateField = form ? form.elements["date"] : null;
+  function refreshDateMin() { if (dateField) dateField.min = cairoTodayISO(); }
+  refreshDateMin();
+
   function openBooking(tourId) {
     if (!dlg) return;
     dlgLastFocus = doc.activeElement;
@@ -229,9 +237,7 @@
     if (!TOURS[resolved]) resolved = "";
     setMode(resolved);
     restoreEntry();
-    /* native picker also blocks past days (validation re-checks on submit) */
-    var dateEl = form && form.elements["date"];
-    if (dateEl) dateEl.min = cairoTodayISO();
+    refreshDateMin();   /* native picker blocks past days; re-checked on submit */
     var err = dlg.querySelector("[data-bk-err]"); if (err) { err.hidden = true; err.textContent = ""; }
     dlg.hidden = false; dlg.setAttribute("aria-hidden", "false");
     dlg.classList.add("is-open");
@@ -270,6 +276,28 @@
   }
   if (form) {
     if (form.elements["excursion"]) form.elements["excursion"].addEventListener("change", updateSelectPrice);
+
+    /* Guard the date field against values that slip past the native picker's min
+       (manual typing, paste, or programmatic set). On any change/input: refresh
+       the min to the live Cairo day, and if the value is in the past, clear it
+       (never keep a past value) and show the localized inline error. A valid
+       value clears that error. */
+    if (dateField) {
+      var onDateCheck = function () {
+        refreshDateMin();
+        var err = dlg.querySelector("[data-bk-err]");
+        var v = dateField.value;
+        if (v && /^\d{4}-\d{2}-\d{2}$/.test(v) && v < cairoTodayISO()) {
+          dateField.value = "";
+          if (err) { err.textContent = S.err_date_past; err.hidden = false; }
+          try { dateField.focus(); } catch (e2) {}
+        } else if (v && err && !err.hidden && err.textContent === S.err_date_past) {
+          err.hidden = true; err.textContent = "";
+        }
+      };
+      dateField.addEventListener("change", onDateCheck);
+      dateField.addEventListener("input", onDateCheck);
+    }
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();

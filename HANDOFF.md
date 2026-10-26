@@ -51,6 +51,21 @@ is labelled where used.
 > WhatsApp-server behaviour of `wa.me` and cannot be removed site-side; opening in
 > a new tab keeps it off the KeRo page. Native app-switch return is OS-controlled
 > and needs a real-device check (see below).
+>
+> **2026-10-26 - Date field moved to FIRST + past dates hard-blocked.**
+> Form order is now: **preferred date (first)**, hotel, room, people, notes (the
+> excursion selector still precedes everything on the homepage generic flow). Past
+> dates are blocked at three layers: (1) the native `<input type="date" min>` is
+> set to today-in-Cairo on init AND on every open (`refreshDateMin()`), so the
+> native picker greys past days and flags `rangeUnderflow`; (2) a `change`/`input`
+> guard clears any past value that slips through manual typing / paste / JS and
+> shows the localized `err_date_past` inline, which clears on a valid pick; (3) the
+> submit re-validates. `min` is recomputed from `Africa/Cairo` each open so a page
+> left open past Egyptian midnight still refuses yesterday. Verified in Chromium
+> FR/PL/RO (first-field = date, native rangeUnderflow, immediate clear+error on a
+> past value, valid date in the message, submit blocked without a date). iOS Safari
+> wheel respects `min`; the JS guard + submit check are the backstop - confirm on a
+> real iPhone per the procedure below.
 
 ---
 

@@ -200,6 +200,12 @@ def main():
         m = re.search(r'<input name="date"[^>]*>', txt)
         if not m or "required" not in m.group(0):
             fail(problems, "%s: date input is not required" % rel)
+        # date must be the FIRST data field: it appears before hotel/room/people
+        di = txt.find('name="date"')
+        for later in ('name="hotel"', 'name="room"', 'name="people"', 'name="notes"'):
+            lj = txt.find(later)
+            if lj != -1 and lj < di:
+                fail(problems, "%s: date field is not first (precedes %s)" % (rel, later))
 
     appjs = open(os.path.join(DIST, "assets", "js", "app.js"), encoding="utf-8").read()
     if "openWhatsApp(" not in appjs:
