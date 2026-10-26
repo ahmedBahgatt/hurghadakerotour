@@ -62,7 +62,11 @@ BING_SITE_VERIFICATION = ""
 #          directive, but will NOT index yet. Fully reversible.
 # True  -> pages become indexable (index,follow,max-image-preview:large).
 # Flip to True only when the owner approves indexing, then rebuild.
-ALLOW_INDEXING = False
+#
+# 2026-10-26: owner authorized organic indexing of all 36 localized canonical
+# content pages (3 homepages + 33 excursion pages). Root "/" canonicalizes to
+# /fr/ (no duplicate indexable page); the 404 stays hard-coded noindex.
+ALLOW_INDEXING = True
 
 # ---------------------------------------------------------------------------
 # BUSINESS INFORMATION  --  REQUIRES REAL OWNER INPUT
@@ -81,10 +85,16 @@ BUSINESS = {
 # ANALYTICS  --  leave empty until real IDs are provided
 # ---------------------------------------------------------------------------
 # No tag is injected while these are empty. No conversion event is ever fired
-# on page load; a conversion is only counted on an actual WhatsApp click.
-GA4_MEASUREMENT_ID = ""      # e.g. "G-XXXXXXXXXX"
-GOOGLE_ADS_ID = ""           # e.g. "AW-XXXXXXXXXX"
-GOOGLE_ADS_CONVERSION_LABEL = ""  # e.g. "abCDefGhIJ"  (for the WhatsApp-click conversion)
+# on page load; a conversion is only counted on an actual WhatsApp handoff
+# (direct wa.me click or a validated booking-form submission).
+#
+# 2026-10-26: live Google Ads tag installed (owner authorized). No GA4, no GTM
+# container. The single conversion action "KeRo | WhatsApp Contact" is
+# AW-18538088460/HOYlCNeOq6odEIyQ04dF (Count: One, Value 0 EGP, 30-day click
+# window, data-driven attribution, enhanced conversions OFF).
+GA4_MEASUREMENT_ID = ""                        # intentionally empty - no GA4
+GOOGLE_ADS_ID = "AW-18538088460"               # live Google Ads tag
+GOOGLE_ADS_CONVERSION_LABEL = "HOYlCNeOq6odEIyQ04dF"  # WhatsApp Contact conversion
 
 # ---------------------------------------------------------------------------
 # COMPLIANCE FLAGS

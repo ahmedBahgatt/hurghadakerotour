@@ -377,13 +377,47 @@ def social_links(lang, cls="social", with_label=True):
     return ('<div class="%s">%s<div class="social__row" role="list" aria-label="%s">%s</div></div>'
             % (cls, label, esca(tr["social_follow"]), "".join(items)))
 
+# Google Consent Mode v2: in the EEA + UK + Switzerland the advertising storage
+# signals DEFAULT to denied, so no advertising cookies/identifiers are stored for
+# those visitors without consent (Google still models cookieless conversions).
+# Everywhere else - the intended audience, tourists physically in Egypt - they
+# default to granted. This is region-scoped basic consent mode; it injects NO
+# cookie banner. It only prevents consent-requiring (cookie-based) tag firing
+# where consent is legally required; it is not a claim of full legal compliance.
+CONSENT_DENIED_REGIONS = [
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+    "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+    "SI", "ES", "SE",              # EU-27
+    "IS", "LI", "NO",              # EEA EFTA
+    "GB", "CH",                    # UK GDPR + Swiss FADP
+]
+
 def analytics_head():
+    """Single global gtag.js install (Google Ads only; no GA4, no GTM).
+
+    Loaded async (non-blocking). Fires nothing on page load - a conversion is
+    only sent from a deliberate WhatsApp handoff in app.js. Sets region-scoped
+    Consent Mode v2 defaults BEFORE config, preserves GCLID across navigations
+    (url_passthrough) and redacts ad identifiers only where consent is denied
+    (ads_data_redaction), so non-EEA attribution/auto-tagging is untouched.
+    """
     ga, ads = cfg.GA4_MEASUREMENT_ID.strip(), cfg.GOOGLE_ADS_ID.strip()
     if not ga and not ads:
         return ""
     primary = ga or ads
-    lines = ["window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}",
-             "gtag('js',new Date());"]
+    regions = json.dumps(CONSENT_DENIED_REGIONS, separators=(",", ":"))
+    lines = [
+        "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}",
+        # Rest of world (Egypt tourists): granted by default.
+        "gtag('consent','default',{'ad_storage':'granted','ad_user_data':'granted',"
+        "'ad_personalization':'granted','analytics_storage':'granted'});",
+        # EEA/UK/CH: denied by default (cookieless modelling only, no banner).
+        "gtag('consent','default',{'ad_storage':'denied','ad_user_data':'denied',"
+        "'ad_personalization':'denied','analytics_storage':'denied','region':%s});" % regions,
+        "gtag('set','url_passthrough',true);",
+        "gtag('set','ads_data_redaction',true);",
+        "gtag('js',new Date());",
+    ]
     if ga:
         lines.append("gtag('config','%s');" % ga)
     if ads:
@@ -393,12 +427,23 @@ def analytics_head():
     return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
             '<script>%s</script>\n' % (primary, "".join(lines)))
 
+# CSP (meta http-equiv; GitHub Pages cannot send response headers). The Google
+# Ads tag + conversion pings need googletagmanager (gtag.js), googleadservices
+# and (googleads/td).doubleclick.net reachable, or the meta CSP would silently
+# block the conversion. google-analytics endpoints are kept (gtag.js may still
+# use them) though no GA4 is configured.
 CSP = ("default-src 'self'; "
-       "img-src 'self' data:; "
+       "img-src 'self' data: https://www.google.com https://www.googleadservices.com "
+       "https://googleads.g.doubleclick.net; "
        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; "
-       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; "
-       "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; "
+       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com "
+       "https://www.googleadservices.com https://googleads.g.doubleclick.net; "
+       "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com "
+       "https://www.google.com https://www.googleadservices.com "
+       "https://googleads.g.doubleclick.net https://td.doubleclick.net "
+       "https://pagead2.googlesyndication.com; "
+       "frame-src https://googleads.g.doubleclick.net https://td.doubleclick.net; "
        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
 
 def security_meta():
