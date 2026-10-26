@@ -4,6 +4,43 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-26 - INDEXING ENABLED + live Google Ads WhatsApp conversion tracking.**
+> Owner authorized both. No redesign, no content/price/schema/WhatsApp changes.
+> **Indexing:** `site_config.ALLOW_INDEXING=True`. All **36** localized canonical
+> content pages (3 homepages + 33 excursion pages) now emit
+> `index,follow,max-image-preview:large`; root `/` still canonicalizes to `/fr/`
+> (no duplicate indexable page); the 404 stays hard-coded `noindex`. robots.txt,
+> the 36-URL image sitemap and canonicals/hreflang were already correct;
+> `test_seo.py` reads the flag and now asserts the index directive.
+> **Google Ads:** `GOOGLE_ADS_ID=AW-18538088460`, conversion label
+> `HOYlCNeOq6odEIyQ04dF` (the one action **KeRo | WhatsApp Contact**). One async
+> `gtag.js` per content page (no GA4, no GTM). `analytics_head()` sets Google
+> **Consent Mode v2** region defaults (EEA/UK/CH denied -> cookieless modelling,
+> no banner; granted elsewhere - the Egypt tourist audience) + `url_passthrough`
+> + `ads_data_redaction` before `config`. The meta **CSP was widened** to allow
+> googletagmanager / googleadservices / (googleads|td).doubleclick.net so the
+> beacon is not CSP-blocked.
+> **Firing (already centralized in app.js, unchanged):** exactly ONE conversion
+> per deliberate WhatsApp handoff - direct `[data-wa]` click OR a validated
+> booking-form submit. Form-opens (`[data-book-open]`) are skipped (no double
+> count); invalid submits fire nothing; **no personal data** (hotel/room/notes/
+> date/message/URL) is sent to Google; WhatsApp still opens in a new tab
+> (`target=_blank rel=noopener`), no same-tab `window.location` redirect, no
+> `event_callback` gating the handoff (non-blocking, ad-blocker-resilient).
+> **New gate** `scripts/test_analytics.py` wired into `deploy.yml`.
+> **Live-verified (Chrome, this session):** `gtag.js` loads 200 (CSP OK); one
+> float click = 1 conversion w/ correct label, page stays, new-tab anchor intact;
+> booking form invalid submit = 0 conversions, valid submit = 1 with NO
+> hotel/notes/room in the payload; FR + RO checked; ad-blocker dropped the beacon
+> yet WhatsApp still worked. All gates green: check.py 38/38, test_whatsapp 39/0,
+> test_seo 36/0 (8 title warnings), test_analytics 37/0. Commit **b732336**,
+> Actions run **40325044701** success. `LION_CUB_ADS_ELIGIBLE=False` unchanged
+> (organic indexing only, never an ad landing page); Sanity untouched; no ad
+> campaign launched. Privacy details + limitations: `ANALYTICS_PRIVACY.md`.
+> Remaining owner-only steps: Search Console DNS-TXT verify + sitemap submit
+> (`SEO_LAUNCH_CHECKLIST.md` step 6); confirm the tag/conversion in the Google Ads
+> UI (not yet observed there).
+>
 > **2026-10-26 - Schema accuracy fixes + desktop floating WhatsApp (indexing still OFF).**
 > Targeted follow-up to the SEO pass (no redesign, no new SEO overhaul).
 > **Schema accuracy** (`build.py`): (1) removed `Offer.availability`
@@ -183,9 +220,16 @@ is labelled where used.
   QA gate. **Limitation (verified):** GitHub Pages cannot send custom HTTP
   response headers, so response-level CSP/HSTS/X-Frame-Options are not possible
   without fronting the site with Cloudflare. HSTS on the apex is applied by Pages.
-- **SEO/indexing state:** pages currently emit **`noindex,follow`**
-  (`ALLOW_INDEXING=False`) by owner request; `robots.txt` still allows crawling so
-  the directive is readable; `sitemap.xml` present. **Not** submitted to Search Console.
+- **SEO/indexing state:** indexing is **ON** (`ALLOW_INDEXING=True`, owner
+  authorized 2026-10-26). All 36 canonical content pages emit
+  `index,follow,max-image-preview:large`; root `/` canonicalizes to `/fr/`; 404 is
+  `noindex`. `robots.txt` allows crawl + lists the sitemap; the 36-URL image
+  sitemap is live. **Not yet submitted to Search Console** (owner-only DNS-TXT
+  step - see `SEO_LAUNCH_CHECKLIST.md` step 6).
+- **Analytics/Ads:** live Google Ads tag `AW-18538088460` + one conversion
+  `KeRo | WhatsApp Contact` (`.../HOYlCNeOq6odEIyQ04dF`) installed site-wide; no
+  GA4, no GTM. Consent Mode v2 (EEA/UK/CH denied, else granted), no cookie banner.
+  See `ANALYTICS_PRIVACY.md`. No ad campaign launched.
 - **Costs (verified where known):** GitHub (public repo + Pages) = free;
   domain = paid at Hostinger (renewal, amount not confirmed here). No other paid
   services active.
@@ -433,10 +477,14 @@ DEPLOYMENT.md, README.md, IMAGE_AUDIT.md, HANDOFF.md, NEXT_CHAT_START_HERE.md
 - Business legal info (address, licence, email) - owner to provide; never fake.
 - **Sanity integration: postponed** until explicit authorization. (Pipeline already
   has `CONTENT_SOURCE` var + `sanity-publish` dispatch; content is in `data/*.py`.)
-- **Google Search Console / indexing: postponed.** When approved: set
-  `GOOGLE_SITE_VERIFICATION` in site_config.py, set `ALLOW_INDEXING=True`, rebuild,
-  verify in Search Console, submit `https://hurghadakerotour.com/sitemap.xml`.
-- Analytics / Google Ads conversion tracking: future phase (config placeholders exist).
+- **Indexing: DONE** (`ALLOW_INDEXING=True`). Remaining owner-only step: verify
+  the property in Google Search Console (DNS-TXT recommended) and submit
+  `https://hurghadakerotour.com/sitemap.xml` - exact instructions in
+  `SEO_LAUNCH_CHECKLIST.md` step 6.
+- **Google Ads conversion tracking: DONE** (tag + one WhatsApp conversion live).
+  Remaining owner-only step: confirm in the Google Ads UI (Tools -> Conversions)
+  that the tag is recognized and a conversion was received; then decide on
+  campaigns/budget (not launched). Details: `ANALYTICS_PRIVACY.md`.
 - Old resources to retire **only with permission**: `ahmedBahgatt/kero-tours-landing`
   and `kero-tours-hurghada.pages.dev` (superseded; not deleted).
 
