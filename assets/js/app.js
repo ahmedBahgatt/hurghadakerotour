@@ -44,6 +44,58 @@
   }
 
   /* ====================================================================
+     WhatsApp handoff (shared) + date helpers
+     ==================================================================== */
+  /* Open wa.me in a SEPARATE browsing context (a new tab) so the current KeRo
+     page stays intact in its own tab. Returning from the WhatsApp app then lands
+     the visitor back on KeRo, not stranded on the api.whatsapp.com "Continue to
+     Chat" interstitial. A synthesized <a target="_blank" rel="noopener"> click is
+     the most reliable user-gesture new-tab trigger across iOS Safari / Android
+     Chrome and mirrors the site's anchor CTAs. This replaces the old
+     `window.open(...,"noopener")` + `if(!w) location.href=url` fallback: with
+     noopener, window.open returns null by spec, so that fallback ALWAYS ran and
+     navigated the same tab to wa.me - the exact strand bug. No same-tab fallback
+     here by design; we never claim to override OS/browser app-return behaviour. */
+  function openWhatsApp(url) {
+    try {
+      var a = doc.createElement("a");
+      a.href = url; a.target = "_blank"; a.rel = "noopener";
+      doc.body.appendChild(a);
+      a.click();
+      doc.body.removeChild(a);
+    } catch (e) {
+      /* last resort only if DOM click threw: a new window, still never same-tab */
+      window.open(url, "_blank", "noopener");
+    }
+  }
+
+  /* Today's date in Egypt (Africa/Cairo) as yyyy-mm-dd, independent of the
+     visitor's own timezone - so "no past dates" uses the Hurghada calendar day
+     and never shifts by one around midnight/UTC. */
+  function cairoTodayISO() {
+    try {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo" }).format(new Date());
+    } catch (e) {
+      var d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+  }
+
+  var DATE_LOCALE = { fr: "fr-FR", pl: "pl-PL", ro: "ro-RO" };
+  /* Format an ISO yyyy-mm-dd as a natural, unambiguous localized date. The ISO
+     string is parsed as a LOCAL date (new Date(y, m-1, d)) - never
+     `new Date(iso)`, which is UTC midnight and can roll back a day. */
+  function formatLocalDate(iso, lang) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+    var p = iso.split("-");
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    try {
+      return new Intl.DateTimeFormat(DATE_LOCALE[lang] || "fr-FR",
+        { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(d);
+    } catch (e) { return iso; }
+  }
+
+  /* ====================================================================
      Mobile navigation drawer (slide-in from right)
      ==================================================================== */
   var drawer = doc.querySelector("[data-drawer]");
@@ -155,15 +207,16 @@
     }
   }
 
+  var ENTRY_KEYS = ["hotel", "room", "people", "date", "notes"];
   function restoreEntry() {
     if (!form) return;
-    ["hotel", "room", "people", "notes"].forEach(function (k) {
+    ENTRY_KEYS.forEach(function (k) {
       if (lastEntry[k] != null && form.elements[k]) form.elements[k].value = lastEntry[k];
     });
   }
   function saveEntry() {
     if (!form) return;
-    ["hotel", "room", "people", "notes"].forEach(function (k) {
+    ENTRY_KEYS.forEach(function (k) {
       if (form.elements[k]) lastEntry[k] = form.elements[k].value;
     });
   }
@@ -176,6 +229,9 @@
     if (!TOURS[resolved]) resolved = "";
     setMode(resolved);
     restoreEntry();
+    /* native picker also blocks past days (validation re-checks on submit) */
+    var dateEl = form && form.elements["date"];
+    if (dateEl) dateEl.min = cairoTodayISO();
     var err = dlg.querySelector("[data-bk-err]"); if (err) { err.hidden = true; err.textContent = ""; }
     dlg.hidden = false; dlg.setAttribute("aria-hidden", "false");
     dlg.classList.add("is-open");
@@ -236,9 +292,15 @@
       if (!hotel) return fail(S.err_hotel, f["hotel"]);
       var people = parseInt(f["people"].value, 10);
       if (isNaN(people) || people < 1) return fail(S.err_people, f["people"]);
+      /* preferred excursion date: required + never in the past (Cairo calendar).
+         ISO strings compare lexicographically, so no Date()/timezone shift. */
+      var dateVal = (f["date"] ? f["date"].value : "").trim();
+      if (!dateVal || !/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) return fail(S.err_date, f["date"]);
+      if (dateVal < cairoTodayISO()) return fail(S.err_date_past, f["date"]);
       var room = (f["room"].value || "").trim();
       var notes = (f["notes"].value || "").trim();
       var quote = (t.type === "per_boat") && people > 5;
+      var lang = doc.documentElement.lang || "fr";
 
       var L = [];
       L.push(S.m_intro); L.push("");
@@ -248,6 +310,7 @@
       L.push("• " + S.m_hotel + ": " + hotel);
       if (room) L.push("• " + S.m_room + ": " + room);
       L.push("• " + S.m_people + ": " + people);
+      L.push("• " + S.m_date + ": " + formatLocalDate(dateVal, lang));
       if (notes) L.push("• " + S.m_notes + ": " + notes);
       if (quote) { L.push(""); L.push(S.m_quote); }
       L.push(""); L.push(S.m_outro);
@@ -264,8 +327,7 @@
         if (conv) window.gtag("event", "conversion", { send_to: conv });
       }
       saveEntry();
-      var w = window.open(url, "_blank", "noopener");
-      if (!w) window.location.href = url;
+      openWhatsApp(url);
       closeBooking();
     });
   }

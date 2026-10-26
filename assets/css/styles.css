@@ -819,3 +819,12 @@ body:has(.drawer.is-open) .wa-bubble { display: none; }
 .bookform__grid { align-items: end; }
 .bookform__grid .bookform__field > span { line-height: 1.25; }
 .bookform__grid .bookform__field input { height: 48px; }
+
+/* ---- Preferred-date field: full width, consistent with the other inputs.
+   On iOS, -webkit-appearance:none (from the shared rule) can collapse a date
+   control's height and left-shift its text; pin the height and align left so it
+   matches hotel/notes and never overflows the mobile sheet. ---- */
+.bookform__field--date { width: 100%; }
+.bookform input[type="date"] { min-height: 48px; line-height: 1.2; text-align: left; -webkit-appearance: none; appearance: none; }
+.bookform input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.bookform input[type="date"]::-webkit-calendar-picker-indicator { opacity: .6; }

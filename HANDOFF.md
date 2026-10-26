@@ -25,6 +25,32 @@ is labelled where used.
 > (nav links/Book/langs/drawer). `app.js` now closes the drawer on resize up to
 > desktop (releases the scroll lock, resets aria/focus). Mobile/tablet (<1000px)
 > hamburger + drawer unchanged.
+>
+> **2026-10-26 - Booking date field + WhatsApp app-return fix.**
+> (1) The booking form now has a required **preferred excursion date**
+> (`<input type="date">`, full-width, after people/before notes). JS sets
+> `min` = today in **Africa/Cairo** (`Intl` en-CA) on open, and the submit
+> re-validates: empty -> `err_date`, past -> `err_date_past` (ISO-string compare,
+> no timezone off-by-one). The date is formatted localized long-form
+> (`Intl.DateTimeFormat`, weekday+day+month+year, parsed as a LOCAL date to avoid
+> UTC roll-back) and added to the WhatsApp message as `m_date`. It is a REQUESTED
+> date - the outro still asks the business to confirm availability. New BOOKING
+> keys per lang: `f_date`, `err_date`, `err_date_past`, `m_date`. No name field,
+> no tour dropdown on tour pages (unchanged).
+> (2) **WhatsApp handoff** no longer strands the visitor on `api.whatsapp.com`.
+> Root cause: the form submit did `window.open(url,"_blank","noopener")` then
+> `if(!w) location.href=url` - but `noopener` makes `window.open` return `null`
+> by spec, so the same-tab fallback ran every time. Replaced with `openWhatsApp()`
+> which clicks a synthesized `<a target="_blank" rel="noopener">` (a reliable
+> user-gesture new-tab trigger), matching Egipskie Wakacje's approach and the
+> site's existing anchor CTAs. The KeRo page stays in its own tab; returning from
+> WhatsApp lands back on KeRo. Direct `[data-wa]` CTAs were already `target=_blank`
+> (unchanged). `scripts/test_whatsapp.py` extended to cover the date field + the
+> no-strand handoff. Verified in Chromium at FR/PL/RO, tour + homepage, direct +
+> form. Note: the Android `api.whatsapp.com` "Continue to Chat" interstitial is
+> WhatsApp-server behaviour of `wa.me` and cannot be removed site-side; opening in
+> a new tab keeps it off the KeRo page. Native app-switch return is OS-controlled
+> and needs a real-device check (see below).
 
 ---
 

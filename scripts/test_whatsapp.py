@@ -158,15 +158,20 @@ def main():
         name = t["content"][lang]["name"]
         url = tour_url(lang, t["slug"])
         unit = s["unit_boat"] if t["price_type"] == "per_boat" else s["unit_person"]
+        # the booking message now carries a mandatory preferred-date line
+        for key in ("m_date", "f_date", "err_date", "err_date_past"):
+            if not s.get(key):
+                fail(problems, "%s BOOKING missing %r" % (lang, key))
         lines = [s["m_intro"], "",
                  "• %s: %s" % (s["m_excursion"], name),
                  "• %s: %s" % (s["m_url"], url),
                  "• %s: €%d %s" % (s["m_price"], t["price"], unit),
                  "• %s: %s" % (s["m_hotel"], "Sunrise Aqua Joy"),
                  "• %s: %d" % (s["m_people"], 2),
+                 "• %s: %s" % (s["m_date"], "2026-12-24"),
                  "", s["m_outro"]]
         msg = "\n".join(lines)
-        for needle in (name, url, s["m_hotel"], s["m_outro"]):
+        for needle in (name, url, s["m_hotel"], s["m_date"], s["m_outro"]):
             if needle not in msg:
                 fail(problems, "%s booking message missing %r" % (lang, needle))
         # outro must request availability + date + pickup (not a fake confirmation)
@@ -177,6 +182,34 @@ def main():
         for k in kw:
             if k not in low:
                 fail(problems, "%s m_outro missing keyword %r" % (lang, k))
+
+    # --- 7. booking form has a required native date field on every page ------
+    #     and the WhatsApp handoff never strands the tab (no same-tab nav to
+    #     wa.me, no api.whatsapp.com anywhere in the output).
+    sample_pages = []
+    for lang in LANG_ORDER:
+        sample_pages.append(os.path.join(DIST, lang, "index.html"))
+        sample_pages.append(os.path.join(DIST, lang, PATH_TOURS[lang],
+                                          pts[0]["slug"], "index.html"))
+    for f in sample_pages:
+        rel = os.path.relpath(f, DIST)
+        txt = open(f, encoding="utf-8").read()
+        if 'name="date"' not in txt or 'type="date"' not in txt:
+            fail(problems, "%s: booking form has no native date input" % rel)
+        # the date input must be required (find the date <input> and check)
+        m = re.search(r'<input name="date"[^>]*>', txt)
+        if not m or "required" not in m.group(0):
+            fail(problems, "%s: date input is not required" % rel)
+
+    appjs = open(os.path.join(DIST, "assets", "js", "app.js"), encoding="utf-8").read()
+    if "openWhatsApp(" not in appjs:
+        fail(problems, "app.js: openWhatsApp handoff helper missing")
+    if "window.location.href = url" in appjs:
+        fail(problems, "app.js: same-tab wa.me navigation (strand bug) still present")
+    for f in files:
+        if os.path.isfile(f) and "api.whatsapp.com" in open(f, encoding="utf-8").read():
+            fail(problems, "%s: contains api.whatsapp.com reference"
+                 % os.path.relpath(f, DIST))
 
     print("WhatsApp regression: checked %d files, %d problem(s)"
           % (len([f for f in files if os.path.isfile(f)]), len(problems)))
