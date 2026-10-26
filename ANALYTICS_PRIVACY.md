@@ -90,10 +90,25 @@ setup only sets safe defaults and never grants on their behalf.
   the user still reaches WhatsApp. Verified live: with the test browser's privacy
   extension dropping the Google beacon, the WhatsApp handoff still worked and the
   original page did not navigate away.
-- The Content-Security-Policy `<meta>` allows the Google endpoints
-  (`googletagmanager.com`, `googleadservices.com`, `googleads.g.doubleclick.net`,
-  `td.doubleclick.net`) so the beacon is not blocked by CSP. (GitHub Pages cannot
-  send real response headers, so CSP is a meta tag.)
+- The Content-Security-Policy `<meta>` is aligned with Google's official CSP
+  guidance for the Google tag + Google Ads conversion/remarketing/Conversion
+  Linker + Tag Assistant
+  (developers.google.com/tag-platform/security/guides/csp): `script-src` allows
+  `googletagmanager.com`, `googleadservices.com`, `googleads.g.doubleclick.net`
+  and `www.google.com`; `img-src`/`connect-src`/`frame-src` include
+  `www.googletagmanager.com` (Tag Assistant debug channel); `connect-src` adds
+  `ad.doubleclick.net` and `img-src` adds `pagead2.googlesyndication.com`; and
+  `img-src`+`connect-src` list the visitor's local Google ccTLDs
+  (`GOOGLE_AD_DOMAINS`: Egypt + FR/PL/RO + main EEA/UK/CH) because the Ads
+  first-party pings (`1p-user-list`, `1p-conversion`) go to the local Google
+  domain. No `unsafe-eval`, no wildcards. (GitHub Pages cannot send real response
+  headers, so CSP is a meta tag.)
+- Verified live (uBlock off): zero CSP `Refused` console violations; the core
+  conversion `www.googleadservices.com/pagead/conversion/18538088460/` returns
+  200. The secondary enhanced-conversions/remarketing pings
+  (`1p-conversion`, `ccm/collect`) may return server-side `503` because enhanced
+  conversions is disabled - that is Google's response, not a CSP block, and does
+  not affect the counted conversion.
 
 ## WhatsApp navigation (unchanged by this work)
 

@@ -4,6 +4,28 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-26 - CSP aligned with Google's spec (Tag Assistant warning fixed).**
+> Tag Assistant reported the meta CSP blocking Google scripts + unreliable tag
+> detection. Live network capture (uBlock off) confirmed the core conversion
+> already reached Google (`www.googleadservices.com/pagead/conversion` -> 200) but
+> the policy was incomplete vs Google's official CSP doc, and the Ads first-party
+> pings go to the visitor's LOCAL Google ccTLD (seen hitting `www.google.com.eg`),
+> which was not listed. Minimum doc-aligned fix in `build.py` (no `unsafe-eval`,
+> no wildcards, gtag/Consent Mode unchanged): `script-src` +`www.google.com`;
+> `frame-src`/`connect-src`/`img-src` +`www.googletagmanager.com`; `connect-src`
+> +`ad.doubleclick.net`; `img-src` +`pagead2.googlesyndication.com`;
+> `img-src`+`connect-src` + the Google supported ccTLDs (`GOOGLE_AD_DOMAINS`:
+> Egypt + FR/PL/RO + main EEA/UK/CH). `test_analytics.py` now asserts these hosts
+> per-directive + no wildcard/unsafe-eval. Re-verified live after deploy: **zero**
+> CSP console violations on FR home + PL excursion, conversion still fires exactly
+> once with the correct label, googleadservices conversion ping = 200, WhatsApp
+> still opens in a separate tab (page does not navigate). The residual `503` on
+> the `1p-conversion`/`ccm/collect` enhanced-conversions pings is Google's
+> server-side response (enhanced conversions OFF), not a CSP block. Gates green
+> (check 38/38, whatsapp 39/0, seo 36/0, analytics 37/0). Commit **a0aee5e**,
+> Actions **40338699593** success. Conversion ID, indexing, design, content,
+> prices unchanged. Still NOT confirmed in the Google Ads UI diagnostics.
+>
 > **2026-10-26 - INDEXING ENABLED + live Google Ads WhatsApp conversion tracking.**
 > Owner authorized both. No redesign, no content/price/schema/WhatsApp changes.
 > **Indexing:** `site_config.ALLOW_INDEXING=True`. All **36** localized canonical
