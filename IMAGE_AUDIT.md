@@ -8,9 +8,19 @@ Owner directed reuse of these assets and operates both sites, so reuse rights ar
 
 Cover images: `assets/img/tours/<id>.webp` (homepage cards, 16:10).
 Galleries: `assets/img/gallery/<id>/NN.webp` (detail-page gallery + lightbox).
-Hero: `assets/img/hero/slide*.webp`. All referenced locally, never hotlinked.
-`alt` text = localized tour name + index (images are not individually captioned
-with a place name, which removes any per-image mislabel risk).
+Hero: `assets/img/hero/hero-*.webp` (single responsive panoramic). All referenced
+locally, never hotlinked. OG social cards: `assets/img/og/<id>.jpg` (1200x630,
+per tour).
+
+**ALT text (updated 2026-10-26 - SEO pass):** each gallery image now has an
+accurate, localized, per-image `alt` describing the ACTUAL visible subject, in
+FR/PL/RO, stored in `data/seo.py` (`GALLERY_ALT`). The earlier generic "tour name
++ index" scheme was replaced. ALTs were written after visually verifying every
+image against this audit's subject table; no cross-tour mislabeling (Orange Bay
+is not labelled Magawish, wild dolphins are not labelled captive, the generic
+indoor karting frame is not tied to the El Gouna outdoor venue). The hero is an AI
+panoramic composite and stays decorative (`alt=""` + `aria-hidden`) so it is not
+presented as a real tour photo.
 
 ## 2026-10-25 gallery photo refresh
 

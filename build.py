@@ -17,6 +17,7 @@ import site_config as cfg
 from data.i18n import (T, BOOKING, LANG_ORDER, LANG_NATIVE, PATH_TOURS, HTML_LANG,
                        OG_LOCALE, CATEGORIES, CATEGORY_ORDER, CATEGORY_INTRO)
 from data.tours import TOURS
+from data.seo import META_DESC, GALLERY_ALT
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(ROOT, "dist")
@@ -161,10 +162,27 @@ def abs_url(path):
 # ---------------------------------------------------------------------------
 # structured data (SEO / AEO / GEO)
 # ---------------------------------------------------------------------------
+# Stable entity ids (rooted at the domain, resolvable across pages).
+BIZ_ID = abs_url("/") + "#business"
+SITE_ID = abs_url("/") + "#website"
+
+# Localized price-basis phrasing for the Offer priceSpecification. These mirror
+# the visible price unit shown on the page; they never introduce a new number.
+PER_PERSON_UNIT = {"fr": "par personne", "pl": "za osobę", "ro": "de persoană"}
+BOAT_UNIT = {"fr": "par bateau privé", "pl": "za prywatną łódź", "ro": "de barcă privată"}
+BOAT_BASIS = {
+    "fr": "Prix pour le bateau privé complet (forfait de base 2 à 5 personnes), et non par personne.",
+    "pl": "Cena za całą prywatną łódź (pakiet podstawowy 2-5 osób), nie za osobę.",
+    "ro": "Preț pentru barca privată completă (pachet de bază 2-5 persoane), nu de persoană.",
+}
+
+
 def sd_org(lang):
+    """TravelAgency entity for the operator. Emitted on every page so the
+    `provider`/`seller`/`publisher` @id references always resolve on-page."""
     org = {
         "@type": "TravelAgency",
-        "@id": abs_url("/") + "#business",
+        "@id": BIZ_ID,
         "name": cfg.BRAND_NAME,
         "url": abs_url(url_home(lang)),
         "image": abs_url("/assets/img/og-logo.png"),
@@ -177,14 +195,36 @@ def sd_org(lang):
     }
     if cfg.WHATSAPP_NUMBER:
         org["telephone"] = "+" + cfg.WHATSAPP_NUMBER
+    # Only emit verified, owner-supplied contact details (never fabricated).
+    if cfg.BUSINESS.get("email"):
+        org["email"] = cfg.BUSINESS["email"]
+    if cfg.BUSINESS.get("legal_name"):
+        org["legalName"] = cfg.BUSINESS["legal_name"]
     same_as = [u for u in getattr(cfg, "SOCIAL", {}).values() if u]
     if same_as:
         org["sameAs"] = same_as
     return org
 
 def sd_website(lang):
-    return {"@type": "WebSite", "@id": abs_url("/") + "#website",
-            "url": abs_url(url_home(lang)), "name": cfg.BRAND_NAME, "inLanguage": HTML_LANG[lang]}
+    return {"@type": "WebSite", "@id": SITE_ID,
+            "url": abs_url(url_home(lang)), "name": cfg.BRAND_NAME,
+            "inLanguage": HTML_LANG[lang], "publisher": {"@id": BIZ_ID}}
+
+def sd_webpage(lang, path, name, image, about_id=None, breadcrumb_id=None):
+    wp = {
+        "@type": "WebPage",
+        "@id": abs_url(path) + "#webpage",
+        "url": abs_url(path),
+        "name": name,
+        "isPartOf": {"@id": SITE_ID},
+        "inLanguage": HTML_LANG[lang],
+        "primaryImageOfPage": image,
+    }
+    if about_id:
+        wp["about"] = {"@id": about_id}
+    if breadcrumb_id:
+        wp["breadcrumb"] = {"@id": breadcrumb_id}
+    return wp
 
 def sd_faq(lang):
     return {"@type": "FAQPage",
@@ -193,13 +233,60 @@ def sd_faq(lang):
                            for q, a in T[lang]["faq"]]}
 
 def sd_breadcrumb(lang, tour):
-    return {"@type": "BreadcrumbList", "itemListElement": [
+    return {"@type": "BreadcrumbList",
+            "@id": abs_url(url_tour(lang, tour["slug"])) + "#breadcrumb",
+            "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": T[lang]["nav_home"], "item": abs_url(url_home(lang))},
         {"@type": "ListItem", "position": 2, "name": CATEGORIES[lang][tour["category"]],
          "item": abs_url(url_home(lang)) + "#cat-" + tour["category"]},
         {"@type": "ListItem", "position": 3, "name": tour["content"][lang]["name"],
          "item": abs_url(url_tour(lang, tour["slug"]))},
     ]}
+
+def sd_trip(lang, tour):
+    """TouristTrip is the honest Schema.org type for a guided excursion/day trip.
+    It carries a truthful Offer (EUR price + localized price basis) and references
+    the operator as provider via a stable @id. We deliberately do NOT use Product
+    (a WhatsApp inquiry is not a purchasable product with checkout) - see
+    SCHEMA_AUDIT.md for the Google rich-result eligibility discussion."""
+    c = tour["content"][lang]
+    canonical = url_tour(lang, tour["slug"])
+    imgs = [abs_url(u) for u in gallery_files(tour["id"])] or [abs_url("/assets/img/og/%s.jpg" % tour["id"])]
+    desc = META_DESC.get(tour["id"], {}).get(lang) or c["intro"]
+
+    offer = {
+        "@type": "Offer",
+        "price": tour["price"],
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock",
+        "url": abs_url(canonical),
+        "seller": {"@id": BIZ_ID},
+    }
+    if tour["price_type"] == "per_boat":
+        offer["priceSpecification"] = {
+            "@type": "UnitPriceSpecification",
+            "price": tour["price"], "priceCurrency": "EUR",
+            "unitText": BOAT_UNIT[lang],
+            "description": BOAT_BASIS[lang],
+        }
+    else:
+        offer["priceSpecification"] = {
+            "@type": "UnitPriceSpecification",
+            "price": tour["price"], "priceCurrency": "EUR",
+            "unitText": PER_PERSON_UNIT[lang],
+        }
+
+    return {
+        "@type": "TouristTrip",
+        "@id": abs_url(canonical) + "#trip",
+        "name": c["name"],
+        "description": desc,
+        "url": abs_url(canonical),
+        "image": imgs,
+        "inLanguage": HTML_LANG[lang],
+        "provider": {"@type": "TravelAgency", "@id": BIZ_ID, "name": cfg.BRAND_NAME},
+        "offers": offer,
+    }
 
 # ---------------------------------------------------------------------------
 # WhatsApp
@@ -321,7 +408,8 @@ def security_meta():
         m.append('<meta name="msvalidate.01" content="%s">' % esca(cfg.BING_SITE_VERIFICATION.strip()))
     return "".join(m)
 
-def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=None):
+def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=None,
+         og_image=None, og_image_alt="", og_type="website"):
     alts = []
     for l in LANG_ORDER:
         if l in alt_paths:
@@ -330,7 +418,11 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
     jsonld_tag = ""
     if jsonld:
         jsonld_tag = '<script type="application/ld+json">%s</script>' % json.dumps(jsonld, ensure_ascii=False, separators=(",", ":"))
-    og_img = abs_url("/assets/img/og-logo.png")
+    og_img = og_image or abs_url("/assets/img/og-logo.png")
+    og_img_alt = og_image_alt or cfg.BRAND_NAME
+    # og:locale:alternate for the other two languages (reciprocal social locale).
+    og_alt_locales = "".join('<meta property="og:locale:alternate" content="%s">' % OG_LOCALE[l]
+                             for l in LANG_ORDER if l != lang)
     return """<!doctype html>
 <html lang="{lang}">
 <head>
@@ -341,16 +433,22 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{canon}">
 {alts}
-<meta property="og:type" content="website">
+<meta property="og:type" content="{ogtype}">
 <meta property="og:locale" content="{oglocale}">
+{ogaltloc}
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{canon}">
 <meta property="og:image" content="{ogimg}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{ogimgalt}">
 <meta property="og:site_name" content="{brand}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{title}">
+<meta name="twitter:description" content="{desc}">
+<meta name="twitter:image" content="{ogimg}">
+<meta name="twitter:image:alt" content="{ogimgalt}">
 <meta name="theme-color" content="#0bb4c4">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
@@ -367,7 +465,8 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <a class="skip-link" href="#main">{skip}</a>
 """.format(lang=HTML_LANG[lang], sec=security_meta(), title=esca(title), desc=esca(desc),
            canon=abs_url(canonical_path), alts="\n".join(alts), oglocale=OG_LOCALE[lang],
-           ogimg=og_img, brand=esca(cfg.BRAND_NAME), analytics=analytics_head(),
+           ogaltloc=og_alt_locales, ogtype=esca(og_type), ogimg=og_img, ogimgalt=esca(og_img_alt),
+           brand=esca(cfg.BRAND_NAME), analytics=analytics_head(),
            jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]))
 
 def langswitch_html(lang, alt_paths, cls="langswitch"):
@@ -675,8 +774,13 @@ def gallery_html(tour, lang):
     name = tour["content"][lang]["name"]
     if not imgs:
         return '<div class="tour-hero__media">%s</div>' % media(tour, lang, kind="hero")
+    alts = GALLERY_ALT.get(tour["id"], {}).get(lang) or []
+
+    def _alt(i):
+        return alts[i] if i < len(alts) else "%s - %d" % (name, i + 1)
+
     data = esca(json.dumps(imgs))
-    main_alt = esca("%s - 1" % name)
+    main_alt = esca(_alt(0))
     main = ('<div class="gallery__main">'
             '<button class="gallery__nav gallery__nav--prev" data-gprev aria-label="%s">%s</button>'
             '<img class="gallery__img" data-gmain src="%s" alt="%s" width="1200" height="825" decoding="async">'
@@ -693,10 +797,11 @@ def gallery_html(tour, lang):
         tb = []
         for i, u in enumerate(imgs):
             cls = "gallery__thumb is-active" if i == 0 else "gallery__thumb"
-            tb.append('<button class="%s" data-gthumb="%d" aria-label="%s"><img src="%s" alt="%s - %d" width="160" height="110" loading="lazy" decoding="async"></button>'
-                      % (cls, i, esca("%s - %d" % (name, i + 1)), esca(u), esca(name), i + 1))
+            tb.append('<button class="%s" data-gthumb="%d" aria-label="%s"><img src="%s" alt="%s" width="160" height="110" loading="lazy" decoding="async"></button>'
+                      % (cls, i, esca(_alt(i)), esca(u), esca(_alt(i))))
         thumbs = '<div class="gallery__thumbs">%s</div>' % "".join(tb)
-    return '<div class="gallery" data-gallery data-images="%s">%s%s</div>' % (data, main, thumbs)
+    altdata = esca(json.dumps([_alt(i) for i in range(len(imgs))], ensure_ascii=False))
+    return '<div class="gallery" data-gallery data-images="%s" data-alts="%s">%s%s</div>' % (data, altdata, main, thumbs)
 
 # ---------------------------------------------------------------------------
 # hero media (slideshow of clean stills, or single image / placeholder)
@@ -792,13 +897,17 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
     org = sd_org(lang)
     org["makesOffer"] = [{"@type": "Offer", "name": t["content"][lang]["name"], "price": t["price"],
                           "priceCurrency": "EUR", "url": abs_url(url_tour(lang, t["slug"]))} for t in public_tours]
-    jsonld = {"@context": "https://schema.org", "@graph": [sd_website(lang), org, sd_faq(lang)]}
+    og_image = abs_url("/assets/img/og-logo.png")
+    og_image_alt = "%s - %s" % (cfg.BRAND_SHORT, tr["hero_kicker"])
+    webpage = sd_webpage(lang, canonical_path, tr["meta_home_title"], og_image, about_id=BIZ_ID)
+    jsonld = {"@context": "https://schema.org", "@graph": [sd_website(lang), org, webpage, sd_faq(lang)]}
 
     body = (header(lang, alt_paths, public_tours, home_base) + '<main id="main">' + hero + trust_strip(lang) + chipbar
             + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
             + "</main>" + footer(lang, public_tours, home_base) + wa_float(lang)
             + booking_dialog(lang, public_tours) + booking_data_script(lang, public_tours))
-    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths, "/", jsonld) + body + scripts()
+    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths, "/", jsonld,
+               og_image=og_image, og_image_alt=og_image_alt) + body + scripts()
     write(out_path or os.path.join(DIST, lang, "index.html"), doc)
 
 # ---------------------------------------------------------------------------
@@ -905,25 +1014,30 @@ def build_tour(lang, tour, public_tours):
 
     body_sec = '<section class="section"><div class="container"><div class="tour-body">%s%s</div></div></section>' % (main_col, sticky)
 
-    desc = c["intro"]
-    if len(desc) > 158:
-        desc = desc[:155].rstrip() + "..."
+    desc = META_DESC.get(tour["id"], {}).get(lang)
+    if not desc:
+        # Fallback: trim the intro on a word boundary (no mid-word cut), no ellipsis.
+        desc = c["intro"]
+        if len(desc) > 160:
+            cut = desc[:157].rstrip()
+            desc = (cut[:cut.rfind(" ")] if " " in cut else cut) + "..."
     title = "%s - €%d%s" % (c["name"], tour["price"], tr["meta_title_suffix"])
 
-    product = {
-        "@type": "Product", "name": c["name"], "description": c["intro"],
-        "brand": {"@type": "Brand", "name": cfg.BRAND_NAME},
-        "image": [abs_url(u) for u in gallery_files(tour["id"])] or [abs_url("/assets/img/og-logo.png")],
-        "offers": {"@type": "Offer", "price": tour["price"], "priceCurrency": "EUR",
-                   "availability": "https://schema.org/InStock", "url": abs_url(canonical)},
-    }
-    jsonld = {"@context": "https://schema.org", "@graph": [product, sd_breadcrumb(lang, tour)]}
+    gfiles = gallery_files(tour["id"])
+    first_img = abs_url(gfiles[0]) if gfiles else abs_url("/assets/img/og/%s.jpg" % tour["id"])
+    trip = sd_trip(lang, tour)
+    breadcrumb_sd = sd_breadcrumb(lang, tour)
+    webpage = sd_webpage(lang, canonical, c["name"], first_img,
+                         about_id=trip["@id"], breadcrumb_id=breadcrumb_sd["@id"])
+    jsonld = {"@context": "https://schema.org", "@graph": [trip, sd_org(lang), breadcrumb_sd, webpage]}
+    og_image = abs_url("/assets/img/og/%s.jpg" % tour["id"])
 
     body = (header(lang, alt_paths, public_tours) + '<main id="main" class="has-bookbar">' + breadcrumb + tour_hero + body_sec + related_html
             + "</main>" + footer(lang, public_tours) + lightbox_html(lang)
             + book_bar(lang, tour) + wa_tour_float(lang, tour)
             + booking_dialog(lang, public_tours) + booking_data_script(lang, public_tours, tour["id"]))
-    doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld) + body + scripts()
+    doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld,
+               og_image=og_image, og_image_alt=c["name"]) + body + scripts()
     write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)
 
 def lightbox_html(lang):
@@ -982,21 +1096,27 @@ def build_sitemap(public_tours):
     today = date.today().isoformat()
     urls = []
 
-    def entry(path, alts):
+    def entry(path, alts, images=None):
         links = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (HTML_LANG[l], abs_url(alts[l])) for l in LANG_ORDER)
         links += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % abs_url("/")
-        return '<url><loc>%s</loc><lastmod>%s</lastmod>%s</url>' % (abs_url(path), today, links)
+        imgs = "".join('<image:image><image:loc>%s</image:loc></image:image>' % abs_url(u) for u in (images or []))
+        return '<url><loc>%s</loc><lastmod>%s</lastmod>%s%s</url>' % (abs_url(path), today, links, imgs)
 
+    # Homepage: the catalog cover images shown on the page aid Google Images.
+    home_imgs = ["/assets/img/tours/%s" % tour_image_file(t["id"]) for t in public_tours if tour_image_file(t["id"])]
     home_alts = {l: url_home(l) for l in LANG_ORDER}
     for l in LANG_ORDER:
-        urls.append(entry(url_home(l), home_alts))
+        urls.append(entry(url_home(l), home_alts, home_imgs))
     for t in public_tours:
         alts = {l: url_tour(l, t["slug"]) for l in LANG_ORDER}
+        t_imgs = gallery_files(t["id"])
         for l in LANG_ORDER:
-            urls.append(entry(url_tour(l, t["slug"]), alts))
+            urls.append(entry(url_tour(l, t["slug"]), alts, t_imgs))
 
     sm = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n%s\n</urlset>\n' % "\n".join(urls))
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+          'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
+          'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n%s\n</urlset>\n' % "\n".join(urls))
     write(os.path.join(DIST, "sitemap.xml"), sm)
 
 def build_robots():

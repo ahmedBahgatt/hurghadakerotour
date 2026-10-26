@@ -31,6 +31,13 @@ slide-in right nav drawer, a WhatsApp booking-form dialog (bottom-sheet/modal,
 localized FR/PL/RO, validation, preselected excursion), and a sticky mobile
 booking bar on tour pages (speedboat priced per boat). Verified with Playwright
 on Chromium/WebKit/Firefox (0px overflow at 320/390). See HANDOFF.md section E.
+A full SEO/GEO/AEO/AIO pass (2026-10-26) added: accurate per-image localized ALT
+(`data/seo.py`), per-tour meta descriptions, per-tour 1200x630 OG cards +
+`og:image:alt`/`og:locale:alternate`/Twitter tags, an entity-linked JSON-LD graph
+(TouristTrip+Offer+UnitPriceSpecification, TravelAgency, WebSite, WebPage,
+BreadcrumbList - speedboat priced per boat), an image sitemap, and an SEO
+regression gate (`scripts/test_seo.py`). Docs: SEO_AUDIT.md, SEO_KEYWORD_MAP.md,
+SCHEMA_AUDIT.md, SEO_LAUNCH_CHECKLIST.md, reports/seo-page-inventory.csv.
 Indexing is intentionally OFF: every page emits `noindex,follow` via
 `ALLOW_INDEXING=False` - keep it off until the owner approves. Lion Cub is
 published but ad-excluded (`LION_CUB_ADS_ELIGIBLE=False`) - keep it out of Google

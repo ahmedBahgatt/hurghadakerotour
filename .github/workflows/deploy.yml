@@ -49,6 +49,9 @@ jobs:
       - name: WhatsApp / contact-number regression
         run: python3 scripts/test_whatsapp.py
 
+      - name: SEO regression (titles, canonicals, hreflang, schema, prices, alts)
+        run: python3 scripts/test_seo.py
+
       - name: Configure Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5

@@ -431,15 +431,15 @@
   var lb = doc.querySelector("[data-lightbox]");
   var lbImg = lb ? lb.querySelector("[data-lbimg]") : null;
   var lbCounter = lb ? lb.querySelector("[data-lbcounter]") : null;
-  var lbList = [], lbIndex = 0, lbLastFocus = null;
+  var lbList = [], lbAlts = [], lbIndex = 0, lbLastFocus = null;
   function lbRender() {
     if (!lbImg) return;
-    lbImg.src = lbList[lbIndex]; lbImg.alt = "";
+    lbImg.src = lbList[lbIndex]; lbImg.alt = lbAlts[lbIndex] || "";
     if (lbCounter) lbCounter.textContent = (lbIndex + 1) + " / " + lbList.length;
   }
-  function lbOpen(list, i) {
+  function lbOpen(list, i, alts) {
     if (!lb) return;
-    lbList = list; lbIndex = i; lbLastFocus = doc.activeElement;
+    lbList = list; lbAlts = alts || []; lbIndex = i; lbLastFocus = doc.activeElement;
     lbRender();
     lb.hidden = false; lb.setAttribute("aria-hidden", "false");
     lockScroll();
@@ -470,8 +470,9 @@
      Galleries
      ==================================================================== */
   doc.querySelectorAll("[data-gallery]").forEach(function (g) {
-    var images = [];
+    var images = [], alts = [];
     try { images = JSON.parse(g.getAttribute("data-images") || "[]"); } catch (e) { images = []; }
+    try { alts = JSON.parse(g.getAttribute("data-alts") || "[]"); } catch (e) { alts = []; }
     if (!images.length) return;
     var main = g.querySelector("[data-gmain]");
     var cur = g.querySelector("[data-gcur]");
@@ -479,7 +480,7 @@
     var index = 0;
     function show(i) {
       index = (i + images.length) % images.length;
-      if (main) main.src = images[index];
+      if (main) { main.src = images[index]; if (alts[index]) main.alt = alts[index]; }
       if (cur) cur.textContent = index + 1;
       thumbs.forEach(function (t) {
         t.classList.toggle("is-active", parseInt(t.getAttribute("data-gthumb"), 10) === index);
@@ -492,8 +493,8 @@
     if (prev) prev.addEventListener("click", function () { show(index - 1); });
     if (next) next.addEventListener("click", function () { show(index + 1); });
     var zoom = g.querySelector("[data-gzoom]");
-    if (zoom) zoom.addEventListener("click", function () { lbOpen(images, index); });
-    if (main) main.addEventListener("click", function () { lbOpen(images, index); });
+    if (zoom) zoom.addEventListener("click", function () { lbOpen(images, index, alts); });
+    if (main) main.addEventListener("click", function () { lbOpen(images, index, alts); });
     var x0 = null;
     if (main) {
       main.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });

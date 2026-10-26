@@ -4,6 +4,41 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-26 - Full SEO / GEO / AEO / AIO pass (indexing still OFF).** A
+> production-grade multilingual search-optimization overhaul was implemented in
+> the generator + data layer (not a rebuild). `ALLOW_INDEXING=False` is
+> **unchanged** - every page still emits `noindex,follow`. What changed:
+> (1) **Image SEO** - the old generic `"<tour name> - N"` ALT was replaced with
+> accurate, localized, per-image ALT for all 57 gallery images x FR/PL/RO (new
+> `data/seo.py` `GALLERY_ALT`), written after visually verifying each image vs
+> `IMAGE_AUDIT.md`; no cross-tour mislabeling; hero stays decorative (AI composite).
+> `app.js` now swaps ALT on gallery/lightbox navigation.
+> (2) **Open Graph** - tour pages now use a per-tour 1200x630 card
+> (`assets/img/og/<id>.jpg`, generated from the covers); added `og:image:alt`,
+> `og:locale:alternate`, and Twitter title/description/image. Homepage keeps the
+> branded `og-logo.png`.
+> (3) **Structured data** rebuilt into one entity graph: `TouristTrip` (+`Offer`
+> +`UnitPriceSpecification`) replacing the loose `Product`; `TravelAgency`
+> (`#business`), `WebSite` (`#website`), `WebPage`, `BreadcrumbList`, all linked by
+> stable `@id`. **Speedboat is modeled per private boat (base 2-5), never per
+> person.** Prices come from `data/tours.py` (no separate price list). `Product`
+> intentionally NOT used (service, not a buyable product); FAQ markup kept but
+> noted as deprecated by Google (no rich result expected). See `SCHEMA_AUDIT.md`.
+> (4) **Meta descriptions** - purpose-written per tour x language (`data/seo.py`
+> `META_DESC`), replacing the truncated-intro "...".
+> (5) **Image sitemap** added to `sitemap.xml` (Google Images).
+> (6) **SEO regression suite** `scripts/test_seo.py` (titles, canonicals, robots
+> vs `ALLOW_INDEXING`, hreflang reciprocity, one H1, OG completeness, JSON-LD
+> validity + required entities, structured==visible==source price, speedboat
+> per-boat, image-ALT coverage, sitemap coverage, no stale domain / old number /
+> fabricated identity) - wired into `deploy.yml`.
+> Deliverables committed: `SEO_AUDIT.md`, `SEO_KEYWORD_MAP.md`, `SCHEMA_AUDIT.md`,
+> `SEO_LAUNCH_CHECKLIST.md`, `reports/seo-page-inventory.csv`.
+> Local gates all green: `check.py` 38/38, `test_whatsapp.py` 39 files 0,
+> `test_seo.py` 36 pages 0 problems (8 title-length warnings only). Business legal
+> info still empty (never fabricated). Lion Cub still `LION_CUB_ADS_ELIGIBLE=False`.
+> To enable indexing later follow `SEO_LAUNCH_CHECKLIST.md` (flip one flag).
+>
 > **2026-10-26 - Official contact number changed site-wide.** The WhatsApp /
 > phone number is now **`201288808645`** (display `+20 128 880 8645`,
 > `https://wa.me/201288808645`). The previous number `201278378685` is retired
