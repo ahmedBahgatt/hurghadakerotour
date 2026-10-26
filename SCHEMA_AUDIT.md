@@ -40,15 +40,18 @@ KeRo Tours sells and operates excursions. Fields emitted:
 
 - `name`, `url`, `logo`, `image`, `priceRange` (`€€`)
 - `telephone` (+201288808645, the official WhatsApp/booking line)
-- `areaServed` (City: Hurghada), `address` (locality/region/country only - **no
-  fabricated street address**), `geo` (Hurghada coordinates - the public service
-  area, not a fake premises)
+- `areaServed` (City: Hurghada) - the public service area
 - `sameAs` - the verified official Instagram / Facebook / TikTok profiles
 
-**Deliberately NOT emitted (not provided / would be fabrication):** street
-address, tourism licence number, company registration, founding date, opening
-hours, reviews, aggregate rating, awards, certifications. `email`/`legalName` are
-emitted **only if** set in `site_config.py` (`BUSINESS`), which is currently empty.
+**Deliberately NOT emitted (not provided / would be fabrication or unverified):**
+`geo` (GeoCoordinates) and `address` (PostalAddress) are **removed** - no verified
+public business premises or office coordinates have been provided, and a generic
+city-centre point would misrepresent an exact location; `areaServed: Hurghada`
+remains as the accurate service-area signal. Also not emitted: street address,
+tourism licence number, company registration, founding date, opening hours,
+reviews, aggregate rating, awards, certifications. `email`/`legalName` are emitted
+**only if** set in `site_config.py` (`BUSINESS`), which is currently empty. If the
+owner later supplies a verified address/coordinates, re-add them in `sd_org()`.
 
 > No `Review`/`AggregateRating` is present anywhere. Do not add star ratings or
 > review counts until there are genuine, policy-compliant reviews. Fake review
@@ -88,8 +91,12 @@ validation indicator.*
 ### Offer + price basis (truthful, matches the visible page)
 
 Every `TouristTrip` carries one `Offer`:
-- `price`, `priceCurrency: "EUR"`, `availability: InStock`, `url` (canonical),
-  `seller` -> `#business`.
+- `price`, `priceCurrency: "EUR"`, `url` (canonical), `seller` -> `#business`.
+- **No `availability`.** Excursions are booked by WhatsApp and a given date is
+  confirmed manually by the operator - there is no live booking inventory, so any
+  availability status (`InStock`, `PreOrder`, `LimitedAvailability`, ...) would be
+  unverified. It is deliberately omitted. (`scripts/test_seo.py` fails the build if
+  any availability status reappears.)
 - `priceSpecification` = `UnitPriceSpecification` stating the **price basis**:
   - per-person tours: `unitText` = "par personne" / "za osobę" / "de persoană".
   - **private speedboat**: `unitText` = "par bateau privé" / "za prywatną łódź" /
@@ -180,6 +187,8 @@ deprecation notice](https://developers.google.com/search/docs/appearance/structu
 - **Price == visible == source:** enforced by `scripts/test_seo.py`
   (offer price equals `data/tours.py`; the exact `&euro;N` appears on the page;
   speedboat flagged per-boat).
+- **No unverified fields:** `scripts/test_seo.py` fails the build if any Offer
+  `availability` / `schema.org/InStock`, or any `GeoCoordinates`, reappears.
 - **Entity links:** `provider`/`seller`/`publisher`/`isPartOf`/`about`/
   `breadcrumb` all reference on-page `@id`s.
 

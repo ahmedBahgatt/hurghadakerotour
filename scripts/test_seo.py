@@ -223,6 +223,12 @@ def main():
             if ph in html:
                 fail("%s: retired phone number %r" % (rel, ph))
 
+        # --- schema accuracy: no unverified availability / office coordinates ---
+        if '"availability"' in html or "schema.org/InStock" in html:
+            fail("%s: unverified Offer availability in JSON-LD (remove it)" % rel)
+        if "GeoCoordinates" in html:
+            fail("%s: unverified office GeoCoordinates in JSON-LD (remove it)" % rel)
+
         if is_tour:
             slug = os.path.basename(os.path.dirname(rel))
             tour = tour_by_slug(lang, slug)
@@ -241,6 +247,8 @@ def main():
                     fail("%s: offer price %r != data price %r" % (rel, price, tour["price"]))
                 if offer.get("priceCurrency") != "EUR":
                     fail("%s: offer currency %r != EUR" % (rel, offer.get("priceCurrency")))
+                if "availability" in offer:
+                    fail("%s: Offer has unverified availability %r" % (rel, offer.get("availability")))
                 prov = trip.get("provider", {})
                 if prov.get("@id") != SITE + "/#business":
                     fail("%s: TouristTrip provider @id missing/incorrect" % rel)

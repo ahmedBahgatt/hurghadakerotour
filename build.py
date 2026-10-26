@@ -187,10 +187,12 @@ def sd_org(lang):
         "url": abs_url(url_home(lang)),
         "image": abs_url("/assets/img/og-logo.png"),
         "logo": abs_url("/assets/img/logo.png"),
+        # areaServed = the public service area (Hurghada). We deliberately omit
+        # `address` (PostalAddress) and `geo` (GeoCoordinates): no verified public
+        # business premises or office coordinates have been provided, and a
+        # generic city-centre point would misrepresent an exact location. If the
+        # owner later supplies a verified address, re-add it here. See SCHEMA_AUDIT.md.
         "areaServed": {"@type": "City", "name": cfg.GEO["locality"]},
-        "address": {"@type": "PostalAddress", "addressLocality": cfg.GEO["locality"],
-                    "addressRegion": cfg.GEO["region"], "addressCountry": cfg.GEO["country"]},
-        "geo": {"@type": "GeoCoordinates", "latitude": cfg.GEO["latitude"], "longitude": cfg.GEO["longitude"]},
         "priceRange": "€€",
     }
     if cfg.WHATSAPP_NUMBER:
@@ -254,11 +256,13 @@ def sd_trip(lang, tour):
     imgs = [abs_url(u) for u in gallery_files(tour["id"])] or [abs_url("/assets/img/og/%s.jpg" % tour["id"])]
     desc = META_DESC.get(tour["id"], {}).get(lang) or c["intro"]
 
+    # No `availability` is emitted: excursions are booked by WhatsApp and a given
+    # date is confirmed manually by the operator - there is no live inventory, so
+    # claiming InStock (or any other status) would be unverified. See SCHEMA_AUDIT.md.
     offer = {
         "@type": "Offer",
         "price": tour["price"],
         "priceCurrency": "EUR",
-        "availability": "https://schema.org/InStock",
         "url": abs_url(canonical),
         "seller": {"@id": BIZ_ID},
     }

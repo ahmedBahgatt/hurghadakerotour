@@ -217,6 +217,52 @@ def main():
             fail(problems, "%s: contains api.whatsapp.com reference"
                  % os.path.relpath(f, DIST))
 
+    # --- 8. floating WhatsApp control: exactly one per page, DIRECT chat ------
+    #     Homepage uses .wa-float (generic), tour pages use .wa-bubble (tour).
+    #     It must open a direct wa.me chat in a new tab, NOT the booking form.
+    def check_float(txt, cls, other_cls, where, tour):
+        tags = re.findall(r'<a class="%s[^"]*"[^>]*>' % cls, txt)
+        if len(tags) != 1:
+            fail(problems, "%s: expected exactly 1 .%s floating control, found %d"
+                 % (where, cls, len(tags)))
+            return
+        tag = tags[0]
+        if "data-wa" not in tag:
+            fail(problems, "%s: .%s is not a WhatsApp control (no data-wa)" % (where, cls))
+        if "data-book-open" in tag:
+            fail(problems, "%s: .%s opens the booking form (has data-book-open)" % (where, cls))
+        if 'target="_blank"' not in tag or 'rel="noopener"' not in tag:
+            fail(problems, "%s: .%s missing target=_blank/rel=noopener" % (where, cls))
+        if ("wa.me/%s" % NEW_NUMBER) not in tag:
+            fail(problems, "%s: .%s does not link to the new number" % (where, cls))
+        # the other floating class must not also be present (exactly one total)
+        if ('class="%s' % other_cls) in txt:
+            fail(problems, "%s: unexpected second floating control .%s" % (where, other_cls))
+
+    for lang in LANG_ORDER:
+        check_float(open(os.path.join(DIST, lang, "index.html"), encoding="utf-8").read(),
+                    "wa-float", "wa-bubble", "%s/ homepage" % lang, None)
+        for t in pts:
+            tf = os.path.join(DIST, lang, PATH_TOURS[lang], t["slug"], "index.html")
+            check_float(open(tf, encoding="utf-8").read(),
+                        "wa-bubble", "wa-float", "%s %s tour" % (lang, t["slug"]), t)
+    # root "/" (French-default homepage) also carries one .wa-float
+    check_float(open(os.path.join(DIST, "index.html"), encoding="utf-8").read(),
+                "wa-float", "wa-bubble", "root / homepage", None)
+
+    # --- 8b. CSS must keep the floating button visible on desktop ------------
+    css = open(os.path.join(DIST, "assets", "css", "styles.css"), encoding="utf-8").read()
+    # A STANDALONE `.wa-float { display:none }` rule (line starts with the class,
+    # not a descendant selector like `...drawer.is-open) .wa-float`) was the old
+    # desktop-hide. The modal-hide rules are fine and must not trip this.
+    if re.search(r"(?m)^\s*\.wa-float \{ display: none;", css):
+        fail(problems, "styles.css hides .wa-float with a standalone rule (desktop regression)")
+    if re.search(r"(?m)^\s*\.wa-bubble \{ display: none;", css) or \
+       re.search(r"@media \(min-width: *1000px\) *\{ *\.wa-bubble *\{ *display: *none", css):
+        fail(problems, "styles.css hides .wa-bubble on desktop (regression)")
+    if ".wa-float {" not in css or ".wa-bubble {" not in css:
+        fail(problems, "styles.css missing a floating WhatsApp button rule")
+
     print("WhatsApp regression: checked %d files, %d problem(s)"
           % (len([f for f in files if os.path.isfile(f)]), len(problems)))
     return 1 if problems else 0

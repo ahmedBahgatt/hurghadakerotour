@@ -4,6 +4,38 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-26 - Schema accuracy fixes + desktop floating WhatsApp (indexing still OFF).**
+> Targeted follow-up to the SEO pass (no redesign, no new SEO overhaul).
+> **Schema accuracy** (`build.py`): (1) removed `Offer.availability`
+> (`schema.org/InStock`) from every excursion - bookings are WhatsApp-confirmed,
+> there is no live inventory, so no availability status is claimed (not replaced
+> with PreOrder/LimitedAvailability). (2) removed `TravelAgency.geo`
+> (GeoCoordinates) and `TravelAgency.address` (PostalAddress) - no verified office
+> premises/coordinates provided; kept the accurate `areaServed: Hurghada`, brand
+> name, telephone, `sameAs`, logo. TouristTrip/Offer architecture, EUR prices,
+> per-person basis and speedboat per-boat all preserved.
+> **Desktop floating WhatsApp** (`styles.css` only; HTML/JS unchanged): the
+> existing `.wa-float` (homepage) and `.wa-bubble` (tour pages) were hidden at
+> >=1000px; that gap is fixed. Both now render as a compact ~56px circular,
+> icon-only green button fixed bottom-right (24px inset on desktop), on homepage
+> AND every excursion page, on desktop AND mobile - exactly one per page. It opens
+> a DIRECT wa.me chat in a new tab (target=_blank rel=noopener, never the booking
+> form; the iPhone/Android handoff fix is untouched), with the correct per-page /
+> per-language message + URL via the existing centralized builders
+> (`wa_float`/`wa_tour_float`). The float is hidden via `:has()` while the booking
+> dialog or nav drawer is open (no overlap). Mobile layout (sticky book bar +
+> bubble above it) unchanged - verified at true 390px width (iframe technique; the
+> session window won't shrink below desktop).
+> **Tests**: `scripts/test_seo.py` now fails on any `availability`/`InStock` or
+> `GeoCoordinates`; `scripts/test_whatsapp.py` asserts exactly one floating control
+> per page (homepage `.wa-float`, tour `.wa-bubble`), direct-chat (no
+> `data-book-open`), `target=_blank`/`rel=noopener`, new number, and that the CSS
+> does not hide the float on desktop. All gates green: check.py 38/38,
+> test_whatsapp 39/0, test_seo 36/0 (8 title warnings). Deployed + live-verified;
+> desktop button screenshots captured (homepage + Cairo tour). `SCHEMA_AUDIT.md`
+> updated (no InStock / no geo). `ALLOW_INDEXING=False` + `LION_CUB_ADS_ELIGIBLE=False`
+> unchanged.
+>
 > **2026-10-26 - Full SEO / GEO / AEO / AIO pass (indexing still OFF).** A
 > production-grade multilingual search-optimization overhaul was implemented in
 > the generator + data layer (not a rebuild). `ALLOW_INDEXING=False` is

@@ -248,16 +248,21 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 .footer__bottom { border-top: 1px solid rgba(255,255,255,.12); padding-top: 22px; display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: space-between; font-size: .86rem; color: rgba(255,255,255,.6); }
 .footer__langs { display: flex; gap: 14px; }
 
-/* ---------- Floating WhatsApp (mobile) ---------- */
+/* ---------- Floating WhatsApp (homepage - all viewports) ----------
+   Compact circular icon-only button, bottom-right, direct WhatsApp chat (never
+   the booking form). Shown on mobile AND desktop (see the desktop spacing block
+   near the end of the file). The text label is kept in the DOM for no-JS/aria
+   but visually hidden so the glyph stays perfectly centered. */
 .wa-float {
-  position: fixed; right: 16px; bottom: 16px; z-index: 90;
-  display: inline-flex; align-items: center; gap: 10px;
-  background: #25D366; color: #06331b; font-weight: 700;
-  padding: 13px 18px 13px 15px; border-radius: var(--radius-pill);
-  box-shadow: 0 10px 30px rgba(37,211,102,.45); transition: transform var(--t-fast);
+  position: fixed; right: 16px; bottom: 16px; z-index: 115;
+  width: 56px; height: 56px; border-radius: 50%;
+  display: grid; place-items: center; line-height: 0;
+  background: #25D366; color: #fff;
+  box-shadow: 0 10px 28px rgba(37,211,102,.45); transition: transform var(--t-fast);
 }
-.wa-float svg { width: 24px; height: 24px; }
-.wa-float:hover { transform: scale(1.04); }
+.wa-float svg { width: 28px; height: 28px; display: block; }
+.wa-float:hover { transform: scale(1.05); }
+.wa-float:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .wa-float.is-pending { display: none; }
 .wa-float__text { display: none; }
 
@@ -339,7 +344,6 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
   .grid { grid-template-columns: repeat(2, 1fr); }
   .related { grid-template-columns: repeat(2, 1fr); }
   .trust__row { grid-template-columns: repeat(4, 1fr); }
-  .wa-float__text { display: inline; }
 }
 @media (min-width: 760px) {
   .steps { grid-template-columns: repeat(2, 1fr); }
@@ -355,7 +359,6 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
   .grid { grid-template-columns: repeat(3, 1fr); }
   .related { grid-template-columns: repeat(3, 1fr); }
   .steps { grid-template-columns: repeat(4, 1fr); }
-  .wa-float { display: none; }
 }
 
 /* =========================================================================
@@ -756,10 +759,12 @@ h1, h2, h3, h4, .card__title, .tour-hero h1 { overflow-wrap: break-word; }
 .wa-bubble svg { width: 28px; height: 28px; }
 .wa-bubble:hover { transform: scale(1.05); }
 .wa-bubble.is-pending { display: none; }
-@media (min-width: 1000px) { .wa-bubble { display: none; } }
-/* keep the two actions unambiguous: hide the WA bubble while a sheet is open */
+/* keep the two actions unambiguous: hide the floating WhatsApp while a sheet
+   (booking dialog or nav drawer) is open, so it never sits over modal controls. */
 body:has(.bookdlg:not([hidden])) .wa-bubble,
-body:has(.drawer.is-open) .wa-bubble { display: none; }
+body:has(.drawer.is-open) .wa-bubble,
+body:has(.bookdlg:not([hidden])) .wa-float,
+body:has(.drawer.is-open) .wa-float { display: none; }
 
 /* ---- Booking form: read-only tour context + no-deposit reminder ---- */
 .bookform__context { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; }
@@ -800,17 +805,14 @@ body:has(.drawer.is-open) .wa-bubble { display: none; }
   .nav__toggle { display: none !important; }
 }
 
-/* ---- Floating WhatsApp: perfectly centered icon ---- */
-/* tour-page bubble is already a circle; make the homepage float a clean circle
-   on mobile (icon-only) so the glyph is centered, not an off-center pill */
+/* ---- Floating WhatsApp: the homepage float and the tour-page bubble are both
+   circular, icon-only, bottom-right buttons at every width. On desktop
+   (>=1000px) there is no sticky booking bar, so the tour bubble drops to a
+   normal bottom offset and both buttons sit ~24px off the viewport edges. ---- */
 .wa-bubble { line-height: 0; }
 .wa-bubble svg, .wa-float svg { display: block; }
-@media (max-width: 559.98px) {
-  .wa-float {
-    width: 56px; height: 56px; padding: 0; gap: 0; border-radius: 50%;
-    display: grid; place-items: center; line-height: 0;
-  }
-  .wa-float svg { width: 28px; height: 28px; }
+@media (min-width: 1000px) {
+  .wa-float, .wa-bubble { right: 24px; bottom: 24px; }
 }
 
 /* ---- Booking form: room number + people share one aligned, symmetric row.
