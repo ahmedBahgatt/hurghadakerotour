@@ -427,23 +427,50 @@ def analytics_head():
     return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
             '<script>%s</script>\n' % (primary, "".join(lines)))
 
-# CSP (meta http-equiv; GitHub Pages cannot send response headers). The Google
-# Ads tag + conversion pings need googletagmanager (gtag.js), googleadservices
-# and (googleads/td).doubleclick.net reachable, or the meta CSP would silently
-# block the conversion. google-analytics endpoints are kept (gtag.js may still
-# use them) though no GA4 is configured.
+# Google sends the Ads remarketing / first-party pings (1p-user-list,
+# 1p-conversion, rmkt/ccm collect) to the VISITOR'S LOCAL Google ccTLD, not just
+# google.com - observed live hitting www.google.com.eg. CSP allows no wildcard on
+# the right of a host, so Google documents listing each TLD explicitly
+# (https://www.google.com/supported_domains). This is the site's real audience:
+# tourists physically in Egypt arriving from FR/PL/RO + the main EEA/UK/CH markets.
+GOOGLE_AD_DOMAINS = [
+    "https://www.google.com", "https://www.google.com.eg",
+    "https://www.google.fr", "https://www.google.pl", "https://www.google.ro",
+    "https://www.google.de", "https://www.google.at", "https://www.google.ch",
+    "https://www.google.nl", "https://www.google.be", "https://www.google.it",
+    "https://www.google.es", "https://www.google.pt", "https://www.google.cz",
+    "https://www.google.sk", "https://www.google.hu", "https://www.google.se",
+    "https://www.google.dk", "https://www.google.fi", "https://www.google.ie",
+    "https://www.google.co.uk",
+]
+
+# CSP (meta http-equiv; GitHub Pages cannot send response headers). Aligned with
+# Google's official CSP guidance for the Google tag + Google Ads conversion /
+# remarketing / Conversion Linker + Tag Assistant
+# (developers.google.com/tag-platform/security/guides/csp):
+#   - script-src: gtag.js (googletagmanager), the Ads conversion script hosts
+#     (googleadservices, www.google.com) and the conversion-linker frame host.
+#     No script-src-elem is set, so script element loads fall back to script-src.
+#   - frame-src / connect-src / img-src: include www.googletagmanager.com so Tag
+#     Assistant's debug channel + gtag beacons are not blocked (the cause of the
+#     "CSP blocking Google scripts" + unreliable tag-detection warning).
+#   - no 'unsafe-eval', no wildcards; every host is explicit.
+_G = " ".join(GOOGLE_AD_DOMAINS)
 CSP = ("default-src 'self'; "
-       "img-src 'self' data: https://www.google.com https://www.googleadservices.com "
-       "https://googleads.g.doubleclick.net; "
+       "img-src 'self' data: https://www.googletagmanager.com "
+       "https://www.googleadservices.com https://googleads.g.doubleclick.net "
+       "https://pagead2.googlesyndication.com " + _G + "; "
        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; "
        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com "
-       "https://www.googleadservices.com https://googleads.g.doubleclick.net; "
+       "https://www.googleadservices.com https://googleads.g.doubleclick.net "
+       "https://www.google.com; "
        "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com "
-       "https://www.google.com https://www.googleadservices.com "
+       "https://www.googletagmanager.com https://www.googleadservices.com "
        "https://googleads.g.doubleclick.net https://td.doubleclick.net "
-       "https://pagead2.googlesyndication.com; "
-       "frame-src https://googleads.g.doubleclick.net https://td.doubleclick.net; "
+       "https://ad.doubleclick.net https://pagead2.googlesyndication.com " + _G + "; "
+       "frame-src https://www.googletagmanager.com https://googleads.g.doubleclick.net "
+       "https://td.doubleclick.net; "
        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
 
 def security_meta():

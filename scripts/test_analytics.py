@@ -116,19 +116,50 @@ def main():
             if ci > cci:
                 fail("%s: consent default must precede config" % rel)
 
-        # the meta CSP must ALLOW the Ads endpoints or the beacon is blocked
+        # the meta CSP must ALLOW the Ads endpoints PER DIRECTIVE, aligned with
+        # Google's official CSP guidance (Tag Assistant flags missing hosts even
+        # when requests currently succeed).
         csp = re.search(r'Content-Security-Policy" content="([^"]+)"', html)
         if not csp:
             fail("%s: no CSP meta" % rel)
         else:
-            c = csp.group(1)
-            for need, directive in [
-                ("https://www.googletagmanager.com", "script-src"),
-                ("https://www.googleadservices.com", "script-src"),
-                ("https://googleads.g.doubleclick.net", "connect-src"),
-            ]:
-                if need not in c:
-                    fail("%s: CSP missing %s (needed for %s)" % (rel, need, directive))
+            directives = {}
+            for part in csp.group(1).split(";"):
+                toks = part.split()
+                if toks:
+                    directives[toks[0].strip()] = set(toks[1:])
+            required = {
+                # the "blocking Google scripts" fix: Ads conversion-linker script host
+                "script-src": ["https://www.googletagmanager.com",
+                               "https://www.googleadservices.com",
+                               "https://googleads.g.doubleclick.net",
+                               "https://www.google.com"],
+                # Tag Assistant debug channel + gtag beacons/frames
+                "frame-src": ["https://www.googletagmanager.com"],
+                "connect-src": ["https://www.googletagmanager.com",
+                                "https://www.googleadservices.com",
+                                "https://googleads.g.doubleclick.net",
+                                "https://ad.doubleclick.net",
+                                "https://www.google.com"],
+                "img-src": ["https://www.googletagmanager.com",
+                            "https://www.googleadservices.com",
+                            "https://googleads.g.doubleclick.net",
+                            "https://pagead2.googlesyndication.com",
+                            "https://www.google.com"],
+            }
+            for directive, hosts in required.items():
+                have = directives.get(directive, set())
+                for h in hosts:
+                    if h not in have:
+                        fail("%s: CSP %s missing %s" % (rel, directive, h))
+            # the visitor's local Google ccTLD must be allowed for the 1p pings
+            for directive in ("img-src", "connect-src"):
+                if "https://www.google.com.eg" not in directives.get(directive, set()):
+                    fail("%s: CSP %s missing a regional Google ccTLD "
+                         "(e.g. www.google.com.eg)" % (rel, directive))
+            # never widen with wildcards or unsafe-eval
+            if "'unsafe-eval'" in csp.group(1) or "*" in csp.group(1):
+                fail("%s: CSP uses unsafe-eval or a wildcard" % rel)
 
     print("checked %d content pages for the Ads tag" % content_pages)
 
