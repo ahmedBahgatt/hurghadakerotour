@@ -427,6 +427,29 @@ def analytics_head():
     return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
             '<script>%s</script>\n' % (primary, "".join(lines)))
 
+def clarity_head():
+    """Microsoft Clarity loader - the official async snippet, verbatim, with the
+    project id from site_config. Returns '' when no id is set, so the install is
+    centralized and reversible exactly like the Google tag.
+
+    Injected AFTER analytics_head() in <head> so gtag's Consent Mode v2 defaults
+    are already in the dataLayer when Clarity initializes: Clarity's native
+    Google Consent Mode integration then reads analytics_storage on its own
+    (EEA/UK/CH -> cookieless, no second banner, no fabricated consent; granted
+    elsewhere). Non-blocking (t.async=1). No personal data is sent and input
+    values are masked by Clarity in every masking mode.
+    """
+    cid = getattr(cfg, "CLARITY_PROJECT_ID", "").strip()
+    if not cid:
+        return ""
+    return ('<script type="text/javascript">\n'
+            '(function(c,l,a,r,i,t,y){\n'
+            'c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};\n'
+            't=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;\n'
+            'y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);\n'
+            '})(window, document, "clarity", "script", "%s");\n'
+            '</script>\n' % cid)
+
 # Google sends the Ads remarketing / first-party pings (1p-user-list,
 # 1p-conversion, rmkt/ccm collect) to the VISITOR'S LOCAL Google ccTLD, not just
 # google.com - observed live hitting www.google.com.eg. CSP allows no wildcard on
@@ -444,6 +467,21 @@ GOOGLE_AD_DOMAINS = [
     "https://www.google.co.uk",
 ]
 
+# Microsoft Clarity load-balances its collection across multiple hosts. Its CSP
+# doc (learn.microsoft.com/clarity/setup-and-installation/clarity-csp) allows the
+# wildcard https://*.clarity.ms, but this policy uses NO wildcards (locked by the
+# analytics gate), so the individual hosts are enumerated: the tag host
+# www.clarity.ms, the a..z.clarity.ms environment shards, and c.bing.com (the
+# MUID sync). Added to script-src (tag + env sub-resources), connect-src (the
+# /collect beacons) and img-src (sync pixel). This adds NO consent surface:
+# Clarity's native Google Consent Mode integration reads the gtag
+# analytics_storage signal already set in analytics_head(), so EEA/UK/CH stay
+# cookieless automatically with no second banner.
+CLARITY_DOMAINS = (["https://www.clarity.ms"]
+                   + ["https://%s.clarity.ms" % chr(c) for c in range(ord("a"), ord("z") + 1)]
+                   + ["https://c.bing.com"])
+_C = " ".join(CLARITY_DOMAINS)
+
 # CSP (meta http-equiv; GitHub Pages cannot send response headers). Aligned with
 # Google's official CSP guidance for the Google tag + Google Ads conversion /
 # remarketing / Conversion Linker + Tag Assistant
@@ -459,16 +497,16 @@ _G = " ".join(GOOGLE_AD_DOMAINS)
 CSP = ("default-src 'self'; "
        "img-src 'self' data: https://www.googletagmanager.com "
        "https://www.googleadservices.com https://googleads.g.doubleclick.net "
-       "https://pagead2.googlesyndication.com " + _G + "; "
+       "https://pagead2.googlesyndication.com " + _G + " " + _C + "; "
        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; "
        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com "
        "https://www.googleadservices.com https://googleads.g.doubleclick.net "
-       "https://www.google.com; "
+       "https://www.google.com " + _C + "; "
        "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com "
        "https://www.googletagmanager.com https://www.googleadservices.com "
        "https://googleads.g.doubleclick.net https://td.doubleclick.net "
-       "https://ad.doubleclick.net https://pagead2.googlesyndication.com " + _G + "; "
+       "https://ad.doubleclick.net https://pagead2.googlesyndication.com " + _G + " " + _C + "; "
        "frame-src https://www.googletagmanager.com https://googleads.g.doubleclick.net "
        "https://td.doubleclick.net; "
        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
@@ -535,14 +573,14 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/styles.css">
-{analytics}<script src="/assets/js/config.js"></script>
+{analytics}{clarity}<script src="/assets/js/config.js"></script>
 {jsonld}</head>
 <body>
 <a class="skip-link" href="#main">{skip}</a>
 """.format(lang=HTML_LANG[lang], sec=security_meta(), title=esca(title), desc=esca(desc),
            canon=abs_url(canonical_path), alts="\n".join(alts), oglocale=OG_LOCALE[lang],
            ogaltloc=og_alt_locales, ogtype=esca(og_type), ogimg=og_img, ogimgalt=esca(og_img_alt),
-           brand=esca(cfg.BRAND_NAME), analytics=analytics_head(),
+           brand=esca(cfg.BRAND_NAME), analytics=analytics_head(), clarity=clarity_head(),
            jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]))
 
 def langswitch_html(lang, alt_paths, cls="langswitch"):
@@ -742,7 +780,7 @@ def booking_dialog(lang, public_tours):
 <div><h2 id="bk-title">%s</h2><p>%s</p></div>
 <button class="bookdlg__close" type="button" data-book-close aria-label="%s">%s</button>
 </div>
-<form class="bookform" data-bookform novalidate>
+<form class="bookform" data-bookform novalidate data-clarity-mask="True">
 <div class="bookform__context" data-bk-context hidden>
 <span class="bookform__context-label">%s</span>
 <b data-bk-context-name></b>

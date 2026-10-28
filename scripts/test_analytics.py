@@ -36,6 +36,9 @@ DIST = os.path.join(ROOT, "dist")
 
 ADS_ID = "AW-18538088460"
 CONV = "AW-18538088460/HOYlCNeOq6odEIyQ04dF"
+CLARITY_ID = "z4klch73ka"
+# Official Clarity bootstrap invocation - exact spacing matters (verbatim snippet).
+CLARITY_SIG = '(window, document, "clarity", "script", "%s")' % CLARITY_ID
 
 problems = []
 
@@ -62,6 +65,9 @@ def main():
         fail("site_config.GOOGLE_ADS_CONVERSION_LABEL is %r" % cfg.GOOGLE_ADS_CONVERSION_LABEL)
     if cfg.GA4_MEASUREMENT_ID.strip():
         fail("GA4 must stay empty (no GA4), got %r" % cfg.GA4_MEASUREMENT_ID)
+    if getattr(cfg, "CLARITY_PROJECT_ID", "").strip() != CLARITY_ID:
+        fail("site_config.CLARITY_PROJECT_ID is %r, expected %r"
+             % (getattr(cfg, "CLARITY_PROJECT_ID", None), CLARITY_ID))
 
     html_files = sorted(glob.glob(os.path.join(DIST, "**", "*.html"), recursive=True))
     if not html_files:
@@ -77,16 +83,34 @@ def main():
         tag_loads = len(re.findall(r'googletagmanager\.com/gtag/js\?id=', html))
         configs = len(re.findall(r"gtag\('config','AW-18538088460'\)", html))
 
+        clarity_installs = html.count(CLARITY_SIG)
+
         if is_404:
             # one global tag PER PAGE: the 404 is not a content/landing page and
-            # must stay noindex with no tracking tag.
+            # must stay noindex with no tracking tag (gtag OR Clarity).
             if tag_loads:
                 fail("404.html unexpectedly carries a gtag.js load")
+            if clarity_installs:
+                fail("404.html unexpectedly carries a Clarity install")
             if 'content="noindex"' not in html:
                 fail("404.html is not noindex")
             continue
 
         content_pages += 1
+
+        # exactly one Microsoft Clarity install per content page, async, real id
+        if clarity_installs != 1:
+            fail("%s: expected exactly 1 Clarity install, found %d" % (rel, clarity_installs))
+        if 'src="https://www.clarity.ms/tag/"+i' not in html:
+            fail("%s: Clarity async tag src missing/altered" % rel)
+        if "t.async=1" not in html:
+            fail("%s: Clarity loader is not async (t.async=1 missing)" % rel)
+        # Clarity must come AFTER the gtag Consent Mode default so its native GCM
+        # integration reads analytics_storage (no second consent surface).
+        if clarity_installs == 1 and "gtag('consent','default'" in html:
+            if html.index(CLARITY_SIG) < html.index("gtag('consent','default'"):
+                fail("%s: Clarity loads before the gtag consent default "
+                     "(GCM signal not yet set)" % rel)
 
         # exactly one global tag, loaded async (non-blocking)
         if tag_loads != 1:
@@ -157,6 +181,19 @@ def main():
                 if "https://www.google.com.eg" not in directives.get(directive, set()):
                     fail("%s: CSP %s missing a regional Google ccTLD "
                          "(e.g. www.google.com.eg)" % (rel, directive))
+            # Microsoft Clarity: enumerated hosts (no wildcard). The tag host and
+            # the a..z env shards on script/connect/img; c.bing.com (MUID sync)
+            # on connect/img.
+            for directive in ("script-src", "connect-src", "img-src"):
+                have = directives.get(directive, set())
+                for h in ("https://www.clarity.ms", "https://a.clarity.ms",
+                          "https://z.clarity.ms"):
+                    if h not in have:
+                        fail("%s: CSP %s missing Clarity host %s" % (rel, directive, h))
+            for directive in ("connect-src", "img-src"):
+                if "https://c.bing.com" not in directives.get(directive, set()):
+                    fail("%s: CSP %s missing https://c.bing.com (Clarity MUID sync)"
+                         % (rel, directive))
             # never widen with wildcards or unsafe-eval
             if "'unsafe-eval'" in csp.group(1) or "*" in csp.group(1):
                 fail("%s: CSP uses unsafe-eval or a wildcard" % rel)

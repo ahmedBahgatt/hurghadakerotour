@@ -96,6 +96,14 @@ GA4_MEASUREMENT_ID = ""                        # intentionally empty - no GA4
 GOOGLE_ADS_ID = "AW-18538088460"               # live Google Ads tag
 GOOGLE_ADS_CONVERSION_LABEL = "HOYlCNeOq6odEIyQ04dF"  # WhatsApp Contact conversion
 
+# Microsoft Clarity (heatmaps + session recordings). Independent of Google Ads.
+# Empty -> no Clarity script is injected. Its native Google Consent Mode
+# integration reads the gtag analytics_storage signal set above automatically,
+# so EEA/UK/CH visitors stay cookieless with NO extra consent UI; input values
+# are masked by Clarity in every masking mode. 2026-10-28: owner-authorized
+# project for hurghadakerotour.com.
+CLARITY_PROJECT_ID = "z4klch73ka"
+
 # ---------------------------------------------------------------------------
 # COMPLIANCE FLAGS
 # ---------------------------------------------------------------------------
