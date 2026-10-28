@@ -14,8 +14,8 @@ from datetime import date
 from urllib.parse import quote
 
 import site_config as cfg
-from data.i18n import (T, BOOKING, LANG_ORDER, LANG_NATIVE, PATH_TOURS, HTML_LANG,
-                       OG_LOCALE, CATEGORIES, CATEGORY_ORDER, CATEGORY_INTRO)
+from data.i18n import (T, BOOKING, BOOKING_DEPOSIT, LANG_ORDER, LANG_NATIVE, PATH_TOURS,
+                       HTML_LANG, OG_LOCALE, CATEGORIES, CATEGORY_ORDER, CATEGORY_INTRO)
 from data.tours import TOURS
 from data.seo import META_DESC, GALLERY_ALT
 
@@ -24,6 +24,18 @@ DIST = os.path.join(ROOT, "dist")
 SRC_ASSETS = os.path.join(ROOT, "assets")
 YEAR = date.today().year
 IMG_EXTS = (".avif", ".webp", ".jpg", ".jpeg", ".png")
+
+# Tours that require a 50% advance deposit to confirm the booking (verified
+# operator rule). EVERY other tour keeps the default "no prepayment / pay at the
+# start" policy, rendered byte-for-byte as before.
+DEPOSIT_TOURS = ("cairo-gem", "luxor")
+
+def pay_line(lang, tour_id=None):
+    """Payment one-liner for the hero / sticky / footer badges. Deposit tours
+    (Cairo, Luxor) show the 50%-deposit statement; all other tours and the
+    homepages keep the existing no-prepayment line unchanged."""
+    tr = T[lang]
+    return tr["payment_line_deposit"] if tour_id in DEPOSIT_TOURS else tr["payment_line"]
 
 def esc(s):
     return html.escape(str(s), quote=False)
@@ -680,7 +692,7 @@ def header(lang, alt_paths, public_tours, home_base=None):
         esca(tr["nav_excursions"]), brand(lang), langswitch_mobile, dropdown, other_html,
         langswitch, book_btn, esca(tr["open_menu"]), drawer)
 
-def footer(lang, public_tours, home_base=None):
+def footer(lang, public_tours, home_base=None, tour_id=None):
     tr = T[lang]
     home = home_base or url_home(lang)
     # Column 2 - Explore: the four categories only (not all 11 tours).
@@ -723,7 +735,7 @@ def footer(lang, public_tours, home_base=None):
 </div>
 </footer>""" % (
         LOGO_ALT, esc(tr["footer_about"]),
-        ICON["shield"], esc(tr["payment_line"]),
+        ICON["shield"], esc(pay_line(lang, tour_id)),
         social_links(lang, "footer__social"),
         esca(tr["footer_excursions_title"]), esc(tr["footer_excursions_title"]), cat_links,
         esc(tr["footer_contact_title"]), "".join(contact_rows),
@@ -755,7 +767,16 @@ def booking_data_script(lang, public_tours, tour_id=None):
             "type": t["price_type"],
             "url": abs_url(url_tour(lang, t["slug"])),
         }
-    payload = {"wa": baked, "tour": tour_id or "", "s": bk, "tours": tours}
+    s = bk
+    if tour_id in DEPOSIT_TOURS:
+        # Deposit tours: override the two display-only payment strings in the baked
+        # config so the page source carries NO "no prepayment" text (app.js reads
+        # neither key - this only keeps the baked data consistent with the rendered
+        # deposit dialog). Every other page bakes BOOKING[lang] unchanged.
+        s = dict(bk)
+        s["form_sub"] = BOOKING_DEPOSIT[lang]["form_sub"]
+        s["f_nodeposit"] = BOOKING_DEPOSIT[lang]["f_note"]
+    payload = {"wa": baked, "tour": tour_id or "", "s": s, "tours": tours}
     return '<script>window.KERO_BK=%s;</script>' % json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 def booking_options(lang, public_tours):
@@ -765,7 +786,7 @@ def booking_options(lang, public_tours):
                     % (esca(t["id"]), t["price"], t["price_type"], esc(t["content"][lang]["name"])))
     return "".join(opts)
 
-def booking_dialog(lang, public_tours):
+def booking_dialog(lang, public_tours, tour_id=None):
     """Booking dialog. Two modes, resolved by JS:
     - tour context present (tour page / clicked card / sticky bar): read-only
       tour title + price, no excursion dropdown;
@@ -776,6 +797,13 @@ def booking_dialog(lang, public_tours):
     customer-name field. The date is a REQUESTED date - availability is still
     confirmed on WhatsApp."""
     bk = BOOKING[lang]
+    # Deposit tours (Cairo, Luxor) override the dialog subtitle + note so the form
+    # on those pages never contradicts the page's 50%-deposit policy. All other
+    # pages keep the shared no-prepayment copy. The baked window.KERO_BK is
+    # unchanged regardless (BOOKING_DEPOSIT is server-side only).
+    dep = tour_id in DEPOSIT_TOURS
+    form_sub = BOOKING_DEPOSIT[lang]["form_sub"] if dep else bk["form_sub"]
+    pay_note = BOOKING_DEPOSIT[lang]["f_note"] if dep else bk["f_nodeposit"]
     return """<div class="bookdlg" data-bookdlg hidden aria-hidden="true">
 <div class="bookdlg__scrim" data-book-close></div>
 <div class="bookdlg__panel" role="dialog" aria-modal="true" aria-labelledby="bk-title">
@@ -811,7 +839,7 @@ def booking_dialog(lang, public_tours):
 </form>
 </div>
 </div>""" % (
-        esc(bk["form_title"]), esc(bk["form_sub"]), esca(bk["f_close"]), ICON["close"],
+        esc(bk["form_title"]), esc(form_sub), esca(bk["f_close"]), ICON["close"],
         esc(bk["f_excursion"]),
         esc(bk["f_excursion"]), esc(bk["f_excursion_ph"]), booking_options(lang, public_tours),
         esc(bk["f_date"]),
@@ -819,7 +847,7 @@ def booking_dialog(lang, public_tours):
         esc(bk["f_room"]), esca(bk["f_room_ph"]),
         esc(bk["f_people"]), esca(bk["f_people_ph"]),
         esc(bk["f_notes"]), esca(bk["f_notes_ph"]),
-        ICON["shield"], esc(bk["f_nodeposit"]),
+        ICON["shield"], esc(pay_note),
         ICON["wa"], esc(bk["f_submit"]))
 
 def book_bar(lang, tour):
@@ -1099,7 +1127,7 @@ def build_tour(lang, tour, public_tours):
 </div></section>""" % (
         gallery_html(tour, lang), esc(CATEGORIES[lang][tour["category"]]), esc(c["name"]), esc(c["intro"]),
         priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa", "detail-hero", tour, book_open=True),
-        ICON["wallet"], esc(tr["payment_line"]))
+        ICON["wallet"], esc(pay_line(lang, tour["id"])))
 
     sticky = """<aside>
 <div class="panel sticky-book reveal">
@@ -1109,7 +1137,7 @@ def build_tour(lang, tour, public_tours):
 %s
 </div>
 </aside>""" % (priceblock, wa_link(lang, tr["book_whatsapp"], "btn btn--wa btn--block", "detail-sticky", tour, book_open=True),
-               ICON["shield"], esc(tr["payment_line"]), schedule_row)
+               ICON["shield"], esc(pay_line(lang, tour["id"])), schedule_row)
 
     program_panel = ('<div class="panel reveal"><h2>%s</h2><ol class="program">%s</ol></div>' % (esc(tr["label_program"]), program)) if program else ""
     practical_panel = ('<div class="panel reveal"><h2>%s</h2><ul class="notelist">%s</ul></div>' % (esc(tr["label_practical"]), practical)) if practical else ""
@@ -1150,9 +1178,9 @@ def build_tour(lang, tour, public_tours):
     og_image = abs_url("/assets/img/og/%s.jpg" % tour["id"])
 
     body = (header(lang, alt_paths, public_tours) + '<main id="main" class="has-bookbar">' + breadcrumb + tour_hero + body_sec + related_html
-            + "</main>" + footer(lang, public_tours) + lightbox_html(lang)
+            + "</main>" + footer(lang, public_tours, tour_id=tour["id"]) + lightbox_html(lang)
             + book_bar(lang, tour) + wa_tour_float(lang, tour)
-            + booking_dialog(lang, public_tours) + booking_data_script(lang, public_tours, tour["id"]))
+            + booking_dialog(lang, public_tours, tour["id"]) + booking_data_script(lang, public_tours, tour["id"]))
     doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld,
                og_image=og_image, og_image_alt=c["name"]) + body + scripts()
     write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)

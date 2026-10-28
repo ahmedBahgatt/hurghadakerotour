@@ -79,6 +79,8 @@ T = {
         "hero_cta_secondary": "Voir les excursions",
 
         "payment_line": "Excursions VIP • Aucun acompte • Paiement au départ de l'excursion",
+        # Payment line for deposit tours (Cairo, Luxor) only - see build.DEPOSIT_TOURS.
+        "payment_line_deposit": "Excursions VIP • Acompte de 50 % pour confirmer la réservation • Solde de 50 % au début de l'excursion",
         "trust": ["Excursions VIP", "Aucun acompte", "Paiement au départ", "Réservation WhatsApp"],
 
         "featured_title": "Nos excursions phares",
@@ -191,6 +193,8 @@ T = {
         "hero_cta_secondary": "Zobacz wycieczki",
 
         "payment_line": "Wycieczki VIP • Bez przedpłaty • Płatność przy rozpoczęciu wycieczki",
+        # Payment line for deposit tours (Cairo, Luxor) only - see build.DEPOSIT_TOURS.
+        "payment_line_deposit": "Wycieczki VIP • Zaliczka 50% wymagana do potwierdzenia rezerwacji • Pozostałe 50% płatne na początku wycieczki",
         "trust": ["Wycieczki VIP", "Bez przedpłaty", "Płatność przy starcie", "Rezerwacja WhatsApp"],
 
         "featured_title": "Nasze najpopularniejsze wycieczki",
@@ -303,6 +307,8 @@ T = {
         "hero_cta_secondary": "Vezi excursiile",
 
         "payment_line": "Excursii VIP • Fără avans • Plată la începutul excursiei",
+        # Payment line for deposit tours (Cairo, Luxor) only - see build.DEPOSIT_TOURS.
+        "payment_line_deposit": "Excursii VIP • Avans de 50% pentru confirmarea rezervării • Restul de 50% se achită la începutul excursiei",
         "trust": ["Excursii VIP", "Fără avans", "Plată la început", "Rezervare WhatsApp"],
 
         "featured_title": "Excursiile noastre de top",
@@ -515,5 +521,28 @@ BOOKING = {
         "m_notes": "Observații",
         "m_quote": "Grup de peste 5 persoane - vă rog o ofertă personalizată.",
         "m_outro": "Puteți confirma disponibilitatea, data dorită și detaliile de preluare? Mulțumesc!",
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Booking-dialog payment copy for DEPOSIT tours (Cairo, Luxor) only.
+# Deliberately kept OUT of BOOKING: build.booking_data_script() bakes the whole
+# BOOKING[lang] dict into window.KERO_BK on EVERY page, so adding keys there
+# would change every page's output. These strings are used only to server-render
+# the dialog subtitle + note on the two deposit tours' pages; app.js never
+# rewrites those nodes, so no JS-side key is needed. See build.DEPOSIT_TOURS.
+# ---------------------------------------------------------------------------
+BOOKING_DEPOSIT = {
+    "fr": {
+        "form_sub": "Acompte de 50 % pour confirmer la réservation - solde de 50 % au début de l'excursion.",
+        "f_note": "Acompte de 50 % pour confirmer la réservation. Solde de 50 % au début de l'excursion.",
+    },
+    "pl": {
+        "form_sub": "Zaliczka 50% wymagana do potwierdzenia rezerwacji - pozostałe 50% płatne na początku wycieczki.",
+        "f_note": "Zaliczka 50% wymagana do potwierdzenia rezerwacji. Pozostałe 50% płatne na początku wycieczki.",
+    },
+    "ro": {
+        "form_sub": "Avans de 50% pentru confirmarea rezervării - restul de 50% se achită la începutul excursiei.",
+        "f_note": "Avans de 50% pentru confirmarea rezervării. Restul de 50% se achită la începutul excursiei.",
     },
 }

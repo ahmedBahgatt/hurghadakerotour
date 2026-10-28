@@ -67,9 +67,9 @@ META_DESC = {
         "ro": "Excursie de o zi la Cairo din Hurghada: piramidele din Giza, Sfinxul și Marele Muzeu Egiptean. Minibuz climatizat, ghid, prânz. 85 €/pers.",
     },
     "luxor": {
-        "fr": "Excursion à Louxor depuis Hurghada : Karnak, Vallée des Rois et temple d'Hatchepsout. Minibus climatisé, guide et déjeuner inclus. 70 €/pers., paiement au départ.",
-        "pl": "Wycieczka do Luksoru z Hurghady: Karnak, Dolina Królów i świątynia Hatszepsut. Klimatyzowany minibus, przewodnik i obiad. 70 €/os., płatność na starcie.",
-        "ro": "Excursie la Luxor din Hurghada: Karnak, Valea Regilor și templul lui Hatșepsut. Minibuz climatizat, ghid și prânz incluse. 70 €/pers., plata la plecare.",
+        "fr": "Excursion à Louxor depuis Hurghada : Karnak, Vallée des Rois et temple d'Hatchepsout. Minibus climatisé, guide et déjeuner inclus. 70 €/pers., acompte 50 % requis.",
+        "pl": "Wycieczka do Luksoru z Hurghady: Karnak, Dolina Królów i świątynia Hatszepsut. Klimatyzowany minibus, przewodnik i obiad. 70 €/os., wymagana zaliczka 50%.",
+        "ro": "Excursie la Luxor din Hurghada: Karnak, Valea Regilor și templul lui Hatșepsut. Minibuz climatizat, ghid și prânz incluse. 70 €/pers., avans 50% necesar.",
     },
     "horse-riding-swimming": {
         "fr": "Équitation à Hurghada entre désert et mer, avec baignade à cheval. Guide accompagnateur et transfert privé inclus. 35 €/pers., paiement au départ.",
