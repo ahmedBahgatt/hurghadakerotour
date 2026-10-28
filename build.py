@@ -471,13 +471,16 @@ GOOGLE_AD_DOMAINS = [
 # doc (learn.microsoft.com/clarity/setup-and-installation/clarity-csp) allows the
 # wildcard https://*.clarity.ms, but this policy uses NO wildcards (locked by the
 # analytics gate), so the individual hosts are enumerated: the tag host
-# www.clarity.ms, the a..z.clarity.ms environment shards, and c.bing.com (the
-# MUID sync). Added to script-src (tag + env sub-resources), connect-src (the
+# www.clarity.ms, the scripts.clarity.ms engine/CDN host (the tag at
+# www.clarity.ms/tag/<id> injects <script src=scripts.clarity.ms/<ver>/clarity.js>,
+# so WITHOUT this host script-src-elem blocks the engine and no collection ever
+# starts), the a..z.clarity.ms environment shards, and c.bing.com (the MUID
+# sync). Added to script-src (tag + engine + env sub-resources), connect-src (the
 # /collect beacons) and img-src (sync pixel). This adds NO consent surface:
 # Clarity's native Google Consent Mode integration reads the gtag
 # analytics_storage signal already set in analytics_head(), so EEA/UK/CH stay
 # cookieless automatically with no second banner.
-CLARITY_DOMAINS = (["https://www.clarity.ms"]
+CLARITY_DOMAINS = (["https://www.clarity.ms", "https://scripts.clarity.ms"]
                    + ["https://%s.clarity.ms" % chr(c) for c in range(ord("a"), ord("z") + 1)]
                    + ["https://c.bing.com"])
 _C = " ".join(CLARITY_DOMAINS)
