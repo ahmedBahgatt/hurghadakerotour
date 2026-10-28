@@ -4,6 +4,43 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-28 - Microsoft Clarity installed site-wide (owner-authorized).**
+> **Objective:** add Microsoft Clarity (heatmaps + session recordings) to the
+> live site without disrupting SEO, Google Ads or the WhatsApp booking flow.
+> **Done:** project id `z4klch73ka` added as `site_config.CLARITY_PROJECT_ID`
+> (empty -> no injection). New `build.clarity_head()` emits the official async
+> snippet verbatim, injected in the shared `head()` AFTER `analytics_head()` on
+> all **37** content pages (36 canonical + root `/`); the 404 stays tag-free and
+> `noindex`, mirroring the Google tag. Exactly one install per page, no dup.
+> **Consent:** no new consent UI and no `consentv2` call. Clarity's NATIVE Google
+> Consent Mode integration auto-reads the existing gtag `analytics_storage`
+> signal (Microsoft doc: "If your website already uses GCM, no additional changes
+> are required"). gtag defaults render first, so EEA/UK/CH stay denied ->
+> cookieless (Clarity also enforces EEA/UK/CH consent by default since
+> 2025-10-31); Egypt/rest granted. No fabricated consent; gtag Consent Mode v2
+> untouched. **Privacy:** booking form marked `data-clarity-mask="True"`; input
+> values + dropdowns are masked by Clarity in ALL modes regardless; no
+> name/phone collected on-page (WhatsApp handoff is off-site); no PII in events.
+> **CSP:** added enumerated Clarity hosts (no wildcard, gate-locked) -
+> `www.clarity.ms` + `a..z.clarity.ms` + `c.bing.com` on `script-src`,
+> `connect-src`, `img-src`. No `unsafe-eval`; every Google Ads directive
+> unchanged. **Google Ads:** tag, conversion label `HOYlCNeOq6odEIyQ04dF`,
+> firing logic (`app.js` untouched) all unchanged; no live test conversion fired
+> (would pollute the account). **Tests:** `test_analytics.py` extended to lock
+> the Clarity contract (one async install, id, ordering after consent default,
+> CSP hosts, 404 clean). All gates green: check 38, analytics 37, whatsapp 39,
+> seo 36 (8 pre-existing title warns). HTML + JSON-LD parse clean. Commit
+> **bbf0163**, Actions run **40622564845** success, deployed. Live-verified: FR/
+> PL/RO/root each serve 1 Clarity install + CSP hosts + masked form; 404 = 0.
+> Tag endpoint `https://www.clarity.ms/tag/z4klch73ka` = HTTP 200 x6 via curl.
+> **Blocker/caveat:** in the dev Chrome the tag returns **503** (uBlock Origin
+> blocks clarity.ms; Caido is down, so not a proxy; NOT a CSP block - request
+> reaches the server, no "Refused" console error). Could not observe an in-browser
+> `/collect` beacon or cookie here because of the blocker. **Next step:** owner
+> confirms first sessions in the Clarity dashboard from a normal browser/phone
+> (no ad-blocker), and enable Clarity "Cookie consent"/Consent Mode is already
+> default-on for EEA; verify GCM shows the signal under Settings.
+
 > **2026-10-26 - CSP aligned with Google's spec (Tag Assistant warning fixed).**
 > Tag Assistant reported the meta CSP blocking Google scripts + unreliable tag
 > detection. Live network capture (uBlock off) confirmed the core conversion
