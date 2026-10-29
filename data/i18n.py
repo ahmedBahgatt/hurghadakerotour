@@ -146,7 +146,7 @@ T = {
         "card_book": "Réserver",
         "book_whatsapp": "Réserver sur WhatsApp",
         "back_to_all": "Toutes les excursions",
-        "restricted_note": "Expérience en cours de revue réglementaire et de bien-être animal avant toute promotion.",
+        "restricted_note": "Rencontre encadrée avec un animal sauvage : la séance se déroule sous la supervision permanente du personnel.",
 
         "floating_wa_label": "Réserver sur WhatsApp",
 
@@ -260,7 +260,7 @@ T = {
         "card_book": "WhatsApp",
         "book_whatsapp": "Rezerwuj przez WhatsApp",
         "back_to_all": "Wszystkie wycieczki",
-        "restricted_note": "Oferta w trakcie przeglądu prawnego i pod kątem dobrostanu zwierząt przed promocją.",
+        "restricted_note": "Spotkanie z dzikim zwierzęciem pod opieką: sesja odbywa się pod stałym nadzorem personelu.",
 
         "floating_wa_label": "Rezerwuj przez WhatsApp",
 
@@ -374,7 +374,7 @@ T = {
         "card_book": "Rezervă",
         "book_whatsapp": "Rezervă pe WhatsApp",
         "back_to_all": "Toate excursiile",
-        "restricted_note": "Experiență aflată în curs de verificare legală și de bunăstare a animalelor înainte de promovare.",
+        "restricted_note": "Întâlnire supravegheată cu un animal sălbatic: ședința se desfășoară sub supravegherea permanentă a personalului.",
 
         "floating_wa_label": "Rezervă pe WhatsApp",
 

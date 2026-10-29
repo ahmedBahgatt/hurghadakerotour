@@ -683,7 +683,7 @@ TOURS = [
             "fr": {
                 "name": "Séance photo avec un lionceau",
                 "tagline": "Rencontre encadrée et photo souvenir",
-                "intro": "Une rencontre encadrée avec un lionceau le temps d'une séance photo souvenir à Hurghada. Transfert privé depuis et vers votre hôtel inclus.",
+                "intro": "Vivez une rencontre inoubliable avec un lionceau et repartez avec des photos souvenirs uniques, à Hurghada. La séance se déroule sous l'encadrement permanent du personnel, transfert privé aller-retour depuis votre hôtel inclus.",
                 "highlights": ["Rencontre encadrée avec un lionceau", "Séance photo souvenir", "Transfert privé aller-retour", "Encadrement sur place"],
                 "program": [
                     ["Prise en charge privée", "Transfert privé depuis votre hôtel vers l'établissement."],
@@ -695,13 +695,12 @@ TOURS = [
                 "practical": ["Soumis à la disponibilité et au règlement de l'établissement.", "Les conditions exactes sont confirmées via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
                 "conditions": [
                     "Soumis à la disponibilité, au règlement de l'établissement et aux exigences de sécurité et de bien-être animal.",
-                    "Expérience impliquant un animal sauvage : en cours de revue légale, de bien-être animal et de conformité avant toute promotion payante.",
                 ],
             },
             "pl": {
                 "name": "Sesja zdjęciowa z lwiątkiem",
                 "tagline": "Spotkanie pod opieką i zdjęcie na pamiątkę",
-                "intro": "Spotkanie z lwiątkiem pod opieką opiekuna podczas pamiątkowej sesji zdjęciowej w Hurghadzie. W cenie prywatny transfer z hotelu i z powrotem.",
+                "intro": "Przeżyj niezapomniane spotkanie z lwiątkiem i zabierz ze sobą wyjątkowe pamiątkowe zdjęcia w Hurghadzie. Sesja odbywa się pod stałą opieką personelu, a w cenie jest prywatny transfer z hotelu i z powrotem.",
                 "highlights": ["Spotkanie z lwiątkiem pod opieką", "Pamiątkowa sesja zdjęciowa", "Prywatny transfer w obie strony", "Opieka na miejscu"],
                 "program": [
                     ["Odbiór prywatnym transferem", "Prywatny transfer z hotelu do obiektu."],
@@ -713,13 +712,12 @@ TOURS = [
                 "practical": ["W zależności od dostępności i regulaminu obiektu.", "Dokładne warunki potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
                 "conditions": [
                     "W zależności od dostępności, regulaminu obiektu oraz wymogów bezpieczeństwa i dobrostanu zwierząt.",
-                    "Oferta z udziałem dzikiego zwierzęcia: w trakcie przeglądu prawnego, dobrostanu zwierząt i zgodności przed płatną promocją.",
                 ],
             },
             "ro": {
                 "name": "Ședință foto cu un pui de leu",
                 "tagline": "Întâlnire supravegheată și fotografie de amintire",
-                "intro": "O întâlnire supravegheată cu un pui de leu în timpul unei ședințe foto de amintire la Hurghada. Transfer privat dus-întors de la hotel inclus.",
+                "intro": "Trăiește o întâlnire de neuitat cu un pui de leu și pleacă acasă cu fotografii de amintire unice, la Hurghada. Ședința se desfășoară sub supravegherea permanentă a personalului, iar transferul privat dus-întors de la hotel este inclus.",
                 "highlights": ["Întâlnire supravegheată cu un pui de leu", "Ședință foto de amintire", "Transfer privat dus-întors", "Supraveghere la fața locului"],
                 "program": [
                     ["Preluare cu transfer privat", "Transfer privat de la hotel spre locație."],
@@ -731,7 +729,6 @@ TOURS = [
                 "practical": ["În funcție de disponibilitate și de regulamentul locației.", "Condițiile exacte se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
                 "conditions": [
                     "În funcție de disponibilitate, de regulamentul locației și de cerințele de siguranță și de bunăstare a animalelor.",
-                    "Experiență cu un animal sălbatic: în curs de verificare legală, de bunăstare a animalelor și de conformitate înainte de orice promovare plătită.",
                 ],
             },
         },
