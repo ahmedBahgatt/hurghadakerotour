@@ -1141,20 +1141,23 @@ def build_tour(lang, tour, public_tours):
 
     program_panel = ('<div class="panel reveal"><h2>%s</h2><ol class="program">%s</ol></div>' % (esc(tr["label_program"]), program)) if program else ""
     practical_panel = ('<div class="panel reveal"><h2>%s</h2><ul class="notelist">%s</ul></div>' % (esc(tr["label_practical"]), practical)) if practical else ""
+    # Conditions card (heading + notes + any restricted banner): only when it has content.
+    conditions_panel = ('<div class="panel reveal"><h2>%s</h2><ul class="notelist">%s</ul>%s</div>'
+                        % (esc(tr["label_conditions"]), conditions, restricted_banner)) if (conditions or restricted_banner) else ""
 
     main_col = """<div>
 <div class="panel reveal"><h2>%s</h2><ul class="ticklist">%s</ul></div>
 %s
 <div class="panel reveal"><h2>%s</h2><ul class="ticklist">%s</ul></div>
 %s
-<div class="panel reveal"><h2>%s</h2><ul class="notelist">%s</ul>%s</div>
+%s
 %s
 </div>""" % (
         esc(tr["label_experience"]), experience,
         program_panel,
         esc(tr["label_included"]), included,
         practical_panel,
-        esc(tr["label_conditions"]), conditions, restricted_banner,
+        conditions_panel,
         addon_html)
 
     body_sec = '<section class="section"><div class="container"><div class="tour-body">%s%s</div></div></section>' % (main_col, sticky)

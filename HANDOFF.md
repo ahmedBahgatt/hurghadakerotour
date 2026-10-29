@@ -4,6 +4,12 @@ Self-contained project handoff. A new assistant (Claude Code or ChatGPT) can
 continue from this file alone. "Verified" = checked this session; "Assumption"
 is labelled where used.
 
+> **2026-10-29 (follow-up) - Lion Cub: removed the entire "Conditions / À savoir / De știut / Warto wiedzieć" card (owner request).**
+> **Objective:** owner wants the lion trip to show offers + program only; remove the whole conditions card (the genuine disclosure line AND the supervision banner) on the lion page in all 3 langs.
+> **Changed:** `build.py` - conditions panel is now conditional (`conditions_panel` renders only when `conditions or restricted_banner`); replaced the always-on hardcoded card in `main_col`. `data/tours.py` lion-cub-photo - `conditions: []` in fr/pl/ro and `restricted: False` (suppresses the `restricted_note` banner AND the `card__flag` badge on the lion card). Rebuilt dist.
+> **Scope/cascade:** the other 10 tours KEEP their conditions card unchanged (all have non-empty conditions, so the conditional is always true for them). Lion `restricted=False` removes the "À savoir/..." flag from the lion CARD wherever it is listed -> index pages + same-category activity pages (el-gouna, horse-riding) show that one-span diff only, nothing else. Verified by diff.
+> **Unchanged:** price 30 EUR/pers, WhatsApp, payment policy, program, inclusions, highlights, intro (new copy kept), meta/canonical/hreflang/JSON-LD, compliance cfg flags (`LION_CUB_ADS_ELIGIBLE`/`SHOW_LION_ADDON`), ads_safe. Gates all green.
+
 > **2026-10-29 - Lion Cub Photo Experience: removed pending-review wording + content polish (FR/PL/RO).**
 > **Objective:** owner confirms the lion-cub excursion is bookable and its ads passed Google/TikTok review; strip the outdated "undergoing legal + animal-welfare review before promotion" statements and improve the page copy in all three languages without inventing approvals/certifications or changing verified facts.
 > **Changed (source, then rebuilt dist):** `data/tours.py` lion-cub-photo - removed the 2nd `conditions` line (the pending-review sentence) in fr/pl/ro, kept the 1st genuine disclosure (availability + facility rules + safety/animal-welfare requirements); enriched `intro` in all 3 langs (more appealing, still truthful: supervised encounter, souvenir photos, private round-trip transfer, Hurghada). `data/i18n.py` `restricted_note` (fr/pl/ro) - replaced pending-review banner text with a factual supervision disclosure ("supervised encounter with a wild animal, under constant staff supervision"). Then `python3 build.py`.

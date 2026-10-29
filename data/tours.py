@@ -677,7 +677,7 @@ TOURS = [
         "slug": "lion-cub-photo",
         "category": "activities",
         "price": 30, "price_type": "per_person",
-        "featured": False, "active": True, "ads_safe": False, "restricted": True,
+        "featured": False, "active": True, "ads_safe": False, "restricted": False,
         "image": "lion-cub-photo", "schedule": None, "addons": [],
         "content": {
             "fr": {
@@ -693,9 +693,7 @@ TOURS = [
                 ],
                 "included": ["Transfert privé aller-retour depuis l'hôtel", "Séance photo encadrée"],
                 "practical": ["Soumis à la disponibilité et au règlement de l'établissement.", "Les conditions exactes sont confirmées via WhatsApp.", "Paiement au début de l'excursion, en espèces."],
-                "conditions": [
-                    "Soumis à la disponibilité, au règlement de l'établissement et aux exigences de sécurité et de bien-être animal.",
-                ],
+                "conditions": [],
             },
             "pl": {
                 "name": "Sesja zdjęciowa z lwiątkiem",
@@ -710,9 +708,7 @@ TOURS = [
                 ],
                 "included": ["Prywatny transfer z hotelu i z powrotem", "Sesja zdjęciowa pod opieką"],
                 "practical": ["W zależności od dostępności i regulaminu obiektu.", "Dokładne warunki potwierdzamy przez WhatsApp.", "Płatność na początku wycieczki, gotówką."],
-                "conditions": [
-                    "W zależności od dostępności, regulaminu obiektu oraz wymogów bezpieczeństwa i dobrostanu zwierząt.",
-                ],
+                "conditions": [],
             },
             "ro": {
                 "name": "Ședință foto cu un pui de leu",
@@ -727,9 +723,7 @@ TOURS = [
                 ],
                 "included": ["Transfer privat dus-întors de la hotel", "Ședință foto supravegheată"],
                 "practical": ["În funcție de disponibilitate și de regulamentul locației.", "Condițiile exacte se confirmă prin WhatsApp.", "Plata la începutul excursiei, în numerar."],
-                "conditions": [
-                    "În funcție de disponibilitate, de regulamentul locației și de cerințele de siguranță și de bunăstare a animalelor.",
-                ],
+                "conditions": [],
             },
         },
     },
