@@ -513,8 +513,8 @@ CSP = ("default-src 'self'; "
        "img-src 'self' data: https://www.googletagmanager.com "
        "https://www.googleadservices.com https://googleads.g.doubleclick.net "
        "https://pagead2.googlesyndication.com " + _G + " " + _C + "; "
-       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-       "font-src https://fonts.gstatic.com; "
+       "style-src 'self' 'unsafe-inline'; "
+       "font-src 'self'; "
        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com "
        "https://www.googleadservices.com https://googleads.g.doubleclick.net "
        "https://www.google.com " + _C + "; "
@@ -538,7 +538,7 @@ def security_meta():
     return "".join(m)
 
 def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=None,
-         og_image=None, og_image_alt="", og_type="website"):
+         og_image=None, og_image_alt="", og_type="website", preload_img=None):
     alts = []
     for l in LANG_ORDER:
         if l in alt_paths:
@@ -584,9 +584,9 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/assets/img/favicon-512.png">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+{preload_lcp}<link rel="stylesheet" href="/assets/css/fonts.css">
 <link rel="stylesheet" href="/assets/css/styles.css">
 {analytics}{clarity}<script src="/assets/js/config.js"></script>
 {jsonld}</head>
@@ -596,7 +596,8 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
            canon=abs_url(canonical_path), alts="\n".join(alts), oglocale=OG_LOCALE[lang],
            ogaltloc=og_alt_locales, ogtype=esca(og_type), ogimg=og_img, ogimgalt=esca(og_img_alt),
            brand=esca(cfg.BRAND_NAME), analytics=analytics_head(), clarity=clarity_head(),
-           jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]))
+           jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]),
+           preload_lcp=(('<link rel="preload" as="image" href="%s" fetchpriority="high">\n' % esca(preload_img)) if preload_img else ""))
 
 def langswitch_html(lang, alt_paths, cls="langswitch"):
     tr = T[lang]
@@ -928,7 +929,7 @@ def gallery_html(tour, lang):
     main_alt = esca(_alt(0))
     main = ('<div class="gallery__main">'
             '<button class="gallery__nav gallery__nav--prev" data-gprev aria-label="%s">%s</button>'
-            '<img class="gallery__img" data-gmain src="%s" alt="%s" width="1200" height="825" decoding="async">'
+            '<img class="gallery__img" data-gmain src="%s" alt="%s" width="1200" height="825" fetchpriority="high" decoding="async">'
             '<button class="gallery__nav gallery__nav--next" data-gnext aria-label="%s">%s</button>'
             '<span class="gallery__counter"><b data-gcur>1</b> / %d</span>'
             '<button class="gallery__zoom" data-gzoom aria-label="%s">%s</button>'
@@ -1185,7 +1186,8 @@ def build_tour(lang, tour, public_tours):
             + book_bar(lang, tour) + wa_tour_float(lang, tour)
             + booking_dialog(lang, public_tours, tour["id"]) + booking_data_script(lang, public_tours, tour["id"]))
     doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld,
-               og_image=og_image, og_image_alt=c["name"]) + body + scripts()
+               og_image=og_image, og_image_alt=c["name"],
+               preload_img=(gfiles[0] if gfiles else None)) + body + scripts()
     write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)
 
 def lightbox_html(lang):
