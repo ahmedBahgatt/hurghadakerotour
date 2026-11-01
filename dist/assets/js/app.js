@@ -473,6 +473,8 @@
     var images = [], alts = [];
     try { images = JSON.parse(g.getAttribute("data-images") || "[]"); } catch (e) { images = []; }
     try { alts = JSON.parse(g.getAttribute("data-alts") || "[]"); } catch (e) { alts = []; }
+    var srcsets = [];
+    try { srcsets = JSON.parse(g.getAttribute("data-srcsets") || "[]"); } catch (e) { srcsets = []; }
     if (!images.length) return;
     var main = g.querySelector("[data-gmain]");
     var cur = g.querySelector("[data-gcur]");
@@ -480,7 +482,11 @@
     var index = 0;
     function show(i) {
       index = (i + images.length) % images.length;
-      if (main) { main.src = images[index]; if (alts[index]) main.alt = alts[index]; }
+      if (main) {
+        main.src = images[index];
+        if (srcsets[index]) { main.srcset = srcsets[index]; } else { main.removeAttribute("srcset"); }
+        if (alts[index]) main.alt = alts[index];
+      }
       if (cur) cur.textContent = index + 1;
       thumbs.forEach(function (t) {
         t.classList.toggle("is-active", parseInt(t.getAttribute("data-gthumb"), 10) === index);
