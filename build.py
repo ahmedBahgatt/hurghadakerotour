@@ -9,6 +9,7 @@ Run:  python3 build.py   ->  outputs the full static site into ./dist
 import html
 import json
 import os
+import re
 import shutil
 from datetime import date
 from urllib.parse import quote
@@ -146,7 +147,10 @@ def media(tour, lang, kind="card"):
     if fn:
         loading = "" if kind == "hero" else ' loading="lazy" decoding="async"'
         dims = ' width="800" height="500"'
-        return '<img src="/assets/img/tours/%s" alt="%s"%s%s>' % (esca(fn), alt, dims, loading)
+        web = "/assets/img/tours/%s" % fn
+        ss = _variant_srcset(web, [400, 800])
+        srcset = (' srcset="%s" sizes="(min-width:560px) 46vw, 92vw"' % esca(ss)) if ss else ""
+        return '<img src="%s" alt="%s"%s%s%s>' % (esca(web), alt, srcset, dims, loading)
     svg = placeholder_svg(tour["category"])
     badge = '<span class="ph__badge">%s</span>' % ICON["camera"]
     return svg + badge
@@ -156,8 +160,26 @@ def gallery_files(tour_id):
     gdir = os.path.join(SRC_ASSETS, "img", "gallery", tour_id)
     if not os.path.isdir(gdir):
         return []
-    files = sorted(f for f in os.listdir(gdir) if f.lower().endswith((".webp", ".avif", ".jpg", ".jpeg", ".png")))
+    files = sorted(f for f in os.listdir(gdir)
+                   if f.lower().endswith((".webp", ".avif", ".jpg", ".jpeg", ".png"))
+                   and not _VARIANT_RE.search(f))
     return ["/assets/img/gallery/%s/%s" % (tour_id, f) for f in files]
+
+# Responsive image variants: files like "01-480.webp" sit beside the original
+# "01.webp" (generated offline via scripts/gen_variants.py + Pillow, never
+# upscaled). They are excluded from gallery listings; the builders emit srcset
+# from whichever variant widths exist on disk, so small sources degrade safely.
+_VARIANT_RE = re.compile(r"-\d+\.(?:webp|avif|jpe?g|png)$", re.I)
+
+def _variant_srcset(web_path, widths):
+    """'/path-W.ext Ww, ...' for the variant files that exist, in width order."""
+    root, ext = os.path.splitext(web_path)
+    parts = []
+    for w in widths:
+        vp = "%s-%d%s" % (root, w, ext)
+        if os.path.isfile(os.path.join(ROOT, vp.lstrip("/"))):
+            parts.append("%s %dw" % (vp, w))
+    return ", ".join(parts)
 
 # ---------------------------------------------------------------------------
 # url helpers
@@ -538,7 +560,8 @@ def security_meta():
     return "".join(m)
 
 def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=None,
-         og_image=None, og_image_alt="", og_type="website", preload_img=None):
+         og_image=None, og_image_alt="", og_type="website", preload_img=None,
+         preload_srcset="", preload_sizes=""):
     alts = []
     for l in LANG_ORDER:
         if l in alt_paths:
@@ -597,7 +620,11 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
            ogaltloc=og_alt_locales, ogtype=esca(og_type), ogimg=og_img, ogimgalt=esca(og_img_alt),
            brand=esca(cfg.BRAND_NAME), analytics=analytics_head(), clarity=clarity_head(),
            jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]),
-           preload_lcp=(('<link rel="preload" as="image" href="%s" fetchpriority="high">\n' % esca(preload_img)) if preload_img else ""))
+           preload_lcp=(
+               ('<link rel="preload" as="image" imagesrcset="%s" imagesizes="%s" fetchpriority="high">\n'
+                % (esca(preload_srcset), esca(preload_sizes))) if preload_srcset
+               else ('<link rel="preload" as="image" href="%s" fetchpriority="high">\n' % esca(preload_img)) if preload_img
+               else ""))
 
 def langswitch_html(lang, alt_paths, cls="langswitch"):
     tr = T[lang]
@@ -927,15 +954,17 @@ def gallery_html(tour, lang):
 
     data = esca(json.dumps(imgs))
     main_alt = esca(_alt(0))
+    srcsets = [_variant_srcset(u, [480, 960]) for u in imgs]
+    main_srcset = (' srcset="%s" sizes="(max-width:759px) 94vw, 560px"' % esca(srcsets[0])) if srcsets[0] else ""
     main = ('<div class="gallery__main">'
             '<button class="gallery__nav gallery__nav--prev" data-gprev aria-label="%s">%s</button>'
-            '<img class="gallery__img" data-gmain src="%s" alt="%s" width="1200" height="825" fetchpriority="high" decoding="async">'
+            '<img class="gallery__img" data-gmain src="%s"%s alt="%s" width="1200" height="825" fetchpriority="high" decoding="async">'
             '<button class="gallery__nav gallery__nav--next" data-gnext aria-label="%s">%s</button>'
             '<span class="gallery__counter"><b data-gcur>1</b> / %d</span>'
             '<button class="gallery__zoom" data-gzoom aria-label="%s">%s</button>'
             '</div>'
             % (esca(T[lang]["gallery_prev"]), ICON["chevron"].replace('m6 9 6 6 6-6', 'm15 6-6 6 6 6'),
-               esca(imgs[0]), main_alt,
+               esca(imgs[0]), main_srcset, main_alt,
                esca(T[lang]["gallery_next"]), ICON["chevron"].replace('m6 9 6 6 6-6', 'm9 6 6 6-6 6'),
                len(imgs), esca(T[lang]["gallery_open"]), ICON["zoom"]))
     thumbs = ""
@@ -943,11 +972,15 @@ def gallery_html(tour, lang):
         tb = []
         for i, u in enumerate(imgs):
             cls = "gallery__thumb is-active" if i == 0 else "gallery__thumb"
+            troot, text = os.path.splitext(u)
+            t160 = "%s-160%s" % (troot, text)
+            tsrc = t160 if os.path.isfile(os.path.join(ROOT, t160.lstrip("/"))) else u
             tb.append('<button class="%s" data-gthumb="%d" aria-label="%s"><img src="%s" alt="%s" width="160" height="110" loading="lazy" decoding="async"></button>'
-                      % (cls, i, esca(_alt(i)), esca(u), esca(_alt(i))))
+                      % (cls, i, esca(_alt(i)), esca(tsrc), esca(_alt(i))))
         thumbs = '<div class="gallery__thumbs">%s</div>' % "".join(tb)
     altdata = esca(json.dumps([_alt(i) for i in range(len(imgs))], ensure_ascii=False))
-    return '<div class="gallery" data-gallery data-images="%s" data-alts="%s">%s%s</div>' % (data, altdata, main, thumbs)
+    ssdata = esca(json.dumps(srcsets))
+    return '<div class="gallery" data-gallery data-images="%s" data-srcsets="%s" data-alts="%s">%s%s</div>' % (data, ssdata, altdata, main, thumbs)
 
 # ---------------------------------------------------------------------------
 # hero media (slideshow of clean stills, or single image / placeholder)
@@ -1187,7 +1220,9 @@ def build_tour(lang, tour, public_tours):
             + booking_dialog(lang, public_tours, tour["id"]) + booking_data_script(lang, public_tours, tour["id"]))
     doc = head(lang, title, desc, canonical, alt_paths, alt_paths["fr"], jsonld,
                og_image=og_image, og_image_alt=c["name"],
-               preload_img=(gfiles[0] if gfiles else None)) + body + scripts()
+               preload_img=(gfiles[0] if gfiles else None),
+               preload_srcset=(_variant_srcset(gfiles[0], [480, 960]) if gfiles else ""),
+               preload_sizes="(max-width:759px) 94vw, 560px") + body + scripts()
     write(os.path.join(DIST, lang, PATH_TOURS[lang], tour["slug"], "index.html"), doc)
 
 def lightbox_html(lang):
