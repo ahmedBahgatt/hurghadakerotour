@@ -1085,7 +1085,11 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
             + "".join(sections) + process_sec + why_sec + faq_sec + contact_sec
             + "</main>" + footer(lang, public_tours, home_base) + wa_float(lang)
             + booking_dialog(lang, public_tours) + booking_data_script(lang, public_tours))
-    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths, "/", jsonld,
+    # x-default points at the canonical default-language home (/fr/), not the
+    # root "/" which only canonicalises to it. Keeps every hreflang target a
+    # canonical, indexable URL so Google consolidates on /fr/ (not "/").
+    doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths,
+               alt_paths[cfg.DEFAULT_LANG], jsonld,
                og_image=og_image, og_image_alt=og_image_alt) + body + scripts()
     write(out_path or os.path.join(DIST, lang, "index.html"), doc)
 
@@ -1283,7 +1287,7 @@ def build_sitemap(public_tours):
 
     def entry(path, alts, images=None):
         links = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (HTML_LANG[l], abs_url(alts[l])) for l in LANG_ORDER)
-        links += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % abs_url("/")
+        links += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % abs_url(alts[cfg.DEFAULT_LANG])
         imgs = "".join('<image:image><image:loc>%s</image:loc></image:image>' % abs_url(u) for u in (images or []))
         return '<url><loc>%s</loc><lastmod>%s</lastmod>%s%s</url>' % (abs_url(path), today, links, imgs)
 
