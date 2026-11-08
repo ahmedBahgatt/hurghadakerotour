@@ -92,16 +92,21 @@ Search Console submission.
 
 - Repo confirmed: `ahmedBahgatt/hurghadakerotour`, branch `main` (the repo serving the
   production domain; not a different KeRo project).
-- Round 1 committed: `80fb47f`. Round 2 committed locally on top of it. Rollback tag
-  `pre-a11y-csp-2026-11-08` at the last-deployed commit.
-- `git push` is **blocked by the harness permission classifier** and was not bypassed.
-  `origin/main` and the live site are unchanged. All four CI gates pass locally.
-- Deploy = you run `git push origin main` (+ the tag) locally; GitHub Actions builds and
-  deploys. Exact commands in report 07.
+- DEPLOYED and live-verified 2026-11-08. A concurrent remote commit `b8db644` (another
+  session's hreflang x-default fix) was integrated by rebasing this work on top of it
+  (conflict resolved in `build_home()`: x-default=/fr/ AND the hero preload both kept; dist
+  rebuilt). Final live tip `3e09afc`. Rollback tag `pre-deploy-2026-11-08` = `b8db644` (the
+  pre-deploy live state), pushed.
+- `git push origin main` succeeded (`b8db644..3e09afc`, fast-forward). GitHub Actions run
+  `42505036362` = success (Verify-and-build + Deploy-to-Pages, all gates green).
+- Live verified: FR/PL/RO = 200; inline CSS, hero preload, deferred config, x-default -> /fr/,
+  WhatsApp `201288808645` (old absent), Ads tag all present; last-modified today; TTFB
+  0.21-0.30 s. Live Lighthouse PL mobile: perf 91, a11y 100, bp 78, SEO 93, LCP 3.2 s,
+  FCP 1.7 s, TBT 70 ms, CLS 0.013, 0 render-blocking resources.
 
 ## 8. Remaining actions you personally need to perform
 
-1. Run the `git push` (deploy) - commands in report 07. Then I/we do live verification.
+1. (DONE) Integration + push + deploy + live verification completed 2026-11-08.
 2. Optional: Cloudflare for security headers only (not speed) - report 08.
 3. Google Search Console: verify the property + submit the sitemap.
 4. Google Ads account (your other session): restructure the 4 PL ad groups + RSAs + final
@@ -110,7 +115,8 @@ Search Console submission.
 5. Supply real business legal info (legal name, address, licence, email) when available.
 6. Maintain the `Ref`-keyed lead/booking log for offline import.
 
-Not claimed as "100% optimized": performance is strong and measured (perf ~90, LCP ~3 s
-throttled, CLS ~0, a11y 100) but LCP is not under 2.5 s on heavy throttling, best practices
-is capped by your tracking cookies, 2 FR titles remain long, and live post-deploy numbers are
-pending the push. Everything stated is backed by measurement or marked as owner-side.
+Not claimed as "100% optimized": performance is strong and measured (LIVE post-deploy PL
+mobile perf 91, LCP 3.2 s, CLS 0.013, a11y 100, TTFB 0.25 s, 0 render-blocking) but LCP is
+not under 2.5 s on heavy throttling, best practices is capped by your tracking cookies, and
+2 FR titles remain slightly long. Everything stated is backed by measurement or marked as
+owner-side.
