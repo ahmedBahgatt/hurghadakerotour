@@ -408,7 +408,7 @@ def social_links(lang, cls="social", with_label=True):
         items.append('<a class="social__link social__link--%s" href="%s" target="_blank" '
                      'rel="noopener" aria-label="%s">%s</a>' % (key, esca(url), esca(aria), ICON[key]))
     label = ('<span class="social__label">%s</span>' % esc(tr["social_follow"])) if with_label else ""
-    return ('<div class="%s">%s<div class="social__row" role="list" aria-label="%s">%s</div></div>'
+    return ('<div class="%s">%s<div class="social__row" role="group" aria-label="%s">%s</div></div>'
             % (cls, label, esca(tr["social_follow"]), "".join(items)))
 
 # Google Consent Mode v2: in the EEA + UK + Switzerland the advertising storage
@@ -546,7 +546,13 @@ CSP = ("default-src 'self'; "
        "https://ad.doubleclick.net https://pagead2.googlesyndication.com " + _G + " " + _C + "; "
        "frame-src https://www.googletagmanager.com https://googleads.g.doubleclick.net "
        "https://td.doubleclick.net; "
-       "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+       "base-uri 'self'; form-action 'self'")
+# NOTE: frame-ancestors is intentionally NOT set here. It is IGNORED by browsers
+# when delivered via <meta> (spec), so it did nothing except emit a console error
+# that Lighthouse "best-practices" penalised. Real clickjacking protection
+# (frame-ancestors / X-Frame-Options) requires an HTTP RESPONSE header, which
+# GitHub Pages cannot send. If the site is fronted by a CDN (Cloudflare), add
+# `frame-ancestors 'none'` + X-Frame-Options there. See docs/website-final-optimization.
 
 def security_meta():
     robots = "index,follow,max-image-preview:large" if getattr(cfg, "ALLOW_INDEXING", True) else "noindex,follow"
@@ -753,8 +759,8 @@ def footer(lang, public_tours, home_base=None, tour_id=None):
 <p class="footer__pay">%s %s</p>
 %s
 </div>
-<nav class="footer__col" aria-label="%s"><h4>%s</h4><div class="footer__links footer__cats">%s</div></nav>
-<div class="footer__col"><h4>%s</h4><div class="footer__links">%s</div></div>
+<nav class="footer__col" aria-label="%s"><h3>%s</h3><div class="footer__links footer__cats">%s</div></nav>
+<div class="footer__col"><h3>%s</h3><div class="footer__links">%s</div></div>
 </div>
 <div class="footer__bottom">
 <div class="footer__copy">&copy; %d %s. %s%s</div>

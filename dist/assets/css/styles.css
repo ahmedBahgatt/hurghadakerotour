@@ -118,7 +118,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 
 .langswitch { display: flex; align-items: center; gap: 2px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 3px; }
 .langswitch a { font-size: .82rem; font-weight: 700; padding: 6px 11px; border-radius: var(--radius-pill); color: var(--muted); text-transform: uppercase; letter-spacing: .03em; transition: background var(--t-fast), color var(--t-fast); }
-.langswitch a[aria-current="true"] { background: var(--sea); color: #fff; }
+.langswitch a[aria-current="true"] { background: var(--sea-deep); color: #fff; }
 .langswitch a:hover:not([aria-current="true"]) { color: var(--ink); }
 
 .nav__book { display: none; }
@@ -234,7 +234,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 /* ---------- Footer ---------- */
 .footer { background: var(--bg-deep); color: rgba(255,255,255,.78); padding-block: 54px 30px; font-size: .94rem; }
 .footer__grid { display: grid; grid-template-columns: 1fr; gap: 34px; margin-bottom: 36px; }
-.footer h4 { color: #fff; font-family: var(--font-body); font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 16px; }
+.footer h3 { color: #fff; font-family: var(--font-body); font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 16px; }
 .footer a:hover { color: #fff; }
 .footer__links { display: grid; gap: 10px; }
 .footer__links a { display: inline-flex; align-items: center; gap: 8px; }
@@ -505,7 +505,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 .footer__brand p { max-width: 320px; font-size: .92rem; line-height: 1.6; margin-top: 12px; }
 .footer__pay { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: .78rem; font-weight: 600; color: rgba(255,255,255,.85); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); padding: 8px 13px; border-radius: var(--radius-pill); line-height: 1.3; }
 .footer__pay svg { width: 16px; height: 16px; color: var(--aqua); flex: none; }
-.footer__col h4 { margin-bottom: 14px; }
+.footer__col h3 { margin-bottom: 14px; }
 .footer__links { display: grid; gap: 9px; }
 .footer__cats a, .footer__links a { display: inline-flex; align-items: center; gap: 9px; font-size: .93rem; }
 .footer__cats a svg { width: 17px; height: 17px; color: var(--aqua); flex: none; }
