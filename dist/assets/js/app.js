@@ -44,6 +44,38 @@
   }
 
   /* ====================================================================
+     Google Ads click-id capture (for offline conversion attribution)
+     --------------------------------------------------------------------
+     Reads gclid / gbraid / wbraid from the landing URL and persists it for
+     ~90 days (the Ads click window). Used only to append a short "Ref:" line
+     to the booking-form WhatsApp message WHEN PRESENT, so a later confirmed
+     booking can be tied back to the ad click via Offline Conversion Import.
+     The id is validated (URL params are untrusted) before it can enter a
+     message. Organic visitors have no id and get a clean message. gtag's own
+     _gcl_aw cookie still attributes the on-click "Contact" conversion.
+     ==================================================================== */
+  var CLICKID_KEY = "kero_gclid_v1", CLICKID_TTL = 90 * 864e5;
+  function captureClickId() {
+    try {
+      var q = new URLSearchParams(window.location.search);
+      var id = q.get("gclid") || q.get("gbraid") || q.get("wbraid");
+      if (id && /^[A-Za-z0-9_.-]{1,120}$/.test(id)) {
+        localStorage.setItem(CLICKID_KEY, JSON.stringify({ id: id, t: Date.now() }));
+      }
+    } catch (e) {}
+  }
+  function getClickId() {
+    try {
+      var raw = localStorage.getItem(CLICKID_KEY);
+      if (!raw) return "";
+      var o = JSON.parse(raw);
+      if (!o || !o.id || (Date.now() - o.t) > CLICKID_TTL) return "";
+      return /^[A-Za-z0-9_.-]{1,120}$/.test(o.id) ? o.id : "";
+    } catch (e) { return ""; }
+  }
+  captureClickId();
+
+  /* ====================================================================
      WhatsApp handoff (shared) + date helpers
      ==================================================================== */
   /* Open wa.me in a SEPARATE browsing context (a new tab) so the current KeRo
@@ -342,6 +374,9 @@
       if (notes) L.push("• " + S.m_notes + ": " + notes);
       if (quote) { L.push(""); L.push(S.m_quote); }
       L.push(""); L.push(S.m_outro);
+      /* offline-attribution ref (only present for paid-ad visitors) */
+      var cid = getClickId();
+      if (cid) { L.push(""); L.push("Ref: " + cid); }
 
       var num = waNumber();
       if (!num) { if (err) { err.textContent = "WhatsApp unavailable."; err.hidden = false; } return; }

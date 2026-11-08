@@ -1,91 +1,116 @@
-# 09 - Final Executive Report
+# 09 - Final Executive Report (round 2)
 
 Date: 2026-11-08. Site: https://hurghadakerotour.com (FR / PL / RO). Production source:
-`github.com/ahmedBahgatt/hurghadakerotour` (static, GitHub Pages).
+`github.com/ahmedBahgatt/hurghadakerotour` (static Python generator, GitHub Pages + Fastly).
 
-## Context correction
+## Context
 
-The brief anticipated a possible WordPress/Webflow/Next.js production site. It is not:
-it is a **Python static-site generator on GitHub Pages**, and it was already heavily
-optimized by prior work (self-hosted fonts, responsive WebP, LCP preload, live Google Ads
-conversion tracking, Consent Mode v2, valid multilingual SEO + schema). This session was
-therefore a targeted finish-and-verify pass, not a rebuild, correctly operating on the
-real production repo (not the retired landing-page repos or `egipskiewakacje.pl`).
+The production site is a Python static-site generator on GitHub Pages (not WordPress/
+Webflow/Next.js), already heavily optimized by prior work. Two rounds of work this cycle:
+round 1 = accessibility + a dead-CSP console fix (commit `80fb47f`); round 2 = a deeper
+performance investigation + real render-path fixes + offline-attribution tracking + title
+cleanup. Correct production repo used throughout (not the retired landing-page repos or
+`egipskiewakacje.pl`).
 
-## 1. What exactly was wrong
+## 1. All issues discovered
 
-- **Load speed (the real driver of "Landing Page Experience: Below Average")**: GitHub Pages TTFB on a cold cache MISS was 2.29 s, pushing throttled-mobile LCP to 12.9 s (target <= 2.5 s). This is the single biggest controllable weakness and it is owner-side (needs a CDN).
-- **Accessibility (86/100)**: active language pill failed WCAG AA contrast (2.5:1); a footer heading skipped a level; the social-icons row used `role="list"` without list-item children.
-- **Best practices (74/100)**: the meta CSP carried `frame-ancestors`, which browsers ignore in `<meta>` and which logged a console error; plus third-party cookies from the owner's analytics/ads tools.
-- **8 page titles** exceed ~70 characters (SERP truncation risk; cosmetic).
-- Ad-account-side (not website): Ad Relevance "below average" (RSA copy) and lost impression share to Ad Rank; plus the fact that pages were `noindex` until 2026-10-26, which can depress historical Quality Score readings.
+- The headline "12.9 s LCP / 2.29 s TTFB" from the first live Lighthouse run was a
+  **local-measurement artifact**. Real EU-edge TTFB is 0.2-0.6 s (`x-cache: HIT`, gzip,
+  HTTP/2); the clean render-path score is Performance 85 / LCP 3.5 s.
+- Render path had removable waste: 2 render-blocking stylesheets + 1 render-blocking script;
+  the homepage hero (LCP element) was not preloaded.
+- Accessibility 86: active language pill contrast (2.5:1), a skipped footer heading level,
+  and a `role="list"` without list items.
+- Best practices 74: an ineffective `frame-ancestors` in the meta CSP (console error) +
+  third-party cookies from the owner's own analytics/ads.
+- 8 SEO titles over ~70 chars (SERP truncation risk).
+- No website-side GCLID capture for offline (lead/booking) conversion attribution.
+- Account-side (not website): PL Ad Relevance "below average" (RSA copy) and lost IS to Ad
+  Rank; pages were `noindex` until 2026-10-26, which depresses older Quality Score reads.
+- No broken pages, wrong prices, wrong WhatsApp number, or mis-indexing (all 36 URLs 200;
+  `201288808645` everywhere; Meta number `201278378685` absent).
 
-No broken pages, wrong prices, wrong WhatsApp number, or mis-indexing were found. The
-website WhatsApp number `201288808645` is correct everywhere; the Meta-campaign number
-`201278378685` correctly does not appear.
+## 2. All fixes actually implemented (committed locally; gates green)
 
-## 2. What was actually fixed (deployed status: built + gated, push held for go-ahead)
+Round 1 (`80fb47f`): lang-pill contrast -> AA (5.06:1); footer `<h4>`->`<h3>`; social
+`role="list"`->`role="group"`; removed `frame-ancestors` from meta CSP.
 
-Four surgical source edits (`build.py`, `assets/css/styles.css`), rebuilt into `dist/`:
-1. Removed the ineffective `frame-ancestors` from the meta CSP -> console error cleared.
-2. Social row `role="list"` -> `role="group"` -> ARIA children audit cleared.
-3. Footer `<h4>` -> `<h3>` (+ CSS) -> heading-order cleared.
-4. Active language pill `--sea` -> `--sea-deep` -> contrast now 5.06:1 (AA pass).
+Round 2: inlined all CSS (0 render-blocking stylesheets); deferred `config.js`; preloaded the
+homepage hero; validated GCLID/gbraid/wbraid capture + conditional `Ref:` line on the booking
+message; shortened the title suffix (8 title warnings -> 2).
 
-Measured result on the built site (Lighthouse mobile): **Accessibility 86 -> 100**,
-best-practices 74 -> 78, SEO 100 -> 100. All four CI gates pass. No content, price,
-number, schema, or layout change.
+No content, price, booking-term, WhatsApp-number, or schema change.
 
-## 3. How much faster the site became - with real numbers
+## 3. Actual performance results, before -> after
 
-Honest answer: this session's edits do **not** change raw speed, and none is claimed.
-Speed is TTFB-bound, and TTFB is a GitHub Pages trait fixable only by fronting the site
-with a CDN (owner action). Measured baseline (mobile lab, live `/pl/`): Performance 53,
-LCP 12.9 s, FCP 7.5 s, TBT 160 ms, CLS 0.013, TTFB 2.29 s. Prior-session image work had
-already cut image transfer 54-76% (e.g. PL home 1204 -> 550 KB). The expected large speed
-gain (LCP toward/under 2.5 s) comes from the Cloudflare step in report 03, to be verified
-by measurement after it is applied. No field (CrUX) numbers exist/were available, so none
-are reported.
+Measured with Lighthouse 11.7.1 (mobile, throttled) on the render path (local dist, which
+isolates render from the bad network measurement), plus EU-edge curl for network:
 
-## 4. Are FR, PL, RO technically ready for SEO and Google Ads?
+| | Before (round 1 render path) | After (round 2) |
+|---|---|---|
+| Performance | 85 | 90 (FR 93, RO 90) |
+| FCP | 2.1 s | 1.8 s (FR 1.4 s) |
+| Speed Index | 5.3 s | 3.0 s (RO 2.6 s) |
+| LCP | 3.5 s | 3.3 s (FR 2.9 s) |
+| CLS | 0.013 | 0.013 (FR/RO 0) |
+| Render-blocking resources | 3 | 0 |
+| Accessibility | 86 | 100 |
+| Best practices | 74 | ~78 (capped by tracking cookies) |
 
-**Yes, technically.** All three are indexable (`index,follow`), self-canonical,
-reciprocally hreflang-linked (fr/pl/ro/x-default), individually titled/described,
-schema-valid (score 100), and internally linked, with correct landing pages for the
-priority keywords. Caveats: eligibility is not a guarantee of indexing or ranking; the
-8 long titles are a minor cosmetic cleanup; and real paid-search success still depends on
-the speed (CDN) and account-side (RSA/keyword/bid) items, plus Search Console submission.
+Network (curl, EU edge): TTFB 0.2-0.6 s, `x-cache: HIT`. No field (CrUX) data exists/was
+available; none invented. A live post-deploy Lighthouse should confirm these (report 07).
 
-## 5. Do the booking and WhatsApp flows work?
+## 4. Was Cloudflare configured, or does it still require you?
 
-Yes. All 36 pages load (HTTP 200); every WhatsApp CTA targets `wa.me/201288808645` with a
-localized, tour-specific prefilled message; the booking-form dialog validates and hands
-off in a new tab without stranding the user; the single Ads conversion fires once per
-genuine handoff with no personal data and is not conflated with a booking.
+Neither configured nor needed for speed. Evidence-based conclusion (you asked to verify):
+GitHub Pages already fronts with Fastly CDN and delivers 0.2-0.6 s TTFB, so **Cloudflare
+would not materially improve performance.** Its only real benefit here is response headers
+(HSTS, X-Frame-Options, header-CSP) GitHub Pages cannot send - a security nicety, optional,
+owner-only (DNS). Steps in report 08. Do not expect a Core Web Vitals gain from it.
 
-## 6. What remains unresolved
+## 5. Are GCLID and booking attribution ready?
 
-Owner-side: CDN/Cloudflare (speed + headers), Search Console verification + sitemap
-submit, Google Ads account restructuring (ad groups/RSAs/negatives/final-URL alignment/
-bidding), business legal info, offline conversion import (GCLID + lead/booking logging),
-and confirming the conversion in the Ads UI. Repo-side deferred: 8 long titles, AVIF
-images (no encoder available), gtag delay-load (declined to protect conversions). Full
-list with reasons in report 08. Structural: best-practices is capped ~78 by the owner's
-own tracking cookies; GitHub Pages cannot send header-level security policies.
+Website side: yes. GCLID/gbraid/wbraid are captured (validated, 90-day `localStorage`) and a
+`Ref: <id>` line is appended to the booking-form WhatsApp message only when present (clean
+message otherwise; long id not exposed for organic visitors). gtag's `_gcl_aw` still
+attributes the on-click "Contact" conversion. Remaining (owner/process): create two import
+conversion actions in Google Ads ("Qualified lead", "Confirmed booking") and keep a log keyed
+by `Ref`; a backend/CRM would allow short codes + auto-import. The click/lead/booking stages
+are kept distinct - a WhatsApp open is never reported as a booking.
 
-## 7. Is it safe to resume/optimize the Polish Google Ads campaign?
+## 6. Are all three languages ready for advertising?
 
-Qualified yes, in this order:
-1. **Deploy** this session's fixes (push on go-ahead) and verify live.
-2. **Front with Cloudflare** - this is the highest-leverage move for Landing Page
-   Experience and should precede any budget increase. Do not "fix" low quality by raising
-   CPC.
-3. **Restructure the PL ad groups + RSAs** (report 05) so Ad Relevance rises and each
-   keyword points at the right page.
-4. **Submit to Search Console** and let Google re-crawl the now-indexable pages.
-5. Give it ~2-4 weeks and re-read the Quality Score / Landing Page Experience diagnostics
-   (they lag, and the noindex history will keep clearing). Then scale budget on the
-   keywords whose QS has recovered.
+Yes, technically. FR/PL/RO are indexable, self-canonical, reciprocally hreflang-linked,
+individually titled/described, schema-valid (SEO 100), internally linked, with correct
+landing pages for the priority keywords and the 4 PL ad groups (report 05, existing URLs; no
+new pages needed now). Measured a11y 100 and perf ~90 across all three homepages. Caveats:
+eligibility is not a guarantee of indexing/ranking; 2 FR titles remain slightly long
+(display-safe); real paid success still needs the account-side RSA/keyword/bid work and
+Search Console submission.
 
-Quality Score improvements cannot be guaranteed or claimed as immediate; the website side
-is now clean, and the remaining levers are the CDN and the ad account.
+## 7. Exact GitHub deployment status
+
+- Repo confirmed: `ahmedBahgatt/hurghadakerotour`, branch `main` (the repo serving the
+  production domain; not a different KeRo project).
+- Round 1 committed: `80fb47f`. Round 2 committed locally on top of it. Rollback tag
+  `pre-a11y-csp-2026-11-08` at the last-deployed commit.
+- `git push` is **blocked by the harness permission classifier** and was not bypassed.
+  `origin/main` and the live site are unchanged. All four CI gates pass locally.
+- Deploy = you run `git push origin main` (+ the tag) locally; GitHub Actions builds and
+  deploys. Exact commands in report 07.
+
+## 8. Remaining actions you personally need to perform
+
+1. Run the `git push` (deploy) - commands in report 07. Then I/we do live verification.
+2. Optional: Cloudflare for security headers only (not speed) - report 08.
+3. Google Search Console: verify the property + submit the sitemap.
+4. Google Ads account (your other session): restructure the 4 PL ad groups + RSAs + final
+   URLs + negatives per report 05; create the two offline-import conversion actions; confirm
+   the "Contact" conversion is received. Do not fix quality by raising CPC.
+5. Supply real business legal info (legal name, address, licence, email) when available.
+6. Maintain the `Ref`-keyed lead/booking log for offline import.
+
+Not claimed as "100% optimized": performance is strong and measured (perf ~90, LCP ~3 s
+throttled, CLS ~0, a11y 100) but LCP is not under 2.5 s on heavy throttling, best practices
+is capped by your tracking cookies, 2 FR titles remain long, and live post-deploy numbers are
+pending the push. Everything stated is backed by measurement or marked as owner-side.

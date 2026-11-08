@@ -565,6 +565,26 @@ def security_meta():
         m.append('<meta name="msvalidate.01" content="%s">' % esca(cfg.BING_SITE_VERIFICATION.strip()))
     return "".join(m)
 
+# Inlined CSS so the critical render path carries ZERO render-blocking stylesheet
+# requests (Lighthouse "eliminate render-blocking resources"). The source files are
+# still copied to dist/assets/css (tests read styles.css, and they stay cacheable),
+# but every page embeds the CSS in a <style> block. CSP already allows style-src
+# 'unsafe-inline'. Tradeoff: ~10 KB gzip per page vs a shared cache entry - acceptable
+# for a landing-page-first site where paid visitors arrive cold on one page.
+def _load_inline_css():
+    out = []
+    for name in ("fonts.css", "styles.css"):
+        p = os.path.join(SRC_ASSETS, "css", name)
+        try:
+            out.append(open(p, encoding="utf-8").read())
+        except OSError:
+            pass
+    return "\n".join(out)
+
+INLINE_CSS = _load_inline_css()
+# Homepage hero srcset (kept in sync with hero_media_html) for the LCP preload.
+HERO_SRCSET = ", ".join("/assets/img/hero/hero-%d.webp %dw" % (w, w) for w in (480, 768, 1200, 1672))
+
 def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=None,
          og_image=None, og_image_alt="", og_type="website", preload_img=None,
          preload_srcset="", preload_sizes=""):
@@ -615,9 +635,8 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
-{preload_lcp}<link rel="stylesheet" href="/assets/css/fonts.css">
-<link rel="stylesheet" href="/assets/css/styles.css">
-{analytics}{clarity}<script src="/assets/js/config.js"></script>
+{preload_lcp}<style>{inline_css}</style>
+{analytics}{clarity}<script src="/assets/js/config.js" defer></script>
 {jsonld}</head>
 <body>
 <a class="skip-link" href="#main">{skip}</a>
@@ -625,7 +644,7 @@ def head(lang, title, desc, canonical_path, alt_paths, xdefault_path, jsonld=Non
            canon=abs_url(canonical_path), alts="\n".join(alts), oglocale=OG_LOCALE[lang],
            ogaltloc=og_alt_locales, ogtype=esca(og_type), ogimg=og_img, ogimgalt=esca(og_img_alt),
            brand=esca(cfg.BRAND_NAME), analytics=analytics_head(), clarity=clarity_head(),
-           jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]),
+           jsonld=jsonld_tag, skip=esc(T[lang]["skip_to_content"]), inline_css=INLINE_CSS,
            preload_lcp=(
                ('<link rel="preload" as="image" imagesrcset="%s" imagesizes="%s" fetchpriority="high">\n'
                 % (esca(preload_srcset), esca(preload_sizes))) if preload_srcset
@@ -1096,7 +1115,8 @@ def build_home(lang, public_tours, out_path=None, canonical_path=None, home_base
     # canonical, indexable URL so Google consolidates on /fr/ (not "/").
     doc = head(lang, tr["meta_home_title"], tr["meta_home_desc"], canonical_path, alt_paths,
                alt_paths[cfg.DEFAULT_LANG], jsonld,
-               og_image=og_image, og_image_alt=og_image_alt) + body + scripts()
+               og_image=og_image, og_image_alt=og_image_alt,
+               preload_srcset=HERO_SRCSET, preload_sizes="100vw") + body + scripts()
     write(out_path or os.path.join(DIST, lang, "index.html"), doc)
 
 # ---------------------------------------------------------------------------

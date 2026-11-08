@@ -67,3 +67,50 @@ Content, 11 EUR prices, FR/PL/RO text and diacritics, WhatsApp number `201288808
 ## Rollback
 
 Source changes are two files; `git checkout -- build.py assets/css/styles.css && python3 build.py` restores the prior build. A tag can be created at the pre-change commit before deploy (report 07).
+
+---
+
+## Round 2 (2026-11-08) - performance + tracking + titles
+
+After a deeper performance investigation (report 03), the following were implemented on top
+of commit `80fb47f`. Files: `build.py`, `assets/js/app.js`, `data/i18n.py`.
+
+### Fix 5 - Inline all CSS (eliminate render-blocking stylesheets)
+
+- `build.py`: `fonts.css` + `styles.css` (~61 KB) are now read at build time and emitted in
+  a single `<head>` `<style>` block instead of two `<link rel="stylesheet">` requests.
+- Effect: Lighthouse render-blocking resources go from 3 to 0; Speed Index 5.3 s -> 3.0 s,
+  FCP 2.1 s -> 1.8 s (local dist, mobile). CSP already permits `style-src 'unsafe-inline'`.
+- The source CSS files are still copied to `dist/assets/css` (tests read `styles.css`).
+
+### Fix 6 - Defer `config.js`
+
+- `build.py`: `<script src="/assets/js/config.js">` -> `... defer`. It only sets
+  `window.KERO_WHATSAPP` (read later by the deferred `app.js`), so execution order is safe
+  and one render-blocking script is removed.
+
+### Fix 7 - Preload the homepage hero (LCP)
+
+- `build.py`: the homepage `head()` now passes the hero `imagesrcset`/`imagesizes`
+  (`100vw`, `fetchpriority=high`) as the LCP preload. The homepage hero is the LCP element
+  and previously had no preload (tour pages already did).
+
+### Fix 8 - GCLID / click-id capture for offline attribution
+
+- `assets/js/app.js`: `captureClickId()` reads `gclid`/`gbraid`/`wbraid` from the landing
+  URL, validates it (`^[A-Za-z0-9_.-]{1,120}$` - URL params are untrusted), and stores it in
+  `localStorage` for ~90 days. The booking-form message appends a single `Ref: <id>` line
+  **only when an id is present** (organic visitors get a clean message). See report 06.
+
+### Fix 9 - Shorten SEO title suffix
+
+- `data/i18n.py`: `meta_title_suffix` ` | KeRo Tours Hurghada` -> ` | KeRo Tours` (all 3
+  languages). Title-length warnings dropped from 8 to 2 (the 2 residual are FR, keyword-first
+  and display-safe - report 04/08). Names, H1s and schema are unchanged.
+
+### Round 2 gates / measurement
+
+All gates green after rebuild (check 38/0, seo 36/0 with 2 warnings, whatsapp 39/0,
+analytics 37/0). Local-dist mobile: FR perf 93 / a11y 100, PL 90 / 100, RO 90 / 100; LCP
+2.9-3.3 s; CLS ~0. No content/price/number/schema change; WhatsApp `201288808645` and Ads
+`AW-18538088460` intact.

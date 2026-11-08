@@ -69,3 +69,57 @@ a dead CSP directive removal; no content/price/number/schema change) and all gat
 - PageSpeed Insights / CrUX field data unavailable (public API quota 429, no key). No field metrics are reported.
 - No AVIF encoder on this machine (AVIF image path deferred).
 - No Google Ads / Search Console account access (those items are recommendations, not changes).
+
+---
+
+## Round 2 (2026-11-08) - performance + tracking + titles
+
+### Changes (on top of commit `80fb47f`)
+
+- `build.py`: inline all CSS; defer `config.js`; preload the homepage hero (LCP).
+- `assets/js/app.js`: validated GCLID/gbraid/wbraid capture + conditional `Ref:` line.
+- `data/i18n.py`: title suffix ` | KeRo Tours Hurghada` -> ` | KeRo Tours`.
+- Docs `01..09` updated to final state.
+
+### Gates (all green after rebuild)
+
+check 38/0; test_seo 36/0 (2 title warnings, down from 8); test_whatsapp 39/0; test_analytics 37/0.
+
+### Measurement (local dist, mobile throttled, render path)
+
+| Page | Perf | A11y | LCP | FCP | SI | CLS |
+|---|---|---|---|---|---|---|
+| FR `/fr/` | 93 | 100 | 2.9 s | 1.4 s | 4.0 s | 0 |
+| PL `/pl/` | 90 | 100 | 3.3 s | 1.8 s | 3.0 s | 0.013 |
+| RO `/ro/` | 90 | 100 | 3.3 s | 1.8 s | 2.6 s | 0 |
+
+Render-blocking resources: 0 (was fonts.css + styles.css + config.js). EU-edge curl TTFB
+0.2-0.6 s (`x-cache: HIT`). No field (CrUX) data available; none invented.
+
+### Deployment status (round 2)
+
+Code + docs committed locally on `main`. The production `git push` is **blocked by the
+harness permission classifier** (it declined `git push` to the live repo) and was NOT
+retried or bypassed, per instruction. `origin/main` and the live site are unchanged.
+
+To deploy (owner runs locally):
+
+```
+cd /Users/ahmedbahgat/Desktop/projects/France_websit/kero-tours-landing
+git log --oneline -3          # confirm the round-1 (80fb47f) + round-2 commits
+git push origin main
+git push origin pre-a11y-csp-2026-11-08   # rollback tag
+```
+
+GitHub Actions then runs secret-scan + build + `check.py` + deploy-pages.
+
+### Post-deploy live verification (to run after the push)
+
+- `curl -I` FR/PL/RO homepages (expect 200); confirm `x-cache` and gzip.
+- Confirm the live HTML has the inline `<style>`, deferred `config.js`, hero image preload,
+  no external `styles.css`/`fonts.css` link, and zero console errors (real Chrome).
+- Re-run Lighthouse mobile on live `/pl/`, `/fr/`, `/ro/` + a Cairo/Dolphin tour page; record
+  perf/LCP/CLS/TBT (expect numbers close to the local-dist render-path figures, better TTFB).
+- GCLID: load `/pl/?gclid=TEST123`, open the booking form, submit, confirm the WhatsApp text
+  ends with `Ref: TEST123`; load `/pl/` with no gclid and confirm NO `Ref:` line.
+- Confirm WhatsApp opens `wa.me/201288808645`; language switcher; Ads tag still loads.

@@ -38,14 +38,37 @@ off-site in the operator's WhatsApp Business app. To measure real leads and book
 1. **Qualified lead** = a WhatsApp conversation where the tourist gives hotel + date + pax. Record manually (or via WhatsApp Business labels) with the date and, ideally, the GCLID.
 2. **Confirmed booking** = the customer shows up / pays at the start of the excursion.
 
-### Offline Conversion Import (OCI) workflow (recommended; requires owner setup)
+### Offline Conversion Import (OCI) workflow - website side now IMPLEMENTED (round 2)
 
-To close the loop without faking conversions:
-1. Capture GCLID on landing: add a tiny script that reads `?gclid=` from the URL and stores it (localStorage/cookie), then append it to the WhatsApp message text so the GCLID arrives in the chat with the inquiry. (Not implemented yet - needs owner go-ahead and is a small, isolated change to `app.js`.)
-2. In Google Ads, create two new conversion actions: "Qualified WhatsApp lead" and "Confirmed booking" (import type).
-3. The operator keeps a simple sheet: GCLID, timestamp, stage (lead/booking), value.
+Website-side GCLID capture is now live in the code (see report 02, Fix 8):
+
+- `assets/js/app.js` `captureClickId()` reads `gclid` / `gbraid` / `wbraid` from the landing
+  URL, validates it against `^[A-Za-z0-9_.-]{1,120}$` (URL params are untrusted input, so the
+  value is sanitised before it can ever enter a WhatsApp message), and persists it in
+  `localStorage` for ~90 days (the Ads click window), surviving in-site navigation.
+- The booking-form message appends a single `Ref: <id>` line **only when an id is present**.
+  Organic / direct visitors have no id and get a clean, unchanged message - honouring "avoid
+  exposing long tracking identifiers unnecessarily."
+- The id is appended at the END of the message, after the human-readable booking details, so
+  the operator can copy it into their log. gtag's own `_gcl_aw` cookie continues to attribute
+  the on-click "Contact" conversion independently (no reliance on the message for that).
+
+Why the message-line approach: the site is static with no backend, so there is no server to
+map a short code back to a GCLID. The only no-backend way to carry the click id to the
+operator with the inquiry is inside the WhatsApp message. A cleaner short-code scheme would
+require a backend / CRM (documented below as the remaining integration).
+
+To close the loop (owner side):
+1. (done, website) GCLID travels with the booking inquiry as `Ref: <id>`.
+2. In Google Ads, create two import conversion actions: "Qualified WhatsApp lead" and
+   "Confirmed booking".
+3. The operator keeps a simple sheet: `Ref` (GCLID), timestamp, stage (lead / booking), value.
 4. Import via the Ads UI (CSV) or the API on a schedule.
 5. Once "Confirmed booking" has volume, switch bidding toward it (report 05).
+
+Optional future (needs a backend/CRM): capture the inquiry server-side so the message can
+carry a short code instead of the raw GCLID, and so lead/booking stages can be imported
+automatically rather than from a manual sheet.
 
 This is the only honest way to optimize toward real revenue; until then the "WhatsApp
 Contact" action is the proxy, and it must not be interpreted as a booking.
@@ -64,6 +87,8 @@ Contact" action is the proxy, and it must not be interpreted as a booking.
 ## Verdict
 
 Tracking is correctly scoped and privacy-aware. The measurable event is the WhatsApp
-handoff, and it is not conflated with a booking. The missing piece is the off-site
-lead/booking loop, which needs the OCI workflow above and owner input (GCLID capture +
-manual logging). Nothing here was changed this session.
+handoff, and it is not conflated with a booking. Round 2 added the website side of offline
+attribution: validated GCLID capture + a conditional `Ref:` line on the booking message. The
+remaining pieces are owner-side and process-level: create the two import conversion actions
+in Google Ads and keep a lead/booking log keyed by `Ref`. A fully automated loop (short codes,
+auto-import) would need a backend/CRM.

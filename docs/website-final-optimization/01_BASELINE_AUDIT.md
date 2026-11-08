@@ -56,7 +56,9 @@ Tool: Lighthouse 11.7.1, mobile form factor, simulated throttling. Single run (G
 
 Top Lighthouse opportunities: reduce server response time (2.29 s), reduce unused JavaScript (58 KiB, = the Google Ads `gtag.js`), properly size images (168 KiB).
 
-Diagnosis: **LCP and FCP are dominated by TTFB** (origin fetch on Fastly cache MISS). TBT and CLS are already good. Real-world edge TTFB measured separately with curl was ~0.6 s (warm EU edge), so the 2.29 s is a cold-MISS lab figure - but even the warm case plus render-blocking CSS keeps LCP above target on throttled mobile. The single biggest controllable lever is **fronting Pages with a CDN** (see report 03 and 08); it is an owner-side DNS action.
+> CORRECTION (added 2026-11-08, round 2): the 2.29 s "server response" and 12.9 s LCP in this first run were later shown to be a **local-measurement artifact** on this machine (Lighthouse modelled ~1.68 s RTT and an 8.5 s document fetch for a 15 KB file that curl fetches in 0.2-0.6 s). Multi-run curl from an EU edge shows real TTFB 0.22-0.62 s with Fastly `x-cache: HIT`. A clean render-path Lighthouse run (local server, no network noise) scores Performance 85 and LCP 3.5 s. See report 03 for the corrected analysis and the evidence-based Cloudflare decision.
+
+Diagnosis (as first recorded): **LCP and FCP are dominated by TTFB** (origin fetch on Fastly cache MISS). TBT and CLS are already good. Real-world edge TTFB measured separately with curl was ~0.6 s (warm EU edge), so the 2.29 s is a cold-MISS lab figure - but even the warm case plus render-blocking CSS keeps LCP above target on throttled mobile. The single biggest controllable lever is **fronting Pages with a CDN** (see report 03 and 08); it is an owner-side DNS action.
 
 ## 5. Accessibility / best-practices baseline (Lighthouse mobile, live `/pl/`)
 

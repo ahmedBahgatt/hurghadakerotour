@@ -58,7 +58,7 @@ T = {
     "fr": {
         "meta_home_title": "KeRo Tours Hurghada - Excursions VIP & transferts | Réservation WhatsApp",
         "meta_home_desc": "Excursions VIP à Hurghada : Pyramides de Gizeh, Louxor, îles de la mer Rouge, safari quad, Dolphin House. Sans acompte, paiement au départ. Réservation sur WhatsApp.",
-        "meta_title_suffix": " | KeRo Tours Hurghada",
+        "meta_title_suffix": " | KeRo Tours",
 
         "skip_to_content": "Aller au contenu",
         "nav_home": "Accueil",
@@ -172,7 +172,7 @@ T = {
     "pl": {
         "meta_home_title": "KeRo Tours Hurghada - Wycieczki VIP i transfery | Rezerwacja WhatsApp",
         "meta_home_desc": "Wycieczki VIP z Hurghady: piramidy w Gizie, Luksor, wyspy Morza Czerwonego, safari quadem, Dolphin House. Bez przedpłaty, płatność przy starcie. Rezerwacja przez WhatsApp.",
-        "meta_title_suffix": " | KeRo Tours Hurghada",
+        "meta_title_suffix": " | KeRo Tours",
 
         "skip_to_content": "Przejdź do treści",
         "nav_home": "Start",
@@ -286,7 +286,7 @@ T = {
     "ro": {
         "meta_home_title": "KeRo Tours Hurghada - Excursii VIP și transferuri | Rezervare WhatsApp",
         "meta_home_desc": "Excursii VIP din Hurghada: Piramidele din Giza, Luxor, insulele Mării Roșii, safari cu ATV, Dolphin House. Fără avans, plată la început. Rezervare prin WhatsApp.",
-        "meta_title_suffix": " | KeRo Tours Hurghada",
+        "meta_title_suffix": " | KeRo Tours",
 
         "skip_to_content": "Sari la conținut",
         "nav_home": "Acasă",

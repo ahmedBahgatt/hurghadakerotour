@@ -51,6 +51,38 @@ Most-likely root causes, in order:
 | Bidding | The brief rules out simply raising CPC. Keep Maximize Clicks only until QS/LPE recover; once the conversion action has enough WhatsApp conversions, move to a conversion-based strategy. Do not chase impression share by bid alone while QS is low - fix QS inputs first. |
 | Tracking | The site already fires one Ads conversion on a genuine WhatsApp handoff (report 06). Confirm it is received in the Ads UI before switching to conversion bidding. |
 
+## Coordination with the 4 Polish ad groups (round 2)
+
+A separate session is preparing 4 Polish ad groups. Recommended landing architecture, using
+EXISTING URLs only (no new pages, no URL changes - per the brief):
+
+| Ad group | Best final URL (PL) | Why |
+|---|---|---|
+| 1. Islands & sea excursions | `https://hurghadakerotour.com/pl/` | The homepage's first category section is "Morze i wyspy" listing all 4 sea tours (Three Islands, Orange Bay + Hula Hula, Dolphin House, Private Speedboat) with prices. For a single-tour keyword (e.g. "trzy wyspy"), point to that tour page instead. |
+| 2. Dolphins & diving | `https://hurghadakerotour.com/pl/wycieczki/dolphin-house/` | Dedicated Dolphin House page; wild dolphins (conditions stated), snorkel, EUR 30. |
+| 3. Safari & desert | `https://hurghadakerotour.com/pl/wycieczki/vip-super-safari/` (broad) or `.../vip-quad-safari/` (quad-specific) | Super Safari is the fuller product (quad + jeep 4x4 + spider car); quad page for "quady" intent. |
+| 4. General excursions, Cairo & Luxor | `/pl/` (general "wycieczki"); `.../cairo-giza-pyramids-grand-egyptian-museum/` (Cairo); `.../luxor-ancient-egypt-highlights/` (Luxor) | Homepage for broad; the two day-trip pages for city-specific keywords (both state the 50% deposit). |
+
+FR (`/fr/...`) and RO (`/ro/...`) equivalents exist for every destination with the same
+slugs - mirror the mapping per language.
+
+### Do dedicated category landing pages need to be built? Assessment: NOT now
+
+- There are only 11 tours; the homepage already groups them into 4 category sections, each
+  listing its tours with prices, reachable via the chip bar and the header dropdown/drawer.
+- A Google Ads final URL with a `#section` fragment is still scored by Google as the `/pl/`
+  page, so anchors do not create a distinct Landing Page Experience; only separate URLs do.
+- Building true category pages means new routes x 3 languages, new hreflang clusters, new
+  sitemap entries, new templates, new per-language metadata and internal links - real
+  complexity and regression risk on a live site, for marginal LPE gain given the small
+  catalogue.
+- Verdict: for ad groups 2 (Dolphin) and 4 (Cairo/Luxor) dedicated tour pages already exist
+  and are ideal. Ad groups 1 (sea) and 3 (safari) are well served by the homepage's category
+  sections plus the strongest single-tour page. A dedicated `/pl/wycieczki-morskie/` or
+  `/pl/safari/` category page is a reasonable FUTURE enhancement if those ad groups scale and
+  the data shows homepage LPE underperforming - it is not a current blocker. Recommend
+  revisiting with real search-terms + landing-page data after the campaign runs.
+
 ## Lion Cub exclusion (unchanged)
 
 `LION_CUB_ADS_ELIGIBLE=False`. The Lion Cub Photo Experience URL must NOT be used as a Google Ads final URL until its legal/animal-welfare/facility/ad-policy review is signed off. It remains organically indexable only.
