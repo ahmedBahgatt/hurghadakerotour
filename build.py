@@ -1359,7 +1359,7 @@ def _blog_ph_category(article):
 
 # Inline markup: **bold** and [label](tour|article|url|ext:arg). Plain text and
 # link labels are escaped; links are emitted as balanced <a>/<strong>.
-_BLOG_INLINE_RE = re.compile(r'\*\*(.+?)\*\*|\[([^\]]+)\]\((tour|article|url|ext):([^)]+)\)')
+_BLOG_INLINE_RE = re.compile(r'\*\*(.+?)\*\*|\[([^\]]+)\]\((tour|article|url|extf|ext):([^)]+)\)')
 
 def blog_resolve_link(scheme, arg, label):
     lab = esc(label)
@@ -1373,9 +1373,17 @@ def blog_resolve_link(scheme, arg, label):
     if scheme == "url":
         return '<a href="%s">%s</a>' % (esca(arg), lab)
     if scheme == "ext":
-        # External / cross-site: new tab + qualified rel. nofollow keeps the link
-        # a genuine reader referral, not a ranking-passing backlink.
+        # External / cross-site, QUALIFIED: new tab + rel="nofollow noopener".
+        # Use for links that are promotional, uncertain, or not a genuine
+        # editorial recommendation - nofollow keeps them pure reader referrals.
         return '<a href="%s" target="_blank" rel="nofollow noopener">%s</a>' % (esca(arg), lab)
+    if scheme == "extf":
+        # External / cross-site, EDITORIAL (crawlable): genuine, non-sponsored
+        # recommendation of a resource the reader may actually need (e.g. the same
+        # kind of trip from a resort KeRo does not depart from). Ordinary followed
+        # link; still new tab + noopener for tab-nabbing safety. No rel="follow"
+        # (not a real attribute) - absence of nofollow is what makes it crawlable.
+        return '<a href="%s" target="_blank" rel="noopener">%s</a>' % (esca(arg), lab)
     return lab
 
 def blog_inline(text):

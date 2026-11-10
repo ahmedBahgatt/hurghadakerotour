@@ -178,6 +178,7 @@ ARTICLES = [
                 "Dla rodzin i par, które wolą gotowy pakiet z przewodnikiem zamiast samodzielnej logistyki w wielkim mieście.",
             ]},
             {"t": "p", "text": "Jeśli marzysz o spokojnym, dwu- lub trzydniowym zwiedzaniu Kairu z wejściem do wnętrza piramidy i dłuższym czasem w muzeum, lepszym pomysłem będzie osobny, dłuższy wyjazd zorganizowany we własnym zakresie. Jednodniówka to świadomy kompromis: dużo zobaczysz, ale w szybkim tempie."},
+            {"t": "p", "text": "Nocujesz w innym kurorcie nad Morzem Czerwonym? Ten poradnik opisuje wyjazd z Hurghady, ale Kair i GEM zwiedza się także z dalej położonych baz - wtedy przydadzą się osobne programy, np. [Kair i GEM z Marsa Alam](extf:https://egipskiewakacje.pl/wycieczki-z-marsa-alam/kair-wielkie-muzeum-gem/) albo [Kair z Sharm el-Sheikh](extf:https://egipskiewakacje.pl/wycieczki-z-sharm-el-sheikh/kair-gem-piramidy/), gdzie dojazd i logistyka wyglądają inaczej niż z Hurghady."},
 
             {"t": "h2", "text": "Jak się przygotować i ile to kosztuje"},
             {"t": "ul", "items": [
@@ -258,6 +259,7 @@ ARTICLES = [
 
             {"t": "h2", "text": "Jednodniowa wycieczka czy dłuższy pobyt"},
             {"t": "p", "text": "Jeden dzień wystarcza, by zobaczyć ikony Luksoru i wrócić na nocleg do Hurghady. Jeśli jednak jesteś pasjonatem starożytnego Egiptu, rozważ samodzielny, dłuższy pobyt w samym Luksorze: wtedy zmieścisz dodatkowo m.in. świątynię Luksor w centrum, Medinet Habu czy poranny lot balonem nad doliną. Dla większości turystów z Morza Czerwonego jednodniowy wypad to jednak najlepszy stosunek wrażeń do czasu."},
+            {"t": "p", "text": "Jeśli Twoją bazą jest Marsa Alam, a nie Hurghada, Luksor zwiedzisz w ramach osobnego wyjazdu z południa wybrzeża - zobacz [Luksor i Dolinę Królów z Marsa Alam](extf:https://egipskiewakacje.pl/wycieczki-z-marsa-alam/luksor-dolina-krolow/)."},
             {"t": "note", "title": "Dobrze wiedzieć", "text": "Latem w Luksorze bywa znacznie goręcej niż nad morzem - to wnętrze lądu, bez morskiej bryzy. Kapelusz, woda i ochrona przeciwsłoneczna to nie dodatek, tylko konieczność."},
 
             {"t": "h2", "text": "Luksor czy Kair - który wyjazd wybrać"},
@@ -628,7 +630,7 @@ ARTICLES = [
             {"t": "note", "title": "Dlaczego WhatsApp", "text": "Bezpośrednia rozmowa pozwala potwierdzić realną dostępność na Twój termin, dopasować odbiór do hotelu i odpowiedzieć po polsku na pytania - bez sztywnego, automatycznego koszyka, który nie zna lokalnych warunków."},
 
             {"t": "h2", "text": "Nie mieszkasz w Hurghadzie?"},
-            {"t": "p", "text": "KeRo organizuje wycieczki z Hurghady i okolic. Jeśli Twój hotel jest w innym kurorcie nad Morzem Czerwonym, pomocny może być polski serwis **Egipskie Wakacje**, który opisuje wyprawy m.in. [z Marsa Alam](ext:https://egipskiewakacje.pl/wycieczki-z-marsa-alam/) i [z Sharm el-Sheikh](ext:https://egipskiewakacje.pl/wycieczki-z-sharm-el-sheikh/). To wygodny punkt startu, gdy planujesz [wycieczki spoza rejonu Hurghady](ext:https://egipskiewakacje.pl/)."},
+            {"t": "p", "text": "KeRo organizuje wycieczki z Hurghady i okolic. Jeśli Twój hotel jest w innym kurorcie nad Morzem Czerwonym, pomocny może być polski serwis **Egipskie Wakacje**, który opisuje wyprawy m.in. [z Marsa Alam](extf:https://egipskiewakacje.pl/wycieczki-z-marsa-alam/) i [z Sharm el-Sheikh](extf:https://egipskiewakacje.pl/wycieczki-z-sharm-el-sheikh/). To wygodny punkt startu, gdy planujesz [wycieczki spoza rejonu Hurghady](extf:https://egipskiewakacje.pl/)."},
             {"t": "p", "text": "Jeśli jednak nocujesz w Hurghadzie, Makadi Bay, Sahl Hasheesh lub Safadze - jesteś we właściwym miejscu. Zacznij od poradników powyżej, a potem po prostu [napisz do nas](url:/pl/#contact) z wybraną wycieczką i terminem."},
             {"t": "cta", "tour": "three-islands", "text": "Nie wiesz, od czego zacząć? Lekki, przyjemny rejs na wyspy to dobry pierwszy wybór - sprawdź termin."},
         ],
