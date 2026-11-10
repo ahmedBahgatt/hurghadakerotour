@@ -1341,7 +1341,9 @@ BLOG_CSS = """
 .blog-index-hero h1{font-size:clamp(1.9rem,5vw,2.7rem);margin:8px 0 10px}
 .blog-index-hero__sub{font-size:1.1rem;color:var(--muted);max-width:680px;line-height:1.6}
 .blog-card{position:relative}
-.blog-card__badge{position:absolute;top:12px;left:12px;z-index:2;background:var(--sea-deep);color:#fff;font-size:.72rem;font-weight:700;padding:5px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+.blog-card__tags{position:absolute;top:12px;left:12px;right:12px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.blog-card__tags .card__cat{position:static;top:auto;left:auto}
+.blog-card__badge{background:var(--sea-deep);color:#fff;font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
 .blog-card__foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:.88rem}
 .blog-card__meta{color:var(--muted)}
 .blog-card__more{color:var(--sea-deep);font-weight:700}
@@ -1524,7 +1526,7 @@ def blog_card(article, delay=0, lead=False):
     cat = BLOG_CATEGORIES.get(article["category"], "")
     badge = ('<span class="blog-card__badge">%s</span>' % esc(BLOG_UI["index_lead_card"])) if lead else ""
     return """<article class="card blog-card reveal" data-category="%s" data-delay="%d">
-<a class="card__media blog-card__media" href="%s" aria-label="%s">%s<span class="card__cat">%s</span>%s</a>
+<a class="card__media blog-card__media" href="%s" aria-label="%s">%s<span class="blog-card__tags"><span class="card__cat">%s</span>%s</span></a>
 <div class="card__body">
 <h3 class="card__title">%s</h3>
 <p class="card__tag">%s</p>
