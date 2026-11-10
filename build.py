@@ -19,6 +19,10 @@ from data.i18n import (T, BOOKING, BOOKING_DEPOSIT, LANG_ORDER, LANG_NATIVE, PAT
                        HTML_LANG, OG_LOCALE, CATEGORIES, CATEGORY_ORDER, CATEGORY_INTRO)
 from data.tours import TOURS
 from data.seo import META_DESC, GALLERY_ALT
+from data.blog import (ARTICLES, BLOG_CATEGORIES, BLOG_UI, INDEX_ORDER)
+
+# Fast lookup: tour id -> tour dict (blog internal links resolve tour ids).
+TOUR_BY_ID = {t["id"]: t for t in TOURS}
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(ROOT, "dist")
@@ -189,6 +193,15 @@ def url_home(lang):
 
 def url_tour(lang, slug):
     return "/%s/%s/%s/" % (lang, PATH_TOURS[lang], slug)
+
+# Blog is a Polish-only section; its canonical lives under /pl/blog/.
+BLOG_LANG = "pl"
+
+def url_blog_index():
+    return "/%s/%s/" % (BLOG_LANG, BLOG_UI["base_path"])
+
+def url_blog_article(slug):
+    return "/%s/%s/%s/" % (BLOG_LANG, BLOG_UI["base_path"], slug)
 
 def abs_url(path):
     return cfg.SITE_URL.rstrip("/") + path
@@ -751,6 +764,11 @@ def footer(lang, public_tours, home_base=None, tour_id=None):
     # Column 2 - Explore: the four categories only (not all 11 tours).
     cat_links = "".join('<a href="%s#cat-%s">%s%s</a>' % (esca(home), cid, ICON[CATEGORY_ICON[cid]], esc(CATEGORIES[lang][cid]))
                         for cid in CATEGORY_ORDER)
+    # Polish-only blog ("Poradnik turystyczny"): one footer link, shown ONLY in
+    # the PL footer and ONLY when the section is published (no dead link, no link
+    # added to the FR/RO footers that have no blog equivalent).
+    if lang == BLOG_LANG and getattr(cfg, "BLOG_PUBLISHED", False):
+        cat_links += '<a href="%s">%s%s</a>' % (esca(url_blog_index()), ICON["info"], esc(BLOG_UI["footer_link"]))
     # Column 3 - Contact.
     contact_rows = [wa_link(lang, tr["contact_whatsapp"], "footer__wa", "footer")]
     if cfg.BUSINESS["phone_display"]:
@@ -1268,6 +1286,424 @@ def lightbox_html(lang):
              esca(tr["gallery_next"]), ICON["chevron"].replace('m6 9 6 6 6-6', 'm9 6 6 6-6 6')))
 
 # ---------------------------------------------------------------------------
+# blog  (Polish-only "Poradnik turystyczny")  --  gated by cfg.BLOG_PUBLISHED
+# ---------------------------------------------------------------------------
+# Scoped stylesheet, emitted as an inline <style> ONLY on blog pages, so every
+# non-blog page stays byte-for-byte identical. CSP already allows 'unsafe-inline'
+# styles; HTMLParser (check.py) treats <style> as CDATA so the braces are safe.
+BLOG_CSS = """
+.blog-wrap{max-width:820px;margin-inline:auto}
+.blog-head{margin-bottom:20px}
+.blog-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.9rem;color:var(--muted);margin-bottom:12px}
+.blog-meta__cat{color:var(--sea-deep);font-weight:700}
+.blog-meta__dot{opacity:.5}
+.blog-head h1{font-size:clamp(1.7rem,4.2vw,2.5rem);line-height:1.16;margin:0 0 10px}
+.blog-lead{font-size:1.12rem;color:var(--muted);line-height:1.6;margin:0}
+.blog-hero{margin:18px 0 6px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.blog-hero__img,.blog-inline__img{display:block;width:100%;height:auto}
+.blog-hero__ph,.blog-inline__ph{display:block;width:100%;aspect-ratio:16/9}
+.blog-figcap{font-size:.85rem;color:var(--muted);padding:8px 2px;line-height:1.45}
+.blog-inline{margin:26px 0;border-radius:var(--radius);overflow:hidden}
+.blog-inline__img{border-radius:var(--radius)}
+.blog-toc{background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin:22px 0}
+.blog-toc b{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+.blog-toc ol{margin:0;padding-left:18px;display:grid;gap:6px}
+.blog-toc a{color:var(--sea-deep)}
+.blog-prose{font-size:1.05rem;line-height:1.72;color:var(--ink)}
+.blog-prose>*:first-child{margin-top:0}
+.blog-prose h2{font-size:1.5rem;line-height:1.25;margin:34px 0 12px}
+.blog-prose h3{font-size:1.2rem;margin:24px 0 8px}
+.blog-prose p{margin:0 0 16px}
+.blog-prose ul,.blog-prose ol{margin:0 0 18px;padding-left:22px;display:grid;gap:8px}
+.blog-prose a{color:var(--sea-deep);text-decoration:underline;text-underline-offset:2px}
+.blog-prose a:hover{color:var(--sea)}
+.blog-prose strong{font-weight:700}
+.blog-tablewrap{overflow-x:auto;margin:22px 0}
+.blog-table{width:100%;border-collapse:collapse;font-size:.96rem;min-width:430px}
+.blog-table th,.blog-table td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+.blog-table thead th{background:var(--bg-soft);font-weight:700}
+.blog-table tbody td:first-child{font-weight:600}
+.blog-note{background:#f0fbfc;border:1px solid #bfe9ee;border-left:4px solid var(--sea);border-radius:12px;padding:14px 18px;margin:22px 0}
+.blog-note__title{display:block;margin-bottom:4px;color:var(--sea-deep)}
+.blog-note p{margin:0}
+.blog-cta{background:linear-gradient(135deg,var(--sea) 0%,var(--sea-deep) 100%);color:#fff;border-radius:var(--radius);padding:22px;margin:30px 0}
+.blog-cta>p{margin:0 0 14px;font-size:1.05rem}
+.blog-cta__card{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.blog-cta__meta b{font-size:1.1rem}
+.blog-cta__price{display:block;opacity:.95;font-size:.95rem}
+.blog-cta .btn{background:#fff;color:var(--sea-deep)}
+.blog-cta .btn:hover{transform:translateY(-2px)}
+.blog-faq{margin-top:38px}
+.blog-faq h2{font-size:1.5rem;margin-bottom:14px}
+.blog-related{margin-top:42px}
+.blog-related h2{font-size:1.4rem;margin-bottom:16px}
+.blog-index-hero{padding-bottom:8px}
+.blog-index-hero h1{font-size:clamp(1.9rem,5vw,2.7rem);margin:8px 0 10px}
+.blog-index-hero__sub{font-size:1.1rem;color:var(--muted);max-width:680px;line-height:1.6}
+.blog-card{position:relative}
+.blog-card__badge{position:absolute;top:12px;left:12px;z-index:2;background:var(--sea-deep);color:#fff;font-size:.72rem;font-weight:700;padding:5px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+.blog-card__foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:.88rem}
+.blog-card__meta{color:var(--muted)}
+.blog-card__more{color:var(--sea-deep);font-weight:700}
+@media(max-width:560px){.blog-cta__card{flex-direction:column;align-items:stretch}.blog-cta .btn{width:100%}}
+"""
+
+# Blog category -> placeholder palette (reuses the tour placeholder art).
+_BLOG_PH_CAT = {"zwiedzanie": "history_culture", "morze": "sea_islands",
+                "pustynia": "desert_safari", "planowanie": "activities"}
+
+def _blog_ph_category(article):
+    return _BLOG_PH_CAT.get(article["category"], "activities")
+
+# Inline markup: **bold** and [label](tour|article|url|ext:arg). Plain text and
+# link labels are escaped; links are emitted as balanced <a>/<strong>.
+_BLOG_INLINE_RE = re.compile(r'\*\*(.+?)\*\*|\[([^\]]+)\]\((tour|article|url|ext):([^)]+)\)')
+
+def blog_resolve_link(scheme, arg, label):
+    lab = esc(label)
+    if scheme == "tour":
+        t = TOUR_BY_ID.get(arg)
+        if not t:
+            return lab                       # unknown id -> plain text, never broken
+        return '<a href="%s">%s</a>' % (esca(url_tour(BLOG_LANG, t["slug"])), lab)
+    if scheme == "article":
+        return '<a href="%s">%s</a>' % (esca(url_blog_article(arg)), lab)
+    if scheme == "url":
+        return '<a href="%s">%s</a>' % (esca(arg), lab)
+    if scheme == "ext":
+        # External / cross-site: new tab + qualified rel. nofollow keeps the link
+        # a genuine reader referral, not a ranking-passing backlink.
+        return '<a href="%s" target="_blank" rel="nofollow noopener">%s</a>' % (esca(arg), lab)
+    return lab
+
+def blog_inline(text):
+    out, pos = [], 0
+    for m in _BLOG_INLINE_RE.finditer(text):
+        out.append(esc(text[pos:m.start()]))
+        if m.group(1) is not None:
+            out.append("<strong>%s</strong>" % esc(m.group(1)))
+        else:
+            out.append(blog_resolve_link(m.group(3), m.group(4), m.group(2)))
+        pos = m.end()
+    out.append(esc(text[pos:]))
+    return "".join(out)
+
+def blog_image_path(filename):
+    """Web path for a blog image if its source exists on disk, else None."""
+    if filename and os.path.isfile(os.path.join(SRC_ASSETS, "img", "blog", filename)):
+        return "/assets/img/blog/%s" % filename
+    return None
+
+def blog_hero_media(article, eager=True):
+    hero = article["hero"]
+    web = blog_image_path(hero["file"])
+    cap = hero.get("caption")
+    figcap = ('<figcaption class="blog-figcap">%s</figcaption>' % esc(cap)) if cap else ""
+    if web:
+        ss = _variant_srcset(web, [768, 1200, 1600])
+        srcset = (' srcset="%s" sizes="(min-width:760px) 760px, 100vw"' % esca(ss)) if ss else ""
+        load = ' fetchpriority="high" decoding="async"' if eager else ' loading="lazy" decoding="async"'
+        img = ('<img class="blog-hero__img" src="%s"%s alt="%s" width="1600" height="900"%s>'
+               % (esca(web), srcset, esca(hero["alt"]), load))
+    else:
+        img = placeholder_svg(_blog_ph_category(article), cls="ph blog-hero__ph")
+    return '<figure class="blog-hero">%s%s</figure>' % (img, figcap)
+
+def blog_inline_image(img):
+    web = blog_image_path(img["file"])
+    cap = img.get("caption")
+    figcap = ('<figcaption class="blog-figcap">%s</figcaption>' % esc(cap)) if cap else ""
+    if web:
+        ss = _variant_srcset(web, [768, 1200, 1600])
+        srcset = (' srcset="%s" sizes="(min-width:760px) 720px, 100vw"' % esca(ss)) if ss else ""
+        tag = ('<img class="blog-inline__img" src="%s"%s alt="%s" width="1600" height="900" loading="lazy" decoding="async">'
+               % (esca(web), srcset, esca(img["alt"])))
+    else:
+        tag = placeholder_svg("sea_islands", cls="ph blog-inline__ph")
+    return '<figure class="blog-inline">%s%s</figure>' % (tag, figcap)
+
+def blog_cta(tour_id, text):
+    t = TOUR_BY_ID.get(tour_id)
+    if not t:
+        return ""
+    name = t["content"][BLOG_LANG]["name"]
+    url = url_tour(BLOG_LANG, t["slug"])
+    unit = price_unit(BLOG_LANG, t)
+    # Internal link to the KeRo tour page (where the booking flow lives). No
+    # wa.me here, so the blog needs no booking dialog; conversions stay on the
+    # tested tour pages.
+    return ("""<aside class="blog-cta">
+<p>%s</p>
+<div class="blog-cta__card">
+<div class="blog-cta__meta"><b>%s</b><span class="blog-cta__price">&euro;%d %s</span></div>
+<a class="btn btn--primary" href="%s">%s<span>%s</span></a>
+</div>
+</aside>""" % (blog_inline(text), esc(name), t["price"], esc(unit),
+               esca(url), ICON["arrow"], esc(BLOG_UI["cta_see"])))
+
+def blog_block(b, article):
+    t = b["t"]
+    if t == "p":
+        return "<p>%s</p>" % blog_inline(b["text"])
+    if t == "h3":
+        return "<h3>%s</h3>" % esc(b["text"])
+    if t == "ul":
+        return "<ul>%s</ul>" % "".join("<li>%s</li>" % blog_inline(x) for x in b["items"])
+    if t == "ol":
+        return "<ol>%s</ol>" % "".join("<li>%s</li>" % blog_inline(x) for x in b["items"])
+    if t == "table":
+        head = "".join("<th>%s</th>" % blog_inline(h) for h in b["head"])
+        rows = "".join("<tr>%s</tr>" % "".join("<td>%s</td>" % blog_inline(c) for c in r) for r in b["rows"])
+        return ('<div class="blog-tablewrap"><table class="blog-table">'
+                '<thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>' % (head, rows))
+    if t == "note":
+        title = ('<b class="blog-note__title">%s</b>' % esc(b["title"])) if b.get("title") else ""
+        return '<aside class="blog-note">%s<p>%s</p></aside>' % (title, blog_inline(b["text"]))
+    if t == "image":
+        return blog_inline_image(article["images"][b["id"]])
+    if t == "cta":
+        return blog_cta(b["tour"], b["text"])
+    return ""
+
+def blog_body_html(article):
+    parts, h2i = [], 0
+    for b in article["body"]:
+        if b["t"] == "h2":
+            h2i += 1
+            parts.append('<h2 id="sek-%d">%s</h2>' % (h2i, esc(b["text"])))
+        else:
+            parts.append(blog_block(b, article))
+    return "".join(parts)
+
+def blog_toc(article):
+    toc = article.get("toc") or []
+    if not toc:
+        return ""
+    items = "".join('<li><a href="#sek-%d">%s</a></li>' % (i + 1, esc(t)) for i, t in enumerate(toc))
+    return ('<nav class="blog-toc" aria-label="%s"><b>%s</b><ol>%s</ol></nav>'
+            % (esca(BLOG_UI["toc_title"]), esc(BLOG_UI["toc_title"]), items))
+
+def blog_faq(article):
+    faq = article.get("faq") or []
+    if not faq:
+        return ""
+    items = "".join('<details%s><summary>%s</summary><div>%s</div></details>'
+                    % (" open" if i == 0 else "", esc(q), esc(a))
+                    for i, (q, a) in enumerate(faq))
+    return ('<section class="blog-faq"><h2 id="faq">%s</h2><div class="faq">%s</div></section>'
+            % (esc(BLOG_UI["faq_title"]), items))
+
+def blog_tour_card(t, delay=0):
+    """Related-tour card for the blog: tour cover + real price + a single
+    internal link to the KeRo detail page (no booking dialog dependency)."""
+    url = url_tour(BLOG_LANG, t["slug"])
+    cat = CATEGORIES[BLOG_LANG][t["category"]]
+    name = t["content"][BLOG_LANG]["name"]
+    return """<article class="card reveal" data-delay="%d">
+<a class="card__media" href="%s" aria-label="%s">%s<span class="card__cat">%s</span>%s</a>
+<div class="card__body">
+<h3 class="card__title">%s</h3>
+<p class="card__tag">%s</p>
+<div class="card__actions"><a class="btn btn--primary btn--sm btn--block" href="%s">%s<span>%s</span></a></div>
+</div>
+</article>""" % (delay % 3, esca(url), esca(name), media(t, BLOG_LANG), esc(cat), card_price(BLOG_LANG, t),
+                 esc(name), esc(t["content"][BLOG_LANG]["tagline"]),
+                 esca(url), ICON["arrow"], esc(BLOG_UI["cta_see"]))
+
+def blog_card_media(article):
+    web = blog_image_path(article["hero"]["file"])
+    alt = esca(article["hero"]["alt"])
+    if web:
+        ss = _variant_srcset(web, [400, 800])
+        srcset = (' srcset="%s" sizes="(min-width:560px) 46vw, 92vw"' % esca(ss)) if ss else ""
+        return '<img src="%s" alt="%s"%s width="800" height="450" loading="lazy" decoding="async">' % (esca(web), alt, srcset)
+    return placeholder_svg(_blog_ph_category(article)) + ('<span class="ph__badge">%s</span>' % ICON["camera"])
+
+def blog_card(article, delay=0, lead=False):
+    url = url_blog_article(article["slug"])
+    cat = BLOG_CATEGORIES.get(article["category"], "")
+    badge = ('<span class="blog-card__badge">%s</span>' % esc(BLOG_UI["index_lead_card"])) if lead else ""
+    return """<article class="card blog-card reveal" data-category="%s" data-delay="%d">
+<a class="card__media blog-card__media" href="%s" aria-label="%s">%s<span class="card__cat">%s</span>%s</a>
+<div class="card__body">
+<h3 class="card__title">%s</h3>
+<p class="card__tag">%s</p>
+<div class="blog-card__foot"><span class="blog-card__meta">%d %s</span><a class="blog-card__more" href="%s">%s</a></div>
+</div>
+</article>""" % (article["category"], delay % 3, esca(url), esca(article["card_title"]),
+                 blog_card_media(article), esc(cat), badge,
+                 esc(article["card_title"]), esc(article["excerpt"]),
+                 article["read_min"], esc(BLOG_UI["read_min"]), esca(url), esc("Czytaj →"))
+
+def blog_related_tours(article):
+    ids = article.get("related_tours") or []
+    tours = [TOUR_BY_ID[i] for i in ids if i in TOUR_BY_ID and TOUR_BY_ID[i]["active"]][:3]
+    if not tours:
+        return ""
+    cards = "".join(blog_tour_card(t, i) for i, t in enumerate(tours))
+    return ('<section class="blog-related"><h2>%s</h2><div class="related">%s</div></section>'
+            % (esc(BLOG_UI["related_tours"]), cards))
+
+def blog_related_articles(article, all_articles):
+    by = {a["slug"]: a for a in all_articles}
+    arts = [by[s] for s in (article.get("related_articles") or []) if s in by][:3]
+    if not arts:
+        return ""
+    cards = "".join(blog_card(a, i) for i, a in enumerate(arts))
+    return ('<section class="blog-related"><h2>%s</h2><div class="grid blog-grid">%s</div></section>'
+            % (esc(BLOG_UI["related_articles"]), cards))
+
+def _pl_date(iso):
+    try:
+        y, m, d = iso.split("-")
+        return "%s.%s.%s" % (d, m, y)
+    except ValueError:
+        return iso
+
+def blog_og_image(article):
+    if article:
+        web = blog_image_path(article["hero"]["file"])
+        if web:
+            return abs_url(web)
+    return abs_url("/assets/img/og-logo.png")
+
+def blog_breadcrumb_nav(current_title=None):
+    tr = T[BLOG_LANG]
+    home = url_home(BLOG_LANG)
+    if current_title is None:
+        crumb = '<span>%s</span>' % esc(BLOG_UI["nav_blog"])
+    else:
+        crumb = '<a href="%s">%s</a><span>/</span><span>%s</span>' % (
+            esca(url_blog_index()), esc(BLOG_UI["nav_blog"]), esc(current_title))
+    return ('<div class="container"><nav class="breadcrumb" aria-label="breadcrumb">'
+            '<a href="%s">%s</a><span>/</span>%s</nav></div>'
+            % (esca(home), esc(tr["nav_home"]), crumb))
+
+def blog_index_jsonld(articles):
+    idx = url_blog_index()
+    bc = {"@type": "BreadcrumbList", "@id": abs_url(idx) + "#breadcrumb", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": T[BLOG_LANG]["nav_home"], "item": abs_url(url_home(BLOG_LANG))},
+        {"@type": "ListItem", "position": 2, "name": BLOG_UI["nav_blog"], "item": abs_url(idx)}]}
+    webpage = sd_webpage(BLOG_LANG, idx, BLOG_UI["index_h1"], blog_og_image(None), breadcrumb_id=bc["@id"])
+    blog_entity = {
+        "@type": "Blog", "@id": abs_url(idx) + "#blog", "name": BLOG_UI["index_h1"],
+        "url": abs_url(idx), "inLanguage": HTML_LANG[BLOG_LANG], "publisher": {"@id": BIZ_ID},
+        "blogPost": [{"@type": "BlogPosting", "@id": abs_url(url_blog_article(a["slug"])) + "#post",
+                      "headline": a["title"], "url": abs_url(url_blog_article(a["slug"])),
+                      "datePublished": a["date"], "dateModified": a["updated"]} for a in articles],
+    }
+    return {"@context": "https://schema.org",
+            "@graph": [sd_website(BLOG_LANG), sd_org(BLOG_LANG), webpage, blog_entity, bc]}
+
+def blog_article_jsonld(article):
+    a = article
+    canonical = url_blog_article(a["slug"])
+    img = blog_og_image(a)
+    post = {
+        "@type": "BlogPosting", "@id": abs_url(canonical) + "#post",
+        "headline": a["title"], "description": a["meta_desc"], "url": abs_url(canonical),
+        "mainEntityOfPage": {"@id": abs_url(canonical) + "#webpage"},
+        "inLanguage": HTML_LANG[BLOG_LANG], "image": [img],
+        "datePublished": a["date"], "dateModified": a["updated"],
+        # Author + publisher are the operator (a truthful Organization), never a
+        # fabricated person or invented credentials.
+        "author": {"@type": "Organization", "@id": BIZ_ID, "name": cfg.BRAND_NAME},
+        "publisher": {"@id": BIZ_ID},
+        "articleSection": BLOG_CATEGORIES.get(a["category"], ""),
+    }
+    bc = {"@type": "BreadcrumbList", "@id": abs_url(canonical) + "#breadcrumb", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": T[BLOG_LANG]["nav_home"], "item": abs_url(url_home(BLOG_LANG))},
+        {"@type": "ListItem", "position": 2, "name": BLOG_UI["nav_blog"], "item": abs_url(url_blog_index())},
+        {"@type": "ListItem", "position": 3, "name": a["card_title"], "item": abs_url(canonical)}]}
+    webpage = sd_webpage(BLOG_LANG, canonical, a["title"], img,
+                         about_id=post["@id"], breadcrumb_id=bc["@id"])
+    graph = [post, sd_org(BLOG_LANG), webpage, bc]
+    if a.get("faq"):
+        graph.append({"@type": "FAQPage", "@id": abs_url(canonical) + "#faqpage",
+                      "mainEntity": [{"@type": "Question", "name": q,
+                                      "acceptedAnswer": {"@type": "Answer", "text": ans}}
+                                     for q, ans in a["faq"]]})
+    return {"@context": "https://schema.org", "@graph": graph}
+
+def blog_ordered(articles):
+    by = {a["slug"]: a for a in articles}
+    ordered = [by[s] for s in INDEX_ORDER if s in by]
+    for a in articles:
+        if a not in ordered:
+            ordered.append(a)
+    return ordered
+
+def blog_published_articles():
+    return [a for a in ARTICLES if a.get("published")]
+
+def build_blog_index(public_tours, articles):
+    lang = BLOG_LANG
+    alt_paths = {lang: url_blog_index()}
+    cards = "".join(blog_card(a, i, lead=(i == 0)) for i, a in enumerate(articles))
+    hero = ('<section class="section blog-index-hero"><div class="container">'
+            '<span class="section__kicker">%s %s</span>'
+            '<h1>%s</h1><p class="blog-index-hero__sub">%s</p></div></section>'
+            % (ICON["info"], esc(BLOG_UI["nav_blog"]), esc(BLOG_UI["index_h1"]), esc(BLOG_UI["index_intro"])))
+    grid = ('<section class="section"><div class="container"><div class="grid blog-grid">%s</div></div></section>'
+            % cards)
+    jsonld = blog_index_jsonld(articles)
+    body = ("<style>" + BLOG_CSS + "</style>"
+            + header(lang, alt_paths, public_tours)
+            + '<main id="main" class="blogpage">'
+            + blog_breadcrumb_nav(None) + hero + grid
+            + "</main>" + footer(lang, public_tours) + wa_float(lang))
+    doc = head(lang, BLOG_UI["index_title"], BLOG_UI["index_desc"], url_blog_index(),
+               alt_paths, url_blog_index(), jsonld,
+               og_image=blog_og_image(None), og_image_alt=BLOG_UI["index_h1"],
+               og_type="website") + body + scripts()
+    write(os.path.join(DIST, lang, BLOG_UI["base_path"], "index.html"), doc)
+
+def build_blog_article(public_tours, article, articles):
+    lang = BLOG_LANG
+    a = article
+    canonical = url_blog_article(a["slug"])
+    alt_paths = {lang: canonical}
+    cat = BLOG_CATEGORIES.get(a["category"], "")
+    meta = ('<div class="blog-meta"><span class="blog-meta__cat">%s</span>'
+            '<span class="blog-meta__dot">&middot;</span><span>%d %s</span>'
+            '<span class="blog-meta__dot">&middot;</span>'
+            '<time datetime="%s">%s %s</time></div>'
+            % (esc(cat), a["read_min"], esc(BLOG_UI["read_min"]), esca(a["updated"]),
+               esc(BLOG_UI["updated_label"]), esc(_pl_date(a["updated"]))))
+    article_html = ("""<article class="section blog-article"><div class="container blog-wrap">
+<header class="blog-head">
+%s
+<h1>%s</h1>
+<p class="blog-lead">%s</p>
+</header>
+%s
+%s
+<div class="blog-prose">
+%s
+</div>
+%s
+%s
+%s
+</div></article>""" % (meta, esc(a["title"]), esc(a["excerpt"]),
+                       blog_hero_media(a, eager=True), blog_toc(a),
+                       blog_body_html(a), blog_faq(a),
+                       blog_related_tours(a), blog_related_articles(a, articles)))
+    heroweb = blog_image_path(a["hero"]["file"])
+    preload_srcset = _variant_srcset(heroweb, [768, 1200, 1600]) if heroweb else ""
+    body = ("<style>" + BLOG_CSS + "</style>"
+            + header(lang, alt_paths, public_tours)
+            + '<main id="main" class="blogpage">'
+            + blog_breadcrumb_nav(a["card_title"]) + article_html
+            + "</main>" + footer(lang, public_tours) + wa_float(lang))
+    doc = head(lang, a["seo_title"], a["meta_desc"], canonical, alt_paths, canonical,
+               blog_article_jsonld(a),
+               og_image=blog_og_image(a), og_image_alt=a["hero"]["alt"], og_type="article",
+               preload_img=(heroweb if (heroweb and not preload_srcset) else None),
+               preload_srcset=preload_srcset,
+               preload_sizes="(min-width:760px) 760px, 100vw") + body + scripts()
+    write(os.path.join(DIST, lang, BLOG_UI["base_path"], a["slug"], "index.html"), doc)
+
+# ---------------------------------------------------------------------------
 # root splash + 404
 # ---------------------------------------------------------------------------
 def build_root(public_tours):
@@ -1307,13 +1743,20 @@ def build_404():
 # ---------------------------------------------------------------------------
 # sitemap + robots
 # ---------------------------------------------------------------------------
-def build_sitemap(public_tours):
+def build_sitemap(public_tours, blog_articles=()):
     today = date.today().isoformat()
     urls = []
 
     def entry(path, alts, images=None):
         links = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (HTML_LANG[l], abs_url(alts[l])) for l in LANG_ORDER)
         links += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % abs_url(alts[cfg.DEFAULT_LANG])
+        imgs = "".join('<image:image><image:loc>%s</image:loc></image:image>' % abs_url(u) for u in (images or []))
+        return '<url><loc>%s</loc><lastmod>%s</lastmod>%s%s</url>' % (abs_url(path), today, links, imgs)
+
+    def blog_entry(path, images=None):
+        # PL-only section: self-referential hreflang (pl + x-default = same URL).
+        links = '<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (HTML_LANG[BLOG_LANG], abs_url(path))
+        links += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % abs_url(path)
         imgs = "".join('<image:image><image:loc>%s</image:loc></image:image>' % abs_url(u) for u in (images or []))
         return '<url><loc>%s</loc><lastmod>%s</lastmod>%s%s</url>' % (abs_url(path), today, links, imgs)
 
@@ -1327,6 +1770,13 @@ def build_sitemap(public_tours):
         t_imgs = gallery_files(t["id"])
         for l in LANG_ORDER:
             urls.append(entry(url_tour(l, t["slug"]), alts, t_imgs))
+
+    # Blog (PL-only), only when published.
+    if blog_articles:
+        urls.append(blog_entry(url_blog_index()))
+        for a in blog_articles:
+            hero = blog_image_path(a["hero"]["file"])
+            urls.append(blog_entry(url_blog_article(a["slug"]), [hero] if hero else None))
 
     sm = ('<?xml version="1.0" encoding="UTF-8"?>\n'
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
@@ -1372,7 +1822,21 @@ def main():
 
     build_root(public_tours)
     build_404()
-    build_sitemap(public_tours)
+
+    # Polish blog ("Poradnik turystyczny") - gated by site_config.BLOG_PUBLISHED.
+    # While False, NOTHING blog-related is emitted and production is unaffected.
+    blog_articles = []
+    if getattr(cfg, "BLOG_PUBLISHED", False):
+        blog_articles = blog_ordered(blog_published_articles())
+        for a in blog_articles:
+            if not blog_image_path(a["hero"]["file"]):
+                print("  WARN blog hero image missing: %s (placeholder used - add before go-live)" % a["hero"]["file"])
+        if blog_articles:
+            build_blog_index(public_tours, blog_articles)
+            for a in blog_articles:
+                build_blog_article(public_tours, a, blog_articles)
+
+    build_sitemap(public_tours, blog_articles)
     build_robots()
 
     by_cat = {}
@@ -1390,6 +1854,7 @@ def main():
     print("  pages generated  : %d" % (1 + len(LANG_ORDER) + len(LANG_ORDER) * len(public_tours) + 1))
     print("  WhatsApp number  : %s" % (cfg.WHATSAPP_NUMBER or "NOT SET (launch blocker)"))
     print("  lion cub         : published=%s  ads_eligible=%s" % (cfg.LION_CUB_PUBLISHED, cfg.LION_CUB_ADS_ELIGIBLE))
+    print("  blog             : published=%s  articles=%d (pl /blog/)" % (getattr(cfg, "BLOG_PUBLISHED", False), len(blog_articles)))
 
 if __name__ == "__main__":
     main()

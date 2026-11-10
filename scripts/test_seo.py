@@ -32,6 +32,12 @@ sys.path.insert(0, ROOT)
 import site_config as cfg
 from data.i18n import LANG_ORDER, HTML_LANG, OG_LOCALE, PATH_TOURS
 from data.tours import TOURS
+from data.blog import BLOG_UI
+
+# The blog is a Polish-only section (/pl/blog/...). Its pages self-reference in
+# hreflang (pl + x-default) and carry blog schema, not tour schema.
+BLOG_LANG = "pl"
+BLOG_BASE = BLOG_UI["base_path"]
 
 DIST = os.path.join(ROOT, "dist")
 SITE = cfg.SITE_URL.rstrip("/")
@@ -98,6 +104,11 @@ def lang_for(rel):
     return first if first in LANG_ORDER else "fr"
 
 
+def is_blog(rel):
+    parts = rel.split(os.sep)
+    return len(parts) >= 3 and parts[0] in LANG_ORDER and parts[1] == BLOG_BASE
+
+
 def tour_by_slug(lang, slug):
     for t in public_tours():
         if t["slug"] == slug:
@@ -121,7 +132,8 @@ def main():
         rel = os.path.relpath(f, DIST)
         html = open(f, encoding="utf-8").read()
         lang = lang_for(rel)
-        is_tour = rel.count(os.sep) >= 2   # fr/excursions/<slug>/index.html
+        blog = is_blog(rel)
+        is_tour = (not blog) and rel.count(os.sep) >= 2   # fr/excursions/<slug>/index.html
 
         # --- H1 ---
         if len(re.findall(r"<h1[ >]", html)) != 1:
@@ -186,11 +198,18 @@ def main():
                 fail("%s: og:image not found on disk (%s)" % (rel, ogimg))
 
         # --- hreflang cluster ---
-        for l in LANG_ORDER:
-            if ('hreflang="%s"' % HTML_LANG[l]) not in html:
-                fail("%s: missing hreflang %s" % (rel, HTML_LANG[l]))
-        if 'hreflang="x-default"' not in html:
-            fail("%s: missing hreflang x-default" % rel)
+        if blog:
+            # PL-only section: self-referential (pl + x-default); no fr/ro twin.
+            if ('hreflang="%s"' % HTML_LANG[BLOG_LANG]) not in html:
+                fail("%s: missing hreflang %s" % (rel, HTML_LANG[BLOG_LANG]))
+            if 'hreflang="x-default"' not in html:
+                fail("%s: missing hreflang x-default" % rel)
+        else:
+            for l in LANG_ORDER:
+                if ('hreflang="%s"' % HTML_LANG[l]) not in html:
+                    fail("%s: missing hreflang %s" % (rel, HTML_LANG[l]))
+            if 'hreflang="x-default"' not in html:
+                fail("%s: missing hreflang x-default" % rel)
 
         # --- images have alt (or aria-hidden). Skip JS-populated placeholders
         #     (empty src=""), e.g. the shared lightbox <img>. ---
@@ -229,7 +248,18 @@ def main():
         if "GeoCoordinates" in html:
             fail("%s: unverified office GeoCoordinates in JSON-LD (remove it)" % rel)
 
-        if is_tour:
+        if blog:
+            # Blog index vs article: distinct, appropriate entity sets.
+            is_index = rel.replace(os.sep, "/").endswith("%s/index.html" % BLOG_BASE)
+            if is_index:
+                for need in ("WebSite", "TravelAgency", "WebPage", "Blog"):
+                    if need not in tset:
+                        fail("%s: blog index JSON-LD missing %s" % (rel, need))
+            else:
+                for need in ("BlogPosting", "WebPage", "BreadcrumbList", "TravelAgency"):
+                    if need not in tset:
+                        fail("%s: blog article JSON-LD missing %s" % (rel, need))
+        elif is_tour:
             slug = os.path.basename(os.path.dirname(rel))
             tour = tour_by_slug(lang, slug)
             if not tour:

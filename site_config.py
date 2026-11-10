@@ -125,3 +125,21 @@ LION_CUB_ADS_ELIGIBLE = False
 
 # Default language when a visitor hits the root "/" and we cannot detect one.
 DEFAULT_LANG = "fr"
+
+# ---------------------------------------------------------------------------
+# BLOG  --  Polish-only travel guide ("Poradnik turystyczny")
+# ---------------------------------------------------------------------------
+# Master switch for the Polish blog section (data/blog.py). Mirrors the
+# LION_CUB_PUBLISHED gating pattern so the section can be prepared in the repo
+# without touching production.
+#
+# False -> build.py emits NO blog pages, NO Polish footer "Poradnik" link and
+#          NO blog sitemap entries. The live site is byte-for-byte unaffected.
+# True  -> the blog index (/pl/blog/), each published article (/pl/blog/<slug>/),
+#          the Polish footer link and the blog sitemap/hreflang entries are built.
+#
+# KEEP FALSE until the hero/inline images are dropped into assets/img/blog/ and
+# the content is approved for publication. A published article whose image is
+# still missing renders a branded placeholder (never a broken <img>); build.py
+# prints a WARN so a missing image is never shipped silently.
+BLOG_PUBLISHED = True
